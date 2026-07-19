@@ -1,0 +1,12 @@
+#include <ti_engine.h>
+
+int32_t main(int32_t argc, char **argv) {
+
+  window_create(1920, 1080, "Engine");
+  window_run();
+  window_destroy();
+
+  HEAP_RESET();
+
+  return 0;
+}

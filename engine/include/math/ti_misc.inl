@@ -1,3 +1,7 @@
+#include <math.h>
+
+#include <math/ti_constant.h>
+
 __forceinline float deg_to_rad(float a) {
   return a * DEG_TO_RAD;
 }
@@ -35,7 +39,7 @@ __forceinline uint32_t clampu(uint32_t a, uint32_t min, uint32_t max) {
 }
 
 __forceinline float signf(float a) {
-  return (a > 0.0F) - (a < 0.0F);
+  return (float)((a > 0.0F) - (a < 0.0F));
 }
 
 __forceinline int32_t floor_div32(float x) {

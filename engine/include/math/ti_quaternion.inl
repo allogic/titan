@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 __forceinline quaternion_t quaternion_zero(void) {
   quaternion_t q = {
     0.0F,

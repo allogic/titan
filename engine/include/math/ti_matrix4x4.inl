@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 __forceinline matrix4x4_t matrix4x4_zero(void) {
   matrix4x4_t m = {
     0.0F,

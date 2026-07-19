@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 __forceinline vector3_t vector3_zero(void) {
   vector3_t v = {
     0.0F,
@@ -180,18 +182,18 @@ __forceinline vector3_t vector3_inv(vector3_t a) {
 }
 __forceinline vector3_t vector3_floor(vector3_t a) {
   vector3_t v = {
-    floor(a.x),
-    floor(a.y),
-    floor(a.z),
+    floorf(a.x),
+    floorf(a.y),
+    floorf(a.z),
   };
 
   return v;
 }
 __forceinline vector3_t vector3_ceil(vector3_t a) {
   vector3_t v = {
-    ceil(a.x),
-    ceil(a.y),
-    ceil(a.z),
+    ceilf(a.x),
+    ceilf(a.y),
+    ceilf(a.z),
   };
 
   return v;

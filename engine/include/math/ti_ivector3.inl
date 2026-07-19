@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 __forceinline ivector3_t ivector3_zero(void) {
   ivector3_t v = {
     0,

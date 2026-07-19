@@ -1,7 +1,9 @@
 #ifndef MATH_MATRIX4X4_H
 #define MATH_MATRIX4X4_H
 
-#include <fwd.h>
+#include <stdint.h>
+
+#include <math/ti_fwd.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,6 +28,6 @@ __forceinline void matrix4x4_print(matrix4x4_t a);
 }
 #endif // __cplusplus
 
-#include <math/matrix4x4.inl>
+#include <math/ti_matrix4x4.inl>
 
 #endif // MATH_MATRIX4X4_H

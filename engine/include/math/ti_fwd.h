@@ -1,5 +1,7 @@
-#ifndef FWD_H
-#define FWD_H
+#ifndef MATH_FWD_H
+#define MATH_FWD_H
+
+#include <stdint.h>
 
 typedef struct vector2_t {
   float x;
@@ -44,4 +46,4 @@ typedef struct matrix4x4_t {
   float m30, m31, m32, m33;
 } matrix4x4_t;
 
-#endif // FWD_H
+#endif // MATH_FWD_H

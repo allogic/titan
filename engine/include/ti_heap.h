@@ -1,6 +1,9 @@
 #ifndef HEAP_H
 #define HEAP_H
 
+#include <stdint.h>
+#include <time.h>
+
 typedef struct mem_block_t {
   char const *file_name;
   char const *function_name;

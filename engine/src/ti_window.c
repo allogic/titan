@@ -1,6 +1,18 @@
-#include <pch.h>
+#include <stdio.h>
 
-#include <window.h>
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+
+#define VK_USE_PLATFORM_WIN32_KHR
+#include <vulkan/vulkan.h>
+
+#include <ti_window.h>
+#include <ti_swapchain.h>
+#include <ti_macros.h>
+#include <ti_mod.h>
+
+#include <math/ti_misc.h>
 
 #define VENDOR_ID_NVIDIA (0x10DE)
 #define VENDOR_ID_AMD (0x1002)
@@ -51,11 +63,20 @@ static char const *s_instance_extension[] = {
 
 static char const *s_device_extension[] = {
   "VK_KHR_swapchain",
-  "VK_KHR_fragment_shading_rate", // TODO: remove me..
   "VK_KHR_ray_tracing_pipeline",
   "VK_KHR_acceleration_structure",
   "VK_KHR_deferred_host_operations",
-  "VK_EXT_mesh_shader", // TODO: do i really need task/mesh shaders..
+  "VK_EXT_mesh_shader", // TODO: do we really need task/mesh shaders..
+};
+
+static HMODULE s_module_handle = 0;
+static HWND s_window_handle = 0;
+static LARGE_INTEGER s_time_freq = {0};
+static LARGE_INTEGER s_time_prev = {0};
+static LARGE_INTEGER s_time_curr = {0};
+
+static mod_t s_editor_mod = {
+  .file_path = ROOT_DIR "/out/build/x64-Debug/mods/editor/editor.dll",
 };
 
 VkPhysicalDeviceRayTracingPipelinePropertiesKHR g_physical_device_ray_tracing_pipeline_properties = {
@@ -141,8 +162,10 @@ void window_create(uint32_t width, uint32_t height, char const *title) {
   // framebuffer_create();
   // renderer_create();
 
-  QueryPerformanceFrequency(&g_window.time_freq);
-  QueryPerformanceCounter(&g_window.time_prev);
+  mod_load(&s_editor_mod);
+
+  QueryPerformanceFrequency(&s_time_freq);
+  QueryPerformanceCounter(&s_time_prev);
 }
 void window_run(void) {
   while (g_window.is_running) {
@@ -174,6 +197,18 @@ void window_run(void) {
         g_window.mouse_key_states[mouse_key_index] = KEY_STATE_UP;
       }
 
+      static MSG msg = {0};
+
+      while (PeekMessageA(&msg, 0, 0, 0, PM_REMOVE)) {
+
+        TranslateMessage(&msg);
+        DispatchMessageA(&msg);
+      }
+
+      // renderer_draw();
+
+      QueryPerformanceCounter(&s_time_curr);
+
       mouse_key_index++;
     }
 
@@ -193,26 +228,17 @@ void window_run(void) {
       // framebuffer_create();
     }
 
-    while (PeekMessageA(&g_window.window_message, 0, 0, 0, PM_REMOVE)) {
-
-      TranslateMessage(&g_window.window_message);
-      DispatchMessageA(&g_window.window_message);
-    }
-
-    // renderer_draw();
-
-    QueryPerformanceCounter(&g_window.time_curr);
-
-    double time_freq = (double)g_window.time_freq.QuadPart;
-    double time_prev = (double)g_window.time_prev.QuadPart;
-    double time_curr = (double)g_window.time_curr.QuadPart;
+    double time_freq = (double)s_time_freq.QuadPart;
+    double time_prev = (double)s_time_prev.QuadPart;
+    double time_curr = (double)s_time_curr.QuadPart;
 
     float delta_time = (float)((time_curr - time_prev) / time_freq);
 
     delta_time = clampf(delta_time, 0.0F, WINDOW_MAX_DELTA_TIME);
 
     g_window.delta_time = delta_time;
-    g_window.time_prev = g_window.time_curr;
+
+    s_time_prev = s_time_curr;
 
     g_window.time += delta_time;
     g_window.elapsed_time_since_fps_count_update += delta_time;
@@ -232,7 +258,7 @@ void window_run(void) {
                GIT_VERSION_HASH,
                g_window.fps_counter);
 
-      SetWindowTextA(g_window.window_handle, title_buffer);
+      SetWindowTextA(s_window_handle, title_buffer);
 
       g_window.elapsed_time_since_fps_count_update = 0.0F;
       g_window.fps_counter = 0;
@@ -244,6 +270,8 @@ void window_run(void) {
 void window_destroy(void) {
   VK_CHECK(vkQueueWaitIdle(g_window.primary_queue));
   VK_CHECK(vkQueueWaitIdle(g_window.present_queue));
+
+  mod_unload(&s_editor_mod);
 
   // dbgui_destroy();
   // renderer_destroy();
@@ -462,7 +490,7 @@ static VkBool32 window_vulkan_message_proc(VkDebugUtilsMessageSeverityFlagBitsEX
 #endif // BUILD_DEBUG
 
 static void window_create_native(void) {
-  g_window.module_handle = GetModuleHandleA(0);
+  s_module_handle = GetModuleHandleA(0);
 
   WNDCLASSEX window_class_ex = {
     .cbSize = sizeof(WNDCLASSEX),
@@ -470,7 +498,7 @@ static void window_create_native(void) {
     .lpfnWndProc = window_native_message_proc,
     .cbClsExtra = 0,
     .cbWndExtra = 0,
-    .hInstance = g_window.module_handle,
+    .hInstance = s_module_handle,
     .hIcon = LoadIconA(0, IDI_APPLICATION),
     .hCursor = LoadCursorA(0, IDC_ARROW),
     .hbrBackground = (HBRUSH)(COLOR_WINDOW + 1),
@@ -486,7 +514,7 @@ static void window_create_native(void) {
   INT window_position_x = (screen_width - g_window.window_width) / 2;
   INT window_position_y = (screen_height - g_window.window_height) / 2;
 
-  g_window.window_handle = CreateWindowExA(
+  s_window_handle = CreateWindowExA(
     0,
     s_window_class, g_window.window_title,
     WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
@@ -494,11 +522,11 @@ static void window_create_native(void) {
     g_window.window_width, g_window.window_height,
     0,
     0,
-    g_window.module_handle,
+    s_module_handle,
     &g_window);
 
-  ShowWindow(g_window.window_handle, SW_SHOW);
-  UpdateWindow(g_window.window_handle);
+  ShowWindow(s_window_handle, SW_SHOW);
+  UpdateWindow(s_window_handle);
 }
 static void window_create_instance(void) {
   uint32_t vulkan_api_version = VK_API_VERSION_1_3;
@@ -583,8 +611,8 @@ static void window_create_instance(void) {
 static void window_create_surface(void) {
   VkWin32SurfaceCreateInfoKHR win32_surface_create_info = {
     .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
-    .hwnd = g_window.window_handle,
-    .hinstance = g_window.module_handle,
+    .hwnd = s_window_handle,
+    .hinstance = s_module_handle,
   };
 
   VK_CHECK(vkCreateWin32SurfaceKHR(g_window.instance, &win32_surface_create_info, 0, &g_window.surface));
@@ -852,9 +880,9 @@ static void window_update_surface_capabilities(void) {
 }
 
 static void window_destroy_native(void) {
-  DestroyWindow(g_window.window_handle);
+  DestroyWindow(s_window_handle);
 
-  UnregisterClassA(s_window_class, g_window.module_handle);
+  UnregisterClassA(s_window_class, s_module_handle);
 }
 static void window_destroy_instance(void) {
 #ifdef BUILD_DEBUG

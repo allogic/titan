@@ -1,4 +1,8 @@
-#include <pch.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <ti_heap.h>
 
 // #define ENABLE_HEAP_TRACE
 

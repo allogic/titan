@@ -1,6 +1,10 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
+#include <stdint.h>
+
+#include <vulkan/vulkan.h>
+
 #define WINDOW_MAX_DELTA_TIME (0.1F)
 #define WINDOW_MAX_PHYSICAL_DEVICES (0x10)
 #define WINDOW_MAX_QUEUE_FAMILY_PROPERTIES_COUNT (0xFF)
@@ -131,12 +135,6 @@ typedef enum mouse_key_t {
 
 typedef struct window_t {
   char const *window_title;
-  HMODULE module_handle;
-  HWND window_handle;
-  MSG window_message;
-  LARGE_INTEGER time_freq;
-  LARGE_INTEGER time_prev;
-  LARGE_INTEGER time_curr;
   float time;
   float delta_time;
   float elapsed_time_since_fps_count_update;
@@ -210,13 +208,13 @@ void window_create(uint32_t width, uint32_t height, char const *title);
 void window_run(void);
 void window_destroy(void);
 
-uint32_t window_is_keyboard_key_pressed(keyboard_key_t key);
-uint32_t window_is_keyboard_key_held(keyboard_key_t key);
-uint32_t window_is_keyboard_key_released(keyboard_key_t key);
+// uint32_t window_is_keyboard_key_pressed(keyboard_key_t key);
+// uint32_t window_is_keyboard_key_held(keyboard_key_t key);
+// uint32_t window_is_keyboard_key_released(keyboard_key_t key);
 
-uint32_t window_is_mouse_key_pressed(mouse_key_t key);
-uint32_t window_is_mouse_key_held(mouse_key_t key);
-uint32_t window_is_mouse_key_released(mouse_key_t key);
+// uint32_t window_is_mouse_key_pressed(mouse_key_t key);
+// uint32_t window_is_mouse_key_held(mouse_key_t key);
+// uint32_t window_is_mouse_key_released(mouse_key_t key);
 
 #ifdef __cplusplus
 }

@@ -1,7 +1,7 @@
 #ifndef MATH_QUATERNION_H
 #define MATH_QUATERNION_H
 
-#include <fwd.h>
+#include <math/ti_fwd.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,6 +36,6 @@ __forceinline void quaternion_print(quaternion_t a);
 }
 #endif // __cplusplus
 
-#include <math/quaternion.inl>
+#include <math/ti_quaternion.inl>
 
 #endif // MATH_QUATERNION_H

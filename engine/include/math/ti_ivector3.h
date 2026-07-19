@@ -1,7 +1,9 @@
 #ifndef MATH_IVECTOR3_H
 #define MATH_IVECTOR3_H
 
-#include <fwd.h>
+#include <stdint.h>
+
+#include <math/ti_fwd.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,6 +38,6 @@ __forceinline void ivector3_print(ivector3_t a);
 }
 #endif // __cplusplus
 
-#include <math/ivector3.inl>
+#include <math/ti_ivector3.inl>
 
 #endif // MATH_IVECTOR3_H

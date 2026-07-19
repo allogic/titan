@@ -1,7 +1,9 @@
 #ifndef MATH_MISC_H
 #define MATH_MISC_H
 
-#include <fwd.h>
+#include <stdint.h>
+
+#include <math/ti_fwd.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,6 +25,6 @@ __forceinline int32_t floor_div32(float x);
 }
 #endif // __cplusplus
 
-#include <math/misc.inl>
+#include <math/ti_misc.inl>
 
 #endif // MATH_MISC_H

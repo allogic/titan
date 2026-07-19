@@ -1,7 +1,7 @@
 #ifndef MATH_VECTOR4_H
 #define MATH_VECTOR4_H
 
-#include <fwd.h>
+#include <math/ti_fwd.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,6 +32,6 @@ __forceinline void vector4_print(vector4_t a);
 }
 #endif // __cplusplus
 
-#include <math/vector4.inl>
+#include <math/ti_vector4.inl>
 
 #endif // MATH_VECTOR4_H
