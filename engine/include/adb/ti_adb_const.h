@@ -1,0 +1,6 @@
+#ifndef TI_ADB_CONST_H
+#define TI_ADB_CONST_H
+
+#define TI_ADB_MAGIC (0xAA11BB22CC33DD44)
+
+#endif // TI_ADB_CONST_H

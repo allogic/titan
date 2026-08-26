@@ -1,2 +1,0 @@
-glslangValidator -I"." -V --target-env vulkan1.3 -o debug/line_renderer.vert.spv debug/line_renderer.vert
-glslangValidator -I"." -V --target-env vulkan1.3 -o debug/line_renderer.frag.spv debug/line_renderer.frag

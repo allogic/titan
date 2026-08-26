@@ -1,0 +1,4 @@
+#ifndef TI_PHYSIC_CONST_H
+#define TI_PHYSIC_CONST_H
+
+#endif // TI_PHYSIC_CONST_H

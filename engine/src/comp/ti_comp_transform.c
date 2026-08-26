@@ -1,0 +1,102 @@
+#include <ti_pch.h>
+
+void transform_init(transform_t *transform) {
+  transform->position_x = 0.0F;
+  transform->position_y = 0.0F;
+  transform->position_z = 0.0F;
+
+  transform->rotation_x = 0.0F;
+  transform->rotation_y = 0.0F;
+  transform->rotation_z = 0.0F;
+  transform->rotation_w = 1.0F;
+
+  transform->scale_x = 1.0F;
+  transform->scale_y = 1.0F;
+  transform->scale_z = 1.0F;
+}
+// fmat4x4_t transform_matrix(transform_t *transform) {
+//   float xx = transform->world_rotation.x * transform->world_rotation.x;
+//   float yy = transform->world_rotation.y * transform->world_rotation.y;
+//   float zz = transform->world_rotation.z * transform->world_rotation.z;
+//
+//   float xy = transform->world_rotation.x * transform->world_rotation.y;
+//   float xz = transform->world_rotation.x * transform->world_rotation.z;
+//   float yz = transform->world_rotation.y * transform->world_rotation.z;
+//
+//   float wx = transform->world_rotation.w * transform->world_rotation.x;
+//   float wy = transform->world_rotation.w * transform->world_rotation.y;
+//   float wz = transform->world_rotation.w * transform->world_rotation.z;
+//
+//   fmat4x4_t m = {
+//     (1.0F - 2.0F * (yy + zz)) * transform->world_scale.x,
+//     2.0F * (xy - wz) * transform->world_scale.y,
+//     2.0F * (xz + wy) * transform->world_scale.z,
+//     0.0F,
+//     2.0F * (xy + wz) * transform->world_scale.x,
+//     (1.0F - 2.0F * (xx + zz)) * transform->world_scale.y,
+//     2.0F * (yz - wx) * transform->world_scale.z,
+//     0.0F,
+//     2.0F * (xz - wy) * transform->world_scale.x,
+//     2.0F * (yz + wx) * transform->world_scale.y,
+//     (1.0F - 2.0F * (xx + yy)) * transform->world_scale.z,
+//     0.0F,
+//     transform->world_position.x,
+//     transform->world_position.y,
+//     transform->world_position.z,
+//     1.0F,
+//   };
+//
+//   return m;
+// }
+
+// void transform_compute_world_position(transform_t *transform) {
+//   if (transform->parent) {
+//     transform->world_position = fvec3_add(transform->parent->world_position, fvec3_rotate(transform->local_position, transform->parent->world_rotation));
+//   } else {
+//     transform->world_position = transform->local_position;
+//   }
+//
+//   uint32_t child_index = 0;
+//   uint32_t child_count = transform->child_count;
+//
+//   while (child_index < child_count) {
+//
+//     transform_compute_world_position(transform->children[child_index]);
+//
+//     child_index++;
+//   }
+// }
+// void transform_compute_world_rotation(transform_t *transform) {
+//   if (transform->parent) {
+//     transform->world_rotation = fquat_mul(transform->local_rotation, transform->parent->world_rotation);
+//   } else {
+//     transform->world_rotation = transform->local_rotation;
+//   }
+//
+//   uint32_t child_index = 0;
+//   uint32_t child_count = transform->child_count;
+//
+//   while (child_index < child_count) {
+//
+//     transform_compute_world_rotation(transform->children[child_index]);
+//
+//     child_index++;
+//   }
+// }
+// void transform_compute_world_scale(transform_t *transform) {
+//   if (transform->parent) {
+//     transform->world_scale = fvec3_mul(transform->local_scale, transform->parent->world_scale);
+//   } else {
+//     transform->world_scale = transform->local_scale;
+//   }
+//
+//   uint32_t child_index = 0;
+//   uint32_t child_count = transform->child_count;
+//
+//   while (child_index < child_count) {
+//
+//     transform_compute_world_scale(transform->children[child_index]);
+//
+//     child_index++;
+//   }
+// }
