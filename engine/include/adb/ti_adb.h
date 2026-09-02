@@ -6,14 +6,19 @@
 #include <adb/ti_adb_model.h>
 #include <adb/ti_adb_joint.h>
 #include <adb/ti_adb_skin.h>
-#include <adb/ti_adb_skeleton.h>
+#include <adb/ti_adb_pipeline.h>
+#include <adb/ti_adb_font.h>
+#include <adb/ti_adb_asset.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
-uint8_t adb_import_model(char const *virtual_path, char const *model_file);
-uint8_t adb_import_dflt_shader(char const *virtual_path, char const *vertex_file, char const *fragment_file);
+extern map_t g_assets;
+
+void adb_create(void);
+adb_asset_t *adb_asset(char const *asset_path);
+void adb_destroy(void);
 
 #ifdef __cplusplus
 }

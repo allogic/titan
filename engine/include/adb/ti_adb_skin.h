@@ -5,9 +5,8 @@
 extern "C" {
 #endif // __cplusplus
 
-void adb_skin_create(adb_skin_t *skin);
-void adb_skin_load(adb_skin_t *skin, FILE *file);
-void adb_skin_store(adb_skin_t *skin, FILE *file);
+void adb_skin_load(adb_skin_t *skin, fs_file *file);
+void adb_skin_store(adb_skin_t *skin, fs_file *file);
 void adb_skin_destroy(adb_skin_t *skin);
 
 #ifdef __cplusplus

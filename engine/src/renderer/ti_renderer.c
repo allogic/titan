@@ -1,23 +1,23 @@
 #include <ti_pch.h>
 
-static void renderer_create_sync_object(void);
-static void renderer_create_command_pool(void);
-static void renderer_create_command_buffer(void);
-static void renderer_create_coherent_buffer(void);
-static void renderer_create_debug_line_buffer(void);
-static void renderer_create_full_screen_buffer(void);
+static void create_sync_object(void);
+static void create_command_pool(void);
+static void create_command_buffer(void);
+static void create_coherent_buffer(void);
+static void create_debug_line_buffer(void);
+static void create_full_screen_buffer(void);
 
-static void renderer_update_debug_line_descriptor_set(void);
-static void renderer_update_coherent_buffer(void);
+static void update_debug_line_descriptor_set(void);
+static void update_coherent_buffer(void);
 
-static void renderer_record_compute_pass(void);
-static void renderer_record_main_pass(void);
-static void renderer_record_ray_tracing_pass(void);
+static void record_compute_pass(void);
+static void record_main_pass(void);
+static void record_ray_tracing_pass(void);
 
-static void renderer_destroy_sync_object(void);
-static void renderer_destroy_command_pool(void);
-static void renderer_destroy_command_buffer(void);
-static void renderer_destroy_buffer(void);
+static void destroy_sync_object(void);
+static void destroy_command_pool(void);
+static void destroy_command_buffer(void);
+static void destroy_buffer(void);
 
 static uint32_t s_debug_line_vertex_offset = 0;
 static uint32_t s_debug_line_index_offset = 0;
@@ -142,8 +142,8 @@ static buffer_t s_camera_info_buffer = {
 
 // static pipeline_t s_debug_line_renderer_pipeline = {
 //   .pipeline_type = PIPELINE_TYPE_DFLT,
-//   .vertex_shader = ROOT_DIR "/shader/debug/line_renderer.vert.spv",
-//   .fragment_shader = ROOT_DIR "/shader/debug/line_renderer.frag.spv",
+//   .vertex_shader = "asset/shader/debug/line/vertex.spv",
+//   .fragment_shader = "asset/shader/debug/line/fragment.spv",
 //   .primitive_topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
 //   .polygon_mode = VK_POLYGON_MODE_FILL,
 //   .cull_mode = VK_CULL_MODE_BACK_BIT,
@@ -167,16 +167,16 @@ renderer_t g_renderer = {0};
 void renderer_create(void) {
   g_renderer.is_debug_enabled = 1;
 
-  renderer_create_sync_object();
-  renderer_create_command_pool();
-  renderer_create_command_buffer();
-  renderer_create_coherent_buffer();
-  renderer_create_debug_line_buffer();
-  renderer_create_full_screen_buffer();
+  create_sync_object();
+  create_command_pool();
+  create_command_buffer();
+  create_coherent_buffer();
+  create_debug_line_buffer();
+  create_full_screen_buffer();
 
   // pipeline_create(&s_debug_line_renderer_pipeline);
 
-  renderer_update_debug_line_descriptor_set();
+  update_debug_line_descriptor_set();
 }
 void renderer_draw(void) {
   TI_VK_CHECK(vkWaitForFences(g_window.device, 1, &s_frame_fence, 1, UINT64_MAX));
@@ -184,7 +184,7 @@ void renderer_draw(void) {
 
   TI_VK_CHECK(vkAcquireNextImageKHR(g_window.device, g_swapchain.handle, UINT64_MAX, s_image_available_semaphore, 0, &g_renderer.image_index));
 
-  renderer_update_coherent_buffer();
+  update_coherent_buffer();
 
   VkCommandBufferBeginInfo command_buffer_begin_info = {
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -195,9 +195,9 @@ void renderer_draw(void) {
   TI_VK_CHECK(vkResetCommandBuffer(g_renderer.command_buffer, 0));
   TI_VK_CHECK(vkBeginCommandBuffer(g_renderer.command_buffer, &command_buffer_begin_info));
 
-  renderer_record_compute_pass();
-  renderer_record_main_pass();
-  renderer_record_ray_tracing_pass();
+  record_compute_pass();
+  record_main_pass();
+  record_ray_tracing_pass();
 
   {
     VkImageMemoryBarrier image_memory_barrier = {
@@ -353,6 +353,7 @@ void renderer_draw(void) {
   VkResult result = vkQueuePresentKHR(g_window.present_queue, &present_info);
 
   switch (result) {
+
     case VK_SUBOPTIMAL_KHR:
     case VK_ERROR_OUT_OF_DATE_KHR: {
 
@@ -365,10 +366,10 @@ void renderer_draw(void) {
 void renderer_destroy(void) {
   // pipeline_destroy(&s_debug_line_renderer_pipeline);
 
-  renderer_destroy_buffer();
-  renderer_destroy_command_buffer();
-  renderer_destroy_command_pool();
-  renderer_destroy_sync_object();
+  destroy_buffer();
+  destroy_command_buffer();
+  destroy_command_pool();
+  destroy_sync_object();
 }
 
 void renderer_draw_debug_line(fvec3_t from, fvec3_t to, fvec4_t color) {
@@ -458,7 +459,7 @@ void renderer_draw_debug_box(fvec3_t position, fvec3_t size, fvec4_t color) {
   }
 }
 
-static void renderer_create_sync_object(void) {
+static void create_sync_object(void) {
   VkSemaphoreCreateInfo semaphore_create_info = {
     .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
     .flags = 0,
@@ -482,7 +483,7 @@ static void renderer_create_sync_object(void) {
   TI_VK_CHECK(vkCreateSemaphore(g_window.device, &semaphore_create_info, 0, &s_image_available_semaphore));
   TI_VK_CHECK(vkCreateFence(g_window.device, &fence_create_info, 0, &s_frame_fence));
 }
-static void renderer_create_command_pool(void) {
+static void create_command_pool(void) {
   VkCommandPoolCreateInfo command_pool_create_info = {
     .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
     .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
@@ -491,7 +492,7 @@ static void renderer_create_command_pool(void) {
 
   TI_VK_CHECK(vkCreateCommandPool(g_window.device, &command_pool_create_info, 0, &g_renderer.command_pool));
 }
-static void renderer_create_command_buffer(void) {
+static void create_command_buffer(void) {
   VkCommandBufferAllocateInfo command_buffer_allocate_info = {
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
     .commandPool = g_renderer.command_pool,
@@ -501,7 +502,7 @@ static void renderer_create_command_buffer(void) {
 
   TI_VK_CHECK(vkAllocateCommandBuffers(g_window.device, &command_buffer_allocate_info, &g_renderer.command_buffer));
 }
-static void renderer_create_coherent_buffer(void) {
+static void create_coherent_buffer(void) {
   buffer_create(&s_time_info_buffer);
   buffer_create(&s_screen_info_buffer);
   buffer_create(&s_mouse_info_buffer);
@@ -533,19 +534,19 @@ static void renderer_create_coherent_buffer(void) {
   g_renderer.camera_info_descriptor_buffer_info.buffer = s_camera_info_buffer.buffer_handle;
   g_renderer.camera_info_descriptor_buffer_info.range = VK_WHOLE_SIZE;
 }
-static void renderer_create_debug_line_buffer(void) {
+static void create_debug_line_buffer(void) {
   buffer_create(&s_debug_line_vertex_buffer);
   buffer_create(&s_debug_line_index_buffer);
 
   buffer_map(&s_debug_line_vertex_buffer);
   buffer_map(&s_debug_line_index_buffer);
 }
-static void renderer_create_full_screen_buffer(void) {
+static void create_full_screen_buffer(void) {
   buffer_create(&s_full_screen_vertex_buffer);
   buffer_create(&s_full_screen_index_buffer);
 }
 
-static void renderer_update_debug_line_descriptor_set(void) {
+static void update_debug_line_descriptor_set(void) {
   // TODO
   // VkWriteDescriptorSet write_descriptor_set[] = {
   //   {
@@ -564,7 +565,7 @@ static void renderer_update_debug_line_descriptor_set(void) {
   //
   // vkUpdateDescriptorSets(g_window.device, TI_ARRAY_COUNT(write_descriptor_set), write_descriptor_set, 0, 0);
 }
-static void renderer_update_coherent_buffer(void) {
+static void update_coherent_buffer(void) {
   g_renderer.time_info->time = g_window.time;
   g_renderer.time_info->delta_time = g_window.delta_time;
 
@@ -585,10 +586,10 @@ static void renderer_update_coherent_buffer(void) {
   g_renderer.camera_info->view_projection_inv = fmat4x4_identity(); // g_player.camera.view_projection_inv;
 }
 
-static void renderer_record_compute_pass(void) {
+static void record_compute_pass(void) {
   // TODO
 }
-static void renderer_record_main_pass(void) {
+static void record_main_pass(void) {
   VkClearValue color_clear_value = {
     .color.float32 = {
       0.0F,
@@ -668,7 +669,7 @@ static void renderer_record_main_pass(void) {
 
   vkCmdEndRenderPass(g_renderer.command_buffer);
 }
-static void renderer_record_ray_tracing_pass(void) {
+static void record_ray_tracing_pass(void) {
   {
     VkImageMemoryBarrier image_memory_barrier = {
       .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -760,7 +761,7 @@ static void renderer_record_ray_tracing_pass(void) {
   }
 }
 
-static void renderer_destroy_sync_object(void) {
+static void destroy_sync_object(void) {
   uint32_t image_index = 0;
   uint32_t image_count = g_swapchain.image_count;
 
@@ -774,13 +775,13 @@ static void renderer_destroy_sync_object(void) {
   vkDestroySemaphore(g_window.device, s_image_available_semaphore, 0);
   vkDestroyFence(g_window.device, s_frame_fence, 0);
 }
-static void renderer_destroy_command_pool(void) {
+static void destroy_command_pool(void) {
   vkDestroyCommandPool(g_window.device, g_renderer.command_pool, 0);
 }
-static void renderer_destroy_command_buffer(void) {
+static void destroy_command_buffer(void) {
   vkFreeCommandBuffers(g_window.device, g_renderer.command_pool, 1, &g_renderer.command_buffer);
 }
-static void renderer_destroy_buffer(void) {
+static void destroy_buffer(void) {
   buffer_destroy(&s_debug_line_vertex_buffer);
   buffer_destroy(&s_debug_line_index_buffer);
   buffer_destroy(&s_full_screen_vertex_buffer);

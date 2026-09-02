@@ -5,9 +5,8 @@
 extern "C" {
 #endif // __cplusplus
 
-void adb_joint_create(adb_joint_t *joint);
-void adb_joint_load(adb_joint_t *joint, FILE *file);
-void adb_joint_store(adb_joint_t *joint, FILE *file);
+void adb_joint_load(adb_joint_t *joint, fs_file *file);
+void adb_joint_store(adb_joint_t *joint, fs_file *file);
 void adb_joint_destroy(adb_joint_t *joint);
 
 #ifdef __cplusplus

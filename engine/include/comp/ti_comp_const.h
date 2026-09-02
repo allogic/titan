@@ -23,20 +23,20 @@
     float far_z;              \
   }
 
-#define TI_MATERIAL_DECL   \
-  {                        \
-    uint64_t shader_ref;   \
-    uint64_t material_ref; \
+#define TI_MATERIAL_DECL \
+  {                      \
+    char pipeline[256];  \
+    char material[256];  \
   }
 
-#define TI_MESH_DECL   \
-  {                    \
-    uint64_t mesh_ref; \
+#define TI_MESH_DECL \
+  {                  \
+    char mesh[256];  \
   }
 
-#define TI_SKELETON_DECL   \
-  {                        \
-    uint64_t skeleton_ref; \
+#define TI_SKELETON_DECL \
+  {                      \
+    char skeleton[256];  \
   }
 
 #define TI_TRANSFORM_DESC TI_STRINGIFY(TI_TRANSFORM_DECL)

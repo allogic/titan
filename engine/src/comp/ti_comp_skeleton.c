@@ -1,5 +1,5 @@
 #include <ti_pch.h>
 
 void skeleton_init(skeleton_t *skeleton) {
-  skeleton->skeleton_ref = 0;
+  memset(skeleton, 0, sizeof(skeleton_t));
 }

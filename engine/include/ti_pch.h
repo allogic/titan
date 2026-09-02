@@ -36,41 +36,48 @@
 /////////////////////////////////
 
 #include <ti_macros.h>
-#include <vulkan/ti_vulkan_macros.h>
+#include <vulkan/ti_vk_macros.h>
 
 #include <ti_const.h>
-#include <alloc/ti_alloc_const.h>
 #include <math/ti_math_const.h>
 #include <physic/ti_physic_const.h>
-#include <tree/ti_tree_const.h>
 #include <comp/ti_comp_const.h>
-#include <vulkan/ti_vulkan_const.h>
+#include <vulkan/ti_vk_const.h>
 #include <renderer/ti_renderer_const.h>
 #include <adb/ti_adb_const.h>
+#include <imgui/ti_im_const.h>
 
 #include <ti_fwd.h>
-#include <alloc/ti_alloc_fwd.h>
 #include <math/ti_math_fwd.h>
 #include <physic/ti_physic_fwd.h>
-#include <tree/ti_tree_fwd.h>
 #include <comp/ti_comp_fwd.h>
-#include <vulkan/ti_vulkan_fwd.h>
+#include <vulkan/ti_vk_fwd.h>
 #include <renderer/ti_renderer_fwd.h>
 #include <adb/ti_adb_fwd.h>
-#include <imgui/ti_imgui_fwd.h>
+#include <imgui/ti_im_fwd.h>
 
-#include <alloc/ti_alloc.h>
+#ifdef BUILD_DEBUG
+#  define TI_ALLOC(SIZE, ZERO, REF) dmalloc_alloc(__FILE__, __func__, __LINE__, SIZE, ZERO, REF)
+#  define TI_FREE(DATA) dmalloc_free(__FILE__, __func__, __LINE__, DATA)
+#else
+#  define TI_ALLOC(SIZE, ZERO, REF)
+#  define TI_FREE(DATA)
+#endif // BUILD_DEBUG
+
+#include <ti_dmalloc.h>
+#include <ti_map.h>
+#include <ti_fs.h>
+
 #include <math/ti_math.h>
 #include <physic/ti_physic.h>
-#include <tree/ti_tree.h>
 #include <comp/ti_comp.h>
-#include <vulkan/ti_vulkan.h>
+#include <vulkan/ti_vk.h>
 #include <renderer/ti_renderer.h>
 #include <adb/ti_adb.h>
-#include <imgui/ti_imgui.h>
+#include <imgui/ti_im.h>
 
-#include <ti_engine.h>
-#include <ti_fsutil.h> // TODO: obsolete..
+#include <ti_archive.h>
 #include <ti_scene.h>
+#include <ti_import.h>
 
 #endif // TI_PCH_H
