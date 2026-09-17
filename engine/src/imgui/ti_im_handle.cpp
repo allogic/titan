@@ -67,13 +67,13 @@ static void draw_handles(void) {
 
     while (map_next(&asset_it)) {
 
-      adb_asset_t *asset = (adb_asset_t *)map_value(&asset_it);
+      fs_asset_t *asset = (fs_asset_t *)map_value(&asset_it);
 
       switch (asset->type) {
 
-        case ADB_ASSET_TYPE_MODEL: {
+        case FS_ASSET_TYPE_MODEL: {
 
-          adb_model_t *model = (adb_model_t *)asset->fs_instance;
+          fs_model_t *model = (fs_model_t *)asset->fs_instance;
 
           if (ImGui::TreeNodeEx(model->name, tree_node_flags | ImGuiTreeNodeFlags_Leaf)) {
 
@@ -82,9 +82,9 @@ static void draw_handles(void) {
 
           break;
         }
-        case ADB_ASSET_TYPE_PIPELINE: {
+        case FS_ASSET_TYPE_PIPELINE: {
 
-          adb_pipeline_t *pipeline = (adb_pipeline_t *)asset->fs_instance;
+          fs_pipeline_t *pipeline = (fs_pipeline_t *)asset->fs_instance;
 
           if (ImGui::TreeNodeEx(pipeline->name, tree_node_flags | ImGuiTreeNodeFlags_Leaf)) {
 
@@ -93,11 +93,22 @@ static void draw_handles(void) {
 
           break;
         }
-        case ADB_ASSET_TYPE_FONT: {
+        case FS_ASSET_TYPE_FONT: {
 
-          adb_font_t *font = (adb_font_t *)asset->fs_instance;
+          fs_font_t *font = (fs_font_t *)asset->fs_instance;
 
           if (ImGui::TreeNodeEx(font->name, tree_node_flags | ImGuiTreeNodeFlags_Leaf)) {
+
+            ImGui::TreePop();
+          }
+
+          break;
+        }
+        case FS_ASSET_TYPE_DESCRIPTOR_BINDING: {
+
+          fs_descriptor_binding_t *descriptor_binding = (fs_descriptor_binding_t *)asset->fs_instance;
+
+          if (ImGui::TreeNodeEx(descriptor_binding->name, tree_node_flags | ImGuiTreeNodeFlags_Leaf)) {
 
             ImGui::TreePop();
           }

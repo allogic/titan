@@ -1,0 +1,16 @@
+#ifndef TI_FS_ASSET_H
+#define TI_FS_ASSET_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
+void fs_asset_load(fs_asset_t *asset, fs_file *file);
+void fs_asset_store(fs_asset_t *asset, fs_file *file);
+void fs_asset_destroy(fs_asset_t *asset);
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
+
+#endif // TI_FS_ASSET_H

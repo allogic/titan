@@ -128,7 +128,7 @@ static resolve_all_links(scene_t *scene) {
 
       if (material) {
 
-        // adb_pipeline(material->pipeline);
+        // fs_pipeline(material->pipeline);
       }
 
       entity_index++;

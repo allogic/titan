@@ -47,7 +47,7 @@ void imgui_create(void) {
     .pPoolSizes = s_imgui_descriptor_pool_sizes,
   };
 
-  TI_VK_CHECK(vkCreateDescriptorPool(g_window.device, &descriptor_pool_create_info, 0, &s_imgui_descriptor_pool));
+  TI_VK_CHECK(vkCreateDescriptorPool(g_vulkan.device, &descriptor_pool_create_info, 0, &s_imgui_descriptor_pool));
 
   IMGUI_CHECKVERSION();
 
@@ -70,19 +70,19 @@ void imgui_create(void) {
     0,
   };
 
-  adb_asset_t *commit_mono_asset = adb_asset("asset/font/commit_mono_latin_400_normal.pak");
-  adb_asset_t *material_symbols_asset = adb_asset("asset/font/material_symbols_rounded_fill.pak");
+  fs_asset_t *commit_mono_asset = fs_asset("asset/font/commit_mono_latin_400_normal.pak");
+  fs_asset_t *material_symbols_asset = fs_asset("asset/font/material_symbols_rounded_fill.pak");
 
   if (commit_mono_asset) {
 
-    adb_font_t *commit_mono = (adb_font_t *)commit_mono_asset->fs_instance; // TODO
+    fs_font_t *commit_mono = (fs_font_t *)commit_mono_asset->fs_instance; // TODO
 
     g_imgui_font_default_16 = io.Fonts->AddFontFromMemoryTTF(commit_mono->buffer, (int32_t)commit_mono->buffer_size, 16.0F, &font_config, 0);
   }
 
   if (material_symbols_asset) {
 
-    adb_font_t *material_symbols = (adb_font_t *)material_symbols_asset->fs_instance; // TODO
+    fs_font_t *material_symbols = (fs_font_t *)material_symbols_asset->fs_instance; // TODO
 
     g_imgui_font_symbols_16 = io.Fonts->AddFontFromMemoryTTF(material_symbols->buffer, (int32_t)material_symbols->buffer_size, 16.0F, &font_config, icon_glyph_ranges);
     g_imgui_font_symbols_18 = io.Fonts->AddFontFromMemoryTTF(material_symbols->buffer, (int32_t)material_symbols->buffer_size, 18.0F, &font_config, icon_glyph_ranges);
@@ -124,8 +124,9 @@ void imgui_create(void) {
   style.DockingSeparatorSize = 5.0F;
 
   ImGui::PushStyleColor(ImGuiCol_WindowBg, TI_LIGHT_GREY);
-  ImGui::PushStyleColor(ImGuiCol_Border, TI_SHALLOW_GREY);
+  ImGui::PushStyleColor(ImGuiCol_Border, TI_LIGHT_GREY);
   ImGui::PushStyleColor(ImGuiCol_ChildBg, TI_SHALLOW_GREY);
+  ImGui::PushStyleColor(ImGuiCol_PopupBg, TI_DARK_GREY);
   ImGui::PushStyleColor(ImGuiCol_FrameBg, TI_LIGHT_GREY);
   ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, TI_HOVER_GREY);
   ImGui::PushStyleColor(ImGuiCol_FrameBgActive, TI_ACTIVE_GREY);
@@ -142,6 +143,7 @@ void imgui_create(void) {
   ImGui::PushStyleColor(ImGuiCol_TabActive, TI_SHALLOW_GREY);
   ImGui::PushStyleColor(ImGuiCol_TabUnfocused, TI_SHALLOW_GREY);
   ImGui::PushStyleColor(ImGuiCol_TabUnfocusedActive, TI_SHALLOW_GREY);
+  ImGui::PushStyleColor(ImGuiCol_Text, TI_TEXT_GREY);
   ImGui::PushStyleColor(ImGuiCol_Separator, TI_LIGHT_GREY);
   ImGui::PushStyleColor(ImGuiCol_SeparatorActive, TI_LIGHT_GREY);
   ImGui::PushStyleColor(ImGuiCol_SeparatorHovered, TI_LIGHT_GREY);
@@ -152,17 +154,20 @@ void imgui_create(void) {
   ImGui::PushStyleColor(ImGuiCol_Button, TI_LIGHT_GREY);
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, TI_HOVER_GREY);
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, TI_ACTIVE_GREY);
+  ImGui::PushStyleColor(ImGuiCol_Header, TI_LIGHT_GREY);
+  ImGui::PushStyleColor(ImGuiCol_HeaderHovered, TI_HOVER_GREY);
+  ImGui::PushStyleColor(ImGuiCol_HeaderActive, TI_ACTIVE_GREY);
 
   ImGui_ImplWin32_Init(g_window.window_handle);
 
   ImGui_ImplVulkan_InitInfo imgui_vulkan_init_info = {
-    .Instance = g_window.instance,
-    .PhysicalDevice = g_window.physical_device,
-    .Device = g_window.device,
-    .QueueFamily = g_window.primary_queue_index,
-    .Queue = g_window.primary_queue,
+    .Instance = g_vulkan.instance,
+    .PhysicalDevice = g_vulkan.physical_device,
+    .Device = g_vulkan.device,
+    .QueueFamily = g_vulkan.primary_queue_index,
+    .Queue = g_vulkan.primary_queue,
     .DescriptorPool = s_imgui_descriptor_pool,
-    .MinImageCount = g_window.min_image_count,
+    .MinImageCount = g_vulkan.min_image_count,
     .ImageCount = g_swapchain.image_count,
     .PipelineCache = 0,
     .PipelineInfoMain = {
@@ -254,13 +259,13 @@ void imgui_message(HWND window_handle, UINT window_message, WPARAM w_param, LPAR
   ImGui_ImplWin32_WndProcHandler(window_handle, window_message, w_param, l_param);
 }
 void imgui_destroy(void) {
-  // TODO: obsolete..?
-  // adb_reset();
-  // hierarchy_reset();
-  // scene_reset();
-  // mesh_reset();
-  // skeleton_reset();
-  // inspector_reset();
+  fs_reset();
+  handle_reset();
+  hierarchy_reset();
+  inspector_reset();
+  sidebar_reset();
+  titlebar_reset();
+  viewport_reset();
 
   ImGui_ImplVulkan_Shutdown();
   ImGui_ImplWin32_Shutdown();
@@ -276,7 +281,7 @@ void imgui_destroy(void) {
 
   ImGui::DestroyContext();
 
-  vkDestroyDescriptorPool(g_window.device, s_imgui_descriptor_pool, 0);
+  vkDestroyDescriptorPool(g_vulkan.device, s_imgui_descriptor_pool, 0);
 }
 
 static int32_t Platform_CreateVkSurface(ImGuiViewport *vp, ImU64 vk_inst, const void *vk_allocators, ImU64 *out_vk_surface) {

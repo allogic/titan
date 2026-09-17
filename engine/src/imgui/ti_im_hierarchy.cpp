@@ -8,6 +8,7 @@ static void draw_background(void);
 static void draw_controls(void);
 static void draw_root_entities(void);
 static void draw_tree(ecs_entity_t entity);
+static void draw_context_menu(ecs_entity_t entity);
 
 static char s_entity_name[TI_PATH_SIZE] = {0};
 
@@ -117,14 +118,46 @@ static void draw_tree(ecs_entity_t entity) {
 
   uint8_t opened = ImGui::TreeNodeEx(entity_name, tree_node_flags);
 
-  if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1)) {
+  if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
 
     s_selected_entity = entity;
 
     inspector_select(INSPECTOR_TYPE_ENTITY, (void *)entity);
   }
 
+  draw_context_menu(entity);
+
+  if (opened) {
+
+    do {
+
+      uint32_t child_index = 0;
+      uint32_t child_count = child_it.count;
+
+      while (child_index < child_count) {
+
+        draw_tree(child_it.entities[child_index]);
+
+        child_index++;
+      }
+
+    } while (ecs_children_next(&child_it));
+
+    ImGui::TreePop();
+  }
+
+  ImGui::PopID();
+}
+static void draw_context_menu(ecs_entity_t entity) {
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0F, 10.0F));
+  ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 5.0F);
+  ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 1.0F);
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10.0F, 5.0F));
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10.0F, 5.0F));
+
   if (ImGui::BeginPopupContextItem("hierarchy_context_menu")) {
+
+    s_selected_entity = entity;
 
     if (ImGui::MenuItem("Remove")) {
 
@@ -147,24 +180,5 @@ static void draw_tree(ecs_entity_t entity) {
     ImGui::EndPopup();
   }
 
-  if (opened) {
-
-    do {
-
-      uint32_t child_index = 0;
-      uint32_t child_count = child_it.count;
-
-      while (child_index < child_count) {
-
-        draw_tree(child_it.entities[child_index]);
-
-        child_index++;
-      }
-
-    } while (ecs_children_next(&child_it));
-
-    ImGui::TreePop();
-  }
-
-  ImGui::PopID();
+  ImGui::PopStyleVar(5);
 }

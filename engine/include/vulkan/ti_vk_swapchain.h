@@ -5,7 +5,7 @@
 extern "C" {
 #endif // __cplusplus
 
-extern swapchain_t g_swapchain;
+extern vk_swapchain_t g_swapchain;
 
 void swapchain_create(void);
 void swapchain_destroy(void);

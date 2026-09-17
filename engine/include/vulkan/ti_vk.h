@@ -2,15 +2,52 @@
 #define TI_VK_H
 
 #include <vulkan/ti_vk_buffer.h>
-#include <vulkan/ti_vk_pipeline.h>
 #include <vulkan/ti_vk_swapchain.h>
 #include <vulkan/ti_vk_framebuffer.h>
 #include <vulkan/ti_vk_renderpass.h>
-#include <vulkan/ti_vk_window.h>
+#include <vulkan/ti_vk_model.h>
+#include <vulkan/ti_vk_pipeline.h>
+#include <vulkan/ti_vk_font.h>
+#include <vulkan/ti_vk_descriptor_binding.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
+
+extern VkPhysicalDeviceRayTracingPipelinePropertiesKHR g_physical_device_ray_tracing_pipeline_properties;
+
+extern VkPhysicalDeviceVulkan12Features g_physical_device_vulkan_12_features;
+extern VkPhysicalDeviceRayTracingPipelineFeaturesKHR g_physical_device_ray_tracing_pipeline_features;
+extern VkPhysicalDeviceAccelerationStructureFeaturesKHR g_physical_device_acceleration_structure_features;
+extern VkPhysicalDeviceMaintenance4Features g_physical_device_maintenance_4_features;
+extern VkPhysicalDeviceFragmentShadingRateFeaturesKHR g_physical_device_fragment_shading_rate_features;
+extern VkPhysicalDeviceMultiviewFeatures g_physical_device_multiview_features;
+extern VkPhysicalDeviceMeshShaderFeaturesEXT g_physical_device_mesh_shader_features;
+
+extern vk_instance_t g_vulkan;
+
+#ifdef BUILD_DEBUG
+extern PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT_proc;
+extern PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT_proc;
+#endif // BUILD_DEBUG
+
+extern PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasksEXT_proc;
+extern PFN_vkCmdTraceRaysKHR vkCmdTraceRaysKHR_proc;
+extern PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructuresKHR_proc;
+
+extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructureKHR_proc;
+extern PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelinesKHR_proc;
+
+extern PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizesKHR_proc;
+extern PFN_vkGetAccelerationStructureDeviceAddressKHR vkGetAccelerationStructureDeviceAddressKHR_proc;
+extern PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandlesKHR_proc;
+
+extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructureKHR_proc;
+
+void vk_create(void);
+void vk_destroy(void);
+
+void vk_update_surface_capabilities(void);
 
 uint32_t vk_find_memory_type_index(uint32_t type_filter, VkMemoryPropertyFlags memory_property_flags);
 

@@ -1,7 +1,7 @@
 #include <ti_pch.h>
 
-void adb_primitive_load(adb_primitive_t *primitive, fs_file *file) {
-  memset(primitive, 0, sizeof(adb_primitive_t));
+void fs_primitive_load(fs_primitive_t *primitive, fs_file *file) {
+  memset(primitive, 0, sizeof(fs_primitive_t));
 
   fs_file_read(file, primitive->name, TI_PATH_SIZE, 0);
 
@@ -40,7 +40,7 @@ void adb_primitive_load(adb_primitive_t *primitive, fs_file *file) {
   primitive->weights = TI_ALLOC(primitive->weight_stride * primitive->weight_count, 0, 0);
   fs_file_read(file, primitive->weights, primitive->weight_stride * primitive->weight_count, 0);
 }
-void adb_primitive_store(adb_primitive_t *primitive, fs_file *file) {
+void fs_primitive_store(fs_primitive_t *primitive, fs_file *file) {
   fs_file_write(file, primitive->name, TI_PATH_SIZE, 0);
 
   fs_file_write(file, &primitive->position_count, sizeof(uint64_t), 0);
@@ -71,7 +71,7 @@ void adb_primitive_store(adb_primitive_t *primitive, fs_file *file) {
   fs_file_write(file, &primitive->weight_stride, sizeof(uint64_t), 0);
   fs_file_write(file, primitive->weights, primitive->weight_stride * primitive->weight_count, 0);
 }
-void adb_primitive_destroy(adb_primitive_t *primitive) {
+void fs_primitive_destroy(fs_primitive_t *primitive) {
   if (primitive->positions) {
     TI_FREE(primitive->positions);
   }
@@ -94,5 +94,5 @@ void adb_primitive_destroy(adb_primitive_t *primitive) {
     TI_FREE(primitive->weights);
   }
 
-  memset(primitive, 0, sizeof(adb_primitive_t));
+  memset(primitive, 0, sizeof(fs_primitive_t));
 }

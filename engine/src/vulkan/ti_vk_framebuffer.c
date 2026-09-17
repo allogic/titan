@@ -3,7 +3,7 @@
 static void create_color_images(void);
 static void create_depth_images(void);
 
-framebuffer_t g_framebuffer = {0};
+vk_framebuffer_t g_framebuffer = {0};
 
 void framebuffer_create(void) {
   create_color_images();
@@ -29,7 +29,7 @@ void framebuffer_create(void) {
       .layers = 1,
     };
 
-    TI_VK_CHECK(vkCreateFramebuffer(g_window.device, &frame_buffer_create_info, 0, &g_framebuffer.handle[image_index]));
+    TI_VK_CHECK(vkCreateFramebuffer(g_vulkan.device, &frame_buffer_create_info, 0, &g_framebuffer.handle[image_index]));
 
     image_index++;
   }
@@ -40,17 +40,17 @@ void framebuffer_destroy(void) {
 
   while (image_index < image_count) {
 
-    vkDestroyFramebuffer(g_window.device, g_framebuffer.handle[image_index], 0);
+    vkDestroyFramebuffer(g_vulkan.device, g_framebuffer.handle[image_index], 0);
 
-    vkDestroySampler(g_window.device, g_framebuffer.color_sampler[image_index], 0);
-    vkDestroyImageView(g_window.device, g_framebuffer.color_image_view[image_index], 0);
-    vkFreeMemory(g_window.device, g_framebuffer.color_device_memory[image_index], 0);
-    vkDestroyImage(g_window.device, g_framebuffer.color_image[image_index], 0);
+    vkDestroySampler(g_vulkan.device, g_framebuffer.color_sampler[image_index], 0);
+    vkDestroyImageView(g_vulkan.device, g_framebuffer.color_image_view[image_index], 0);
+    vkFreeMemory(g_vulkan.device, g_framebuffer.color_device_memory[image_index], 0);
+    vkDestroyImage(g_vulkan.device, g_framebuffer.color_image[image_index], 0);
 
-    vkDestroySampler(g_window.device, g_framebuffer.depth_sampler[image_index], 0);
-    vkDestroyImageView(g_window.device, g_framebuffer.depth_image_view[image_index], 0);
-    vkFreeMemory(g_window.device, g_framebuffer.depth_device_memory[image_index], 0);
-    vkDestroyImage(g_window.device, g_framebuffer.depth_image[image_index], 0);
+    vkDestroySampler(g_vulkan.device, g_framebuffer.depth_sampler[image_index], 0);
+    vkDestroyImageView(g_vulkan.device, g_framebuffer.depth_image_view[image_index], 0);
+    vkFreeMemory(g_vulkan.device, g_framebuffer.depth_device_memory[image_index], 0);
+    vkDestroyImage(g_vulkan.device, g_framebuffer.depth_image[image_index], 0);
 
     image_index++;
   }
@@ -80,11 +80,11 @@ static void create_color_images(void) {
       .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
     };
 
-    TI_VK_CHECK(vkCreateImage(g_window.device, &image_create_info, 0, &g_framebuffer.color_image[image_index]));
+    TI_VK_CHECK(vkCreateImage(g_vulkan.device, &image_create_info, 0, &g_framebuffer.color_image[image_index]));
 
     VkMemoryRequirements memory_requirements = {0};
 
-    vkGetImageMemoryRequirements(g_window.device, g_framebuffer.color_image[image_index], &memory_requirements);
+    vkGetImageMemoryRequirements(g_vulkan.device, g_framebuffer.color_image[image_index], &memory_requirements);
 
     uint32_t memory_type_index = vk_find_memory_type_index(memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
@@ -94,8 +94,8 @@ static void create_color_images(void) {
       .memoryTypeIndex = memory_type_index,
     };
 
-    TI_VK_CHECK(vkAllocateMemory(g_window.device, &memory_allocate_info, 0, &g_framebuffer.color_device_memory[image_index]));
-    TI_VK_CHECK(vkBindImageMemory(g_window.device, g_framebuffer.color_image[image_index], g_framebuffer.color_device_memory[image_index], 0));
+    TI_VK_CHECK(vkAllocateMemory(g_vulkan.device, &memory_allocate_info, 0, &g_framebuffer.color_device_memory[image_index]));
+    TI_VK_CHECK(vkBindImageMemory(g_vulkan.device, g_framebuffer.color_image[image_index], g_framebuffer.color_device_memory[image_index], 0));
 
     VkImageViewCreateInfo image_view_create_info = {
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -109,7 +109,7 @@ static void create_color_images(void) {
       .subresourceRange.layerCount = 1,
     };
 
-    TI_VK_CHECK(vkCreateImageView(g_window.device, &image_view_create_info, 0, &g_framebuffer.color_image_view[image_index]));
+    TI_VK_CHECK(vkCreateImageView(g_vulkan.device, &image_view_create_info, 0, &g_framebuffer.color_image_view[image_index]));
 
     VkSamplerCreateInfo sampler_create_info = {
       .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -130,7 +130,7 @@ static void create_color_images(void) {
       .maxLod = VK_LOD_CLAMP_NONE,
     };
 
-    TI_VK_CHECK(vkCreateSampler(g_window.device, &sampler_create_info, 0, &g_framebuffer.color_sampler[image_index]));
+    TI_VK_CHECK(vkCreateSampler(g_vulkan.device, &sampler_create_info, 0, &g_framebuffer.color_sampler[image_index]));
 
     // TODO: move this into the renderer!
     g_framebuffer.color_descriptor_image_info[image_index].sampler = g_framebuffer.color_sampler[image_index],
@@ -164,11 +164,11 @@ static void create_depth_images(void) {
       .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
     };
 
-    TI_VK_CHECK(vkCreateImage(g_window.device, &image_create_info, 0, &g_framebuffer.depth_image[image_index]));
+    TI_VK_CHECK(vkCreateImage(g_vulkan.device, &image_create_info, 0, &g_framebuffer.depth_image[image_index]));
 
     VkMemoryRequirements memory_requirements = {0};
 
-    vkGetImageMemoryRequirements(g_window.device, g_framebuffer.depth_image[image_index], &memory_requirements);
+    vkGetImageMemoryRequirements(g_vulkan.device, g_framebuffer.depth_image[image_index], &memory_requirements);
 
     uint32_t memory_type_index = vk_find_memory_type_index(memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
@@ -178,8 +178,8 @@ static void create_depth_images(void) {
       .memoryTypeIndex = memory_type_index,
     };
 
-    TI_VK_CHECK(vkAllocateMemory(g_window.device, &memory_allocate_info, 0, &g_framebuffer.depth_device_memory[image_index]));
-    TI_VK_CHECK(vkBindImageMemory(g_window.device, g_framebuffer.depth_image[image_index], g_framebuffer.depth_device_memory[image_index], 0));
+    TI_VK_CHECK(vkAllocateMemory(g_vulkan.device, &memory_allocate_info, 0, &g_framebuffer.depth_device_memory[image_index]));
+    TI_VK_CHECK(vkBindImageMemory(g_vulkan.device, g_framebuffer.depth_image[image_index], g_framebuffer.depth_device_memory[image_index], 0));
 
     VkImageViewCreateInfo image_view_create_info = {
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -193,7 +193,7 @@ static void create_depth_images(void) {
       .subresourceRange.layerCount = 1,
     };
 
-    TI_VK_CHECK(vkCreateImageView(g_window.device, &image_view_create_info, 0, &g_framebuffer.depth_image_view[image_index]));
+    TI_VK_CHECK(vkCreateImageView(g_vulkan.device, &image_view_create_info, 0, &g_framebuffer.depth_image_view[image_index]));
 
     VkSamplerCreateInfo sampler_create_info = {
       .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -214,7 +214,7 @@ static void create_depth_images(void) {
       .maxLod = VK_LOD_CLAMP_NONE,
     };
 
-    TI_VK_CHECK(vkCreateSampler(g_window.device, &sampler_create_info, 0, &g_framebuffer.depth_sampler[image_index]));
+    TI_VK_CHECK(vkCreateSampler(g_vulkan.device, &sampler_create_info, 0, &g_framebuffer.depth_sampler[image_index]));
 
     // TODO: move this into the renderer!
     g_framebuffer.depth_descriptor_image_info[image_index].sampler = g_framebuffer.depth_sampler[image_index],

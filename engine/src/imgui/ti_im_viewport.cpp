@@ -55,10 +55,12 @@ static void draw_viewport(void) {
   VkDescriptorSet gbuffer_image = 0;
 
   ImVec2 image_position_min = ImGui::GetCursorScreenPos();
-  image_position_min.y -= 4.0F;
+  // image_position_min.y -= 4.0F;
 
   ImVec2 image_position_max = ImVec2(image_position_min.x + (float)g_window.window_width, image_position_min.y + (float)g_window.window_height);
   // image_position_max.y -= controlbar_size.y;
+
+  ImDrawList *draw = ImGui::GetWindowDrawList();
 
   // draw->AddImageRounded(
   //   gbuffer_image,

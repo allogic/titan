@@ -29,7 +29,7 @@ void titlebar_draw(void) {
     ImGuiWindowFlags_NoBringToFrontOnFocus;
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.0F, 5.0F));
-  ImGui::Begin("titlebar", 0, titlebar_flags);
+  ImGui::Begin("Titlebar", 0, titlebar_flags);
   ImGui::PopStyleVar(1);
 
   // ImGui::SetCursorPos(ImVec2(10.0F, 10.0F));

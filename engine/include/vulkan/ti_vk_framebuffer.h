@@ -5,7 +5,7 @@
 extern "C" {
 #endif // __cplusplus
 
-extern framebuffer_t g_framebuffer;
+extern vk_framebuffer_t g_framebuffer;
 
 void framebuffer_create(void);
 void framebuffer_destroy(void);

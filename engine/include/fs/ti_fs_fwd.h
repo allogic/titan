@@ -1,15 +1,16 @@
-#ifndef TI_ADB_FWD_H
-#define TI_ADB_FWD_H
+#ifndef TI_FS_FWD_H
+#define TI_FS_FWD_H
 
-typedef enum adb_asset_type_t {
-  ADB_ASSET_TYPE_NONE = 0,
-  ADB_ASSET_TYPE_MODEL,
-  ADB_ASSET_TYPE_PIPELINE,
-  ADB_ASSET_TYPE_FONT,
-  ADB_ASSET_TYPE_COUNT,
-} adb_asset_type_t;
+typedef enum fs_asset_type_t {
+  FS_ASSET_TYPE_NONE = 0,
+  FS_ASSET_TYPE_MODEL,
+  FS_ASSET_TYPE_PIPELINE,
+  FS_ASSET_TYPE_FONT,
+  FS_ASSET_TYPE_DESCRIPTOR_BINDING,
+  FS_ASSET_TYPE_COUNT,
+} fs_asset_type_t;
 
-typedef struct adb_primitive_t {
+typedef struct fs_primitive_t {
   char name[TI_PATH_SIZE];
   uint64_t position_count;
   uint64_t normal_count;
@@ -32,73 +33,73 @@ typedef struct adb_primitive_t {
   void *colors;
   void *joints;
   void *weights;
-} adb_primitive_t;
-typedef struct adb_mesh_t {
+} fs_primitive_t;
+typedef struct fs_mesh_t {
   char name[TI_PATH_SIZE];
   uint64_t primitive_count;
-  adb_primitive_t *primitives;
-} adb_mesh_t;
-typedef struct adb_joint_t {
+  fs_primitive_t *primitives;
+} fs_mesh_t;
+typedef struct fs_joint_t {
   char name[TI_PATH_SIZE];
   uint64_t child_count;
-  struct adb_joint_t *children;
-} adb_joint_t;
-typedef struct adb_skin_t {
+  struct fs_joint_t *children;
+} fs_joint_t;
+typedef struct fs_skin_t {
   char name[TI_PATH_SIZE];
-  adb_joint_t *root_joint;
-} adb_skin_t;
-typedef struct adb_model_t {
+  fs_joint_t *root_joint;
+} fs_skin_t;
+typedef struct fs_model_t {
   char name[TI_PATH_SIZE];
   uint64_t mesh_count;
-  adb_mesh_t *meshes;
+  fs_mesh_t *meshes;
   uint64_t skin_count;
-  adb_skin_t *skins;
-} adb_model_t;
+  fs_skin_t *skins;
+} fs_model_t;
 
-typedef struct adb_block_variable_t {
+typedef struct fs_block_variable_t {
   char name[TI_PATH_SIZE];
   uint32_t offset;
   uint32_t size;
-} adb_block_variable_t;
-typedef struct adb_descriptor_binding_t {
+} fs_block_variable_t;
+typedef struct fs_descriptor_binding_t {
   char name[TI_PATH_SIZE];
   uint32_t set;
   uint32_t binding;
   int32_t descriptor_type;
   int32_t block_size;
   int32_t block_variable_count;
-  adb_block_variable_t *block_variables;
-} adb_descriptor_binding_t;
-typedef struct adb_input_variable_t {
+  fs_block_variable_t *block_variables;
+} fs_descriptor_binding_t;
+typedef struct fs_input_variable_t {
   char name[TI_PATH_SIZE];
   uint32_t location;
   uint32_t format;
   uint32_t built_in;
-} adb_input_variable_t;
-typedef struct adb_pipeline_t {
+} fs_input_variable_t;
+typedef struct fs_pipeline_t {
   char name[TI_PATH_SIZE];
-  pipeline_type_t pipeline_type;
+  vk_pipeline_type_t pipeline_type;
   uint64_t input_variable_count;
   uint64_t descriptor_binding_count;
   uint64_t spirv_vertex_word_count;
   uint64_t spirv_fragment_word_count;
   uint32_t *spirv_vertex_words;
   uint32_t *spirv_fragment_words;
-  adb_input_variable_t *input_variables;
-  adb_descriptor_binding_t *descriptor_bindings;
-} adb_pipeline_t;
+  fs_input_variable_t *input_variables;
+  fs_descriptor_binding_t *descriptor_bindings;
+} fs_pipeline_t;
 
-typedef struct adb_font_t {
+typedef struct fs_font_t {
   char name[TI_PATH_SIZE];
   void *buffer;
   uint64_t buffer_size;
-} adb_font_t;
+} fs_font_t;
 
-typedef struct adb_asset_t {
+typedef struct fs_asset_t {
   uint64_t magic;
-  adb_asset_type_t type;
+  fs_asset_type_t type;
   void *fs_instance;
   void *vk_instance;
-} adb_asset_t;
+} fs_asset_t;
 
-#endif // TI_ADB_FWD_H
+#endif // TI_FS_FWD_H

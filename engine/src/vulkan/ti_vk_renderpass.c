@@ -66,8 +66,8 @@ void renderpass_create(void) {
     .dependencyCount = 1,
   };
 
-  TI_VK_CHECK(vkCreateRenderPass(g_window.device, &render_pass_create_info, 0, &g_renderpass));
+  TI_VK_CHECK(vkCreateRenderPass(g_vulkan.device, &render_pass_create_info, 0, &g_renderpass));
 }
 void renderpass_destroy(void) {
-  vkDestroyRenderPass(g_window.device, g_renderpass, 0);
+  vkDestroyRenderPass(g_vulkan.device, g_renderpass, 0);
 }

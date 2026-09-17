@@ -1,20 +1,20 @@
 #include <ti_pch.h>
 
-static void create_descriptor_pool(pipeline_t *pipeline);
-static void create_descriptor_set_layout(pipeline_t *pipeline);
-static void create_descriptor_set(pipeline_t *pipeline);
-static void create_pipeline_layout(pipeline_t *pipeline);
+static void create_descriptor_pool(vk_pipeline_t *pipeline);
+static void create_descriptor_set_layout(vk_pipeline_t *pipeline);
+static void create_descriptor_set(vk_pipeline_t *pipeline);
+static void create_pipeline_layout(vk_pipeline_t *pipeline);
 
-static void create_sbt_buffer(pipeline_t *pipeline);
+static void create_sbt_buffer(vk_pipeline_t *pipeline);
 
-static void create_dflt_pipeline(pipeline_t *pipeline);
-static void create_mesh_pipeline(pipeline_t *pipeline);
-static void create_ray_pipeline(pipeline_t *pipeline);
-static void create_comp_pipeline(pipeline_t *pipeline);
+static void create_dflt_pipeline(vk_pipeline_t *pipeline);
+static void create_mesh_pipeline(vk_pipeline_t *pipeline);
+static void create_ray_pipeline(vk_pipeline_t *pipeline);
+static void create_comp_pipeline(vk_pipeline_t *pipeline);
 
-static void destroy_sbt_buffer(pipeline_t *pipeline);
+static void destroy_sbt_buffer(vk_pipeline_t *pipeline);
 
-void pipeline_create(pipeline_t *pipeline) {
+void vk_pipeline_create(vk_pipeline_t *pipeline) {
   pipeline->descriptor_set_layout = (VkDescriptorSetLayout *)TI_ALLOC(sizeof(VkDescriptorSetLayout) * pipeline->descriptor_set_count, 0, 0);
   pipeline->descriptor_set = (VkDescriptorSet *)TI_ALLOC(sizeof(VkDescriptorSet) * pipeline->descriptor_set_count, 0, 0);
 
@@ -25,19 +25,19 @@ void pipeline_create(pipeline_t *pipeline) {
 
   switch (pipeline->pipeline_type) {
 
-    case PIPELINE_TYPE_DFLT: {
+    case VK_PIPELINE_TYPE_DFLT: {
 
       create_dflt_pipeline(pipeline);
 
       break;
     }
-    case PIPELINE_TYPE_MESH: {
+    case VK_PIPELINE_TYPE_MESH: {
 
       create_mesh_pipeline(pipeline);
 
       break;
     }
-    case PIPELINE_TYPE_RAY: {
+    case VK_PIPELINE_TYPE_RAY: {
 
       create_ray_pipeline(pipeline);
 
@@ -45,7 +45,7 @@ void pipeline_create(pipeline_t *pipeline) {
 
       break;
     }
-    case PIPELINE_TYPE_COMP: {
+    case VK_PIPELINE_TYPE_COMP: {
 
       create_comp_pipeline(pipeline);
 
@@ -53,10 +53,10 @@ void pipeline_create(pipeline_t *pipeline) {
     }
   }
 }
-void pipeline_destroy(pipeline_t *pipeline) {
+void vk_pipeline_destroy(vk_pipeline_t *pipeline) {
   switch (pipeline->pipeline_type) {
 
-    case PIPELINE_TYPE_RAY: {
+    case VK_PIPELINE_TYPE_RAY: {
 
       destroy_sbt_buffer(pipeline);
 
@@ -64,16 +64,16 @@ void pipeline_destroy(pipeline_t *pipeline) {
     }
   }
 
-  vkDestroyDescriptorPool(g_window.device, pipeline->descriptor_pool, 0);
-  vkDestroyDescriptorSetLayout(g_window.device, pipeline->descriptor_set_layout_base, 0);
-  vkDestroyPipelineLayout(g_window.device, pipeline->pipeline_layout, 0);
-  vkDestroyPipeline(g_window.device, pipeline->pipeline_handle, 0);
+  vkDestroyDescriptorPool(g_vulkan.device, pipeline->descriptor_pool, 0);
+  vkDestroyDescriptorSetLayout(g_vulkan.device, pipeline->descriptor_set_layout_base, 0);
+  vkDestroyPipelineLayout(g_vulkan.device, pipeline->pipeline_layout, 0);
+  vkDestroyPipeline(g_vulkan.device, pipeline->pipeline_handle, 0);
 
   TI_FREE(pipeline->descriptor_set_layout);
   TI_FREE(pipeline->descriptor_set);
 }
 
-static void create_descriptor_pool(pipeline_t *pipeline) {
+static void create_descriptor_pool(vk_pipeline_t *pipeline) {
   uint32_t descriptor_pool_index = 0;
   uint32_t descriptor_pool_count = pipeline->descriptor_pool_size_count;
 
@@ -91,9 +91,9 @@ static void create_descriptor_pool(pipeline_t *pipeline) {
     .maxSets = pipeline->descriptor_set_count,
   };
 
-  TI_VK_CHECK(vkCreateDescriptorPool(g_window.device, &descriptor_pool_create_info, 0, &pipeline->descriptor_pool));
+  TI_VK_CHECK(vkCreateDescriptorPool(g_vulkan.device, &descriptor_pool_create_info, 0, &pipeline->descriptor_pool));
 }
-static void create_descriptor_set_layout(pipeline_t *pipeline) {
+static void create_descriptor_set_layout(vk_pipeline_t *pipeline) {
   VkDescriptorSetLayoutCreateInfo descriptor_set_layout_create_info = {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
     .pBindings = pipeline->descriptor_set_layout_binding,
@@ -101,9 +101,9 @@ static void create_descriptor_set_layout(pipeline_t *pipeline) {
     .pNext = 0,
   };
 
-  TI_VK_CHECK(vkCreateDescriptorSetLayout(g_window.device, &descriptor_set_layout_create_info, 0, &pipeline->descriptor_set_layout_base));
+  TI_VK_CHECK(vkCreateDescriptorSetLayout(g_vulkan.device, &descriptor_set_layout_create_info, 0, &pipeline->descriptor_set_layout_base));
 }
-static void create_descriptor_set(pipeline_t *pipeline) {
+static void create_descriptor_set(vk_pipeline_t *pipeline) {
   uint32_t descriptor_set_index = 0;
   uint32_t descriptor_set_count = pipeline->descriptor_set_count;
 
@@ -121,9 +121,9 @@ static void create_descriptor_set(pipeline_t *pipeline) {
     .pSetLayouts = pipeline->descriptor_set_layout,
   };
 
-  TI_VK_CHECK(vkAllocateDescriptorSets(g_window.device, &descriptor_set_allocate_info, pipeline->descriptor_set));
+  TI_VK_CHECK(vkAllocateDescriptorSets(g_vulkan.device, &descriptor_set_allocate_info, pipeline->descriptor_set));
 }
-static void create_pipeline_layout(pipeline_t *pipeline) {
+static void create_pipeline_layout(vk_pipeline_t *pipeline) {
   VkPipelineLayoutCreateInfo pipeline_layout_create_info = {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
     .setLayoutCount = 1,
@@ -132,10 +132,10 @@ static void create_pipeline_layout(pipeline_t *pipeline) {
     .pushConstantRangeCount = pipeline->push_constant_range_count,
   };
 
-  TI_VK_CHECK(vkCreatePipelineLayout(g_window.device, &pipeline_layout_create_info, 0, &pipeline->pipeline_layout));
+  TI_VK_CHECK(vkCreatePipelineLayout(g_vulkan.device, &pipeline_layout_create_info, 0, &pipeline->pipeline_layout));
 }
 
-static void create_sbt_buffer(pipeline_t *pipeline) {
+static void create_sbt_buffer(vk_pipeline_t *pipeline) {
   pipeline->ray_gen_group_count = 1;
   pipeline->ray_miss_group_count = 1;
   pipeline->ray_hit_group_count = 1;
@@ -166,11 +166,11 @@ static void create_sbt_buffer(pipeline_t *pipeline) {
     .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
   };
 
-  TI_VK_CHECK(vkCreateBuffer(g_window.device, &buffer_create_info, 0, &pipeline->sbt_buffer_handle));
+  TI_VK_CHECK(vkCreateBuffer(g_vulkan.device, &buffer_create_info, 0, &pipeline->sbt_buffer_handle));
 
   VkMemoryRequirements memory_requirements = {0};
 
-  vkGetBufferMemoryRequirements(g_window.device, pipeline->sbt_buffer_handle, &memory_requirements);
+  vkGetBufferMemoryRequirements(g_vulkan.device, pipeline->sbt_buffer_handle, &memory_requirements);
 
   uint32_t memory_type_index = vk_find_memory_type_index(memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
@@ -186,16 +186,16 @@ static void create_sbt_buffer(pipeline_t *pipeline) {
     .memoryTypeIndex = memory_type_index,
   };
 
-  TI_VK_CHECK(vkAllocateMemory(g_window.device, &memory_allocate_info, 0, &pipeline->sbt_device_memory));
-  TI_VK_CHECK(vkBindBufferMemory(g_window.device, pipeline->sbt_buffer_handle, pipeline->sbt_device_memory, 0));
+  TI_VK_CHECK(vkAllocateMemory(g_vulkan.device, &memory_allocate_info, 0, &pipeline->sbt_device_memory));
+  TI_VK_CHECK(vkBindBufferMemory(g_vulkan.device, pipeline->sbt_buffer_handle, pipeline->sbt_device_memory, 0));
 
   uint8_t *sbt_device_data = 0;
 
-  TI_VK_CHECK(vkMapMemory(g_window.device, pipeline->sbt_device_memory, 0, sbt_buffer_size, 0, &sbt_device_data));
+  TI_VK_CHECK(vkMapMemory(g_vulkan.device, pipeline->sbt_device_memory, 0, sbt_buffer_size, 0, &sbt_device_data));
 
   uint8_t *handles = (uint8_t *)TI_ALLOC(handle_size * 3, 0, 0);
 
-  TI_VK_CHECK(vkGetRayTracingShaderGroupHandlesKHR_proc(g_window.device, pipeline->pipeline_handle, 0, 3, handle_size * 3, handles));
+  TI_VK_CHECK(vkGetRayTracingShaderGroupHandlesKHR_proc(g_vulkan.device, pipeline->pipeline_handle, 0, 3, handle_size * 3, handles));
 
   memcpy(sbt_device_data, handles + handle_size * 0, handle_size);
   sbt_device_data += ray_gen_region_size;
@@ -205,14 +205,14 @@ static void create_sbt_buffer(pipeline_t *pipeline) {
 
   TI_FREE(handles);
 
-  vkUnmapMemory(g_window.device, pipeline->sbt_device_memory);
+  vkUnmapMemory(g_vulkan.device, pipeline->sbt_device_memory);
 
   VkBufferDeviceAddressInfo buffer_device_address_info = {
     .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
     .buffer = pipeline->sbt_buffer_handle,
   };
 
-  pipeline->sbt_device_address = vkGetBufferDeviceAddress(g_window.device, &buffer_device_address_info);
+  pipeline->sbt_device_address = vkGetBufferDeviceAddress(g_vulkan.device, &buffer_device_address_info);
 
   pipeline->ray_gen_region.deviceAddress = pipeline->sbt_device_address;
   pipeline->ray_gen_region.stride = aligned_handle_size;
@@ -231,7 +231,7 @@ static void create_sbt_buffer(pipeline_t *pipeline) {
   pipeline->callable_region.size = 0;
 }
 
-static void create_dflt_pipeline(pipeline_t *pipeline) {
+static void create_dflt_pipeline(vk_pipeline_t *pipeline) {
   VkShaderModule vertex_module = 0;
   VkShaderModule fragment_module = 0;
 
@@ -414,12 +414,12 @@ static void create_dflt_pipeline(pipeline_t *pipeline) {
     .basePipelineHandle = 0,
   };
 
-  TI_VK_CHECK(vkCreateGraphicsPipelines(g_window.device, 0, 1, &graphics_pipeline_create_info, 0, &pipeline->pipeline_handle));
+  TI_VK_CHECK(vkCreateGraphicsPipelines(g_vulkan.device, 0, 1, &graphics_pipeline_create_info, 0, &pipeline->pipeline_handle));
 
-  vkDestroyShaderModule(g_window.device, vertex_module, 0);
-  vkDestroyShaderModule(g_window.device, fragment_module, 0);
+  vkDestroyShaderModule(g_vulkan.device, vertex_module, 0);
+  vkDestroyShaderModule(g_vulkan.device, fragment_module, 0);
 }
-static void create_mesh_pipeline(pipeline_t *pipeline) {
+static void create_mesh_pipeline(vk_pipeline_t *pipeline) {
   VkShaderModule task_module = 0;
   VkShaderModule mesh_module = 0;
   VkShaderModule fragment_module = 0;
@@ -612,13 +612,13 @@ static void create_mesh_pipeline(pipeline_t *pipeline) {
     .basePipelineHandle = 0,
   };
 
-  TI_VK_CHECK(vkCreateGraphicsPipelines(g_window.device, 0, 1, &graphics_pipeline_create_info, 0, &pipeline->pipeline_handle));
+  TI_VK_CHECK(vkCreateGraphicsPipelines(g_vulkan.device, 0, 1, &graphics_pipeline_create_info, 0, &pipeline->pipeline_handle));
 
-  vkDestroyShaderModule(g_window.device, task_module, 0);
-  vkDestroyShaderModule(g_window.device, mesh_module, 0);
-  vkDestroyShaderModule(g_window.device, fragment_module, 0);
+  vkDestroyShaderModule(g_vulkan.device, task_module, 0);
+  vkDestroyShaderModule(g_vulkan.device, mesh_module, 0);
+  vkDestroyShaderModule(g_vulkan.device, fragment_module, 0);
 }
-static void create_ray_pipeline(pipeline_t *pipeline) {
+static void create_ray_pipeline(vk_pipeline_t *pipeline) {
   VkShaderModule ray_gen_module = 0;
   VkShaderModule ray_miss_module = 0;
   VkShaderModule ray_intersect_module = 0;
@@ -764,14 +764,14 @@ static void create_ray_pipeline(pipeline_t *pipeline) {
     .basePipelineIndex = 0,
   };
 
-  TI_VK_CHECK(vkCreateRayTracingPipelinesKHR_proc(g_window.device, 0, 0, 1, &ray_tracing_pipeline_create_info, 0, &pipeline->pipeline_handle));
+  TI_VK_CHECK(vkCreateRayTracingPipelinesKHR_proc(g_vulkan.device, 0, 0, 1, &ray_tracing_pipeline_create_info, 0, &pipeline->pipeline_handle));
 
-  vkDestroyShaderModule(g_window.device, ray_gen_module, 0);
-  vkDestroyShaderModule(g_window.device, ray_miss_module, 0);
-  vkDestroyShaderModule(g_window.device, ray_intersect_module, 0);
-  vkDestroyShaderModule(g_window.device, ray_closest_hit_module, 0);
+  vkDestroyShaderModule(g_vulkan.device, ray_gen_module, 0);
+  vkDestroyShaderModule(g_vulkan.device, ray_miss_module, 0);
+  vkDestroyShaderModule(g_vulkan.device, ray_intersect_module, 0);
+  vkDestroyShaderModule(g_vulkan.device, ray_closest_hit_module, 0);
 }
-static void create_comp_pipeline(pipeline_t *pipeline) {
+static void create_comp_pipeline(vk_pipeline_t *pipeline) {
   VkShaderModule compute_module = 0;
 
   // TODO
@@ -807,12 +807,12 @@ static void create_comp_pipeline(pipeline_t *pipeline) {
     .stage = pipeline_shader_stage_create_info,
   };
 
-  TI_VK_CHECK(vkCreateComputePipelines(g_window.device, 0, 1, &compute_pipeline_create_info, 0, &pipeline->pipeline_handle));
+  TI_VK_CHECK(vkCreateComputePipelines(g_vulkan.device, 0, 1, &compute_pipeline_create_info, 0, &pipeline->pipeline_handle));
 
-  vkDestroyShaderModule(g_window.device, compute_module, 0);
+  vkDestroyShaderModule(g_vulkan.device, compute_module, 0);
 }
 
-static void destroy_sbt_buffer(pipeline_t *pipeline) {
-  vkFreeMemory(g_window.device, pipeline->sbt_device_memory, 0);
-  vkDestroyBuffer(g_window.device, pipeline->sbt_buffer_handle, 0);
+static void destroy_sbt_buffer(vk_pipeline_t *pipeline) {
+  vkFreeMemory(g_vulkan.device, pipeline->sbt_device_memory, 0);
+  vkDestroyBuffer(g_vulkan.device, pipeline->sbt_buffer_handle, 0);
 }

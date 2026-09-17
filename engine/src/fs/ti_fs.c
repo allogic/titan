@@ -2,7 +2,9 @@
 
 fs *g_fs = 0;
 
-fs_result fs_setup(void) {
+map_t g_assets = {0};
+
+fs_result fs_create(char const *static_path, char const *asset_path) {
   fs_result result = FS_SUCCESS;
 
   result = fs_init(0, &g_fs);
@@ -11,7 +13,7 @@ fs_result fs_setup(void) {
     return result;
   }
 
-  result = fs_mount(g_fs, ROOT_DIR "/asset", "asset", FS_READ | FS_WRITE);
+  result = result = fs_mount(g_fs, static_path, "static", FS_READ);
 
   if (result != FS_SUCCESS) {
 
@@ -20,7 +22,7 @@ fs_result fs_setup(void) {
     return result;
   }
 
-  result = result = fs_mount(g_fs, ROOT_DIR "/static", "static", FS_READ);
+  result = fs_mount(g_fs, asset_path, "asset", FS_READ | FS_WRITE);
 
   if (result != FS_SUCCESS) {
 
@@ -28,6 +30,8 @@ fs_result fs_setup(void) {
 
     return result;
   }
+
+  map_create(&g_assets);
 
   return result;
 }
@@ -107,6 +111,38 @@ fs_result fs_remove_recursive(fs *fS, char const *file_path) {
 
   return fs_remove(g_fs, file_path, 0);
 }
-void fs_close(void) {
+fs_asset_t *fs_asset(char const *asset_path) {
+  uint64_t path_size = strlen(asset_path);
+
+  if (map_contains(&g_assets, asset_path, path_size) == 0) {
+
+    fs_file *file = 0;
+
+    if (fs_file_open(g_fs, asset_path, FS_READ, &file) == FS_SUCCESS) {
+
+      fs_asset_t asset = {0};
+
+      fs_asset_load(&asset, file);
+
+      map_insert(&g_assets, asset_path, path_size, &asset, sizeof(fs_asset_t));
+
+      fs_file_close(file);
+    }
+  }
+
+  return map_at(&g_assets, asset_path, path_size);
+}
+void fs_destroy(void) {
+  map_iter_t asset_it = map_iter(&g_assets);
+
+  while (map_next(&asset_it)) {
+
+    fs_asset_t *asset = (fs_asset_t *)map_value(&asset_it);
+
+    fs_asset_destroy(asset);
+  }
+
+  map_destroy(&g_assets);
+
   fs_uninit(g_fs);
 }

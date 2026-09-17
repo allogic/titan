@@ -74,13 +74,13 @@ static void draw_file_controls(void) {
   // TODO
 }
 static void draw_file(void) {
-  adb_asset_t *asset = (adb_asset_t *)s_selected_data;
+  fs_asset_t *asset = (fs_asset_t *)s_selected_data;
 
   switch (asset->type) {
 
-    case ADB_ASSET_TYPE_MODEL: {
+    case FS_ASSET_TYPE_MODEL: {
 
-      adb_model_t *model = (adb_model_t *)asset->fs_instance;
+      fs_model_t *model = (fs_model_t *)asset->fs_instance;
 
       ImGui::Text("%s", model->name);
       ImGui::Text("Mesh Count: %llu", model->mesh_count);
@@ -94,7 +94,7 @@ static void draw_file(void) {
 
       while (mesh_index < mesh_count) {
 
-        adb_mesh_t *mesh = &model->meshes[mesh_index];
+        fs_mesh_t *mesh = &model->meshes[mesh_index];
 
         if (ImGui::TreeNodeEx(mesh->name, tree_node_flags)) {
 
@@ -105,7 +105,7 @@ static void draw_file(void) {
 
           while (primitive_index < primitive_count) {
 
-            adb_primitive_t *primitive = &mesh->primitives[primitive_index];
+            fs_primitive_t *primitive = &mesh->primitives[primitive_index];
 
             if (ImGui::TreeNodeEx(primitive->name, tree_node_flags)) {
 
@@ -131,19 +131,115 @@ static void draw_file(void) {
 
       break;
     }
-    case ADB_ASSET_TYPE_PIPELINE: {
+    case FS_ASSET_TYPE_PIPELINE: {
 
-      adb_pipeline_t *pipeline = (adb_pipeline_t *)asset->fs_instance;
+      fs_pipeline_t *pipeline = (fs_pipeline_t *)asset->fs_instance;
 
       ImGui::Text("%s", pipeline->name);
 
+      ImGui::SeparatorText("Input Variables");
+
+      ImGuiTreeNodeFlags tree_node_flags = ImGuiTreeNodeFlags_DefaultOpen |
+                                           ImGuiTreeNodeFlags_SpanFullWidth |
+                                           ImGuiTreeNodeFlags_FramePadding;
+
+      uint64_t input_variable_index = 0;
+      uint64_t input_variable_count = pipeline->input_variable_count;
+
+      while (input_variable_index < input_variable_count) {
+
+        fs_input_variable_t *input_variable = &pipeline->input_variables[input_variable_index];
+
+        if (ImGui::TreeNodeEx(input_variable->name, tree_node_flags)) {
+
+          ImGui::Text("Location: %u", input_variable->location);
+          ImGui::Text("Format: %u", input_variable->format);
+          ImGui::Text("Built-In: %u", input_variable->built_in);
+
+          ImGui::TreePop();
+        }
+
+        input_variable_index++;
+      }
+
+      ImGui::SeparatorText("Descriptor Bindings");
+
+      uint64_t descriptor_binding_index = 0;
+      uint64_t descriptor_binding_count = pipeline->descriptor_binding_count;
+
+      while (descriptor_binding_index < descriptor_binding_count) {
+
+        fs_descriptor_binding_t *descriptor_binding = &pipeline->descriptor_bindings[descriptor_binding_index];
+
+        if (ImGui::TreeNodeEx(descriptor_binding->name, tree_node_flags)) {
+
+          ImGui::Text("Set: %u", descriptor_binding->set);
+          ImGui::Text("Binding: %u", descriptor_binding->binding);
+
+          if ((descriptor_binding->descriptor_type == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) ||
+              (descriptor_binding->descriptor_type == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)) {
+
+            ImGui::Text("Block Size: %d", descriptor_binding->block_size);
+            ImGui::Text("Block Variables: %d", descriptor_binding->block_variable_count);
+
+            ImGuiTableFlags block_variable_flags = ImGuiTableFlags_Borders |
+                                                   ImGuiTableFlags_RowBg |
+                                                   ImGuiTableFlags_Resizable;
+
+            if (ImGui::BeginTable("Block Variables", 3, block_variable_flags)) {
+
+              ImGui::TableSetupColumn("Name");
+              ImGui::TableSetupColumn("Offset");
+              ImGui::TableSetupColumn("Size");
+
+              ImGui::TableHeadersRow();
+
+              uint64_t block_variable_index = 0;
+              uint64_t block_variable_count = descriptor_binding->block_variable_count;
+
+              while (block_variable_index < block_variable_count) {
+
+                fs_block_variable_t *block_variable = &descriptor_binding->block_variables[block_variable_index];
+
+                ImGui::TableNextRow();
+
+                ImGui::TableNextColumn();
+                ImGui::Text(block_variable->name);
+
+                ImGui::TableNextColumn();
+                ImGui::Text("%u", block_variable->offset);
+
+                ImGui::TableNextColumn();
+                ImGui::Text("%u", block_variable->size);
+
+                block_variable_index++;
+              }
+
+              ImGui::EndTable();
+            }
+          }
+
+          ImGui::TreePop();
+        }
+
+        descriptor_binding_index++;
+      }
+
       break;
     }
-    case ADB_ASSET_TYPE_FONT: {
+    case FS_ASSET_TYPE_FONT: {
 
-      adb_font_t *font = (adb_font_t *)asset->fs_instance;
+      fs_font_t *font = (fs_font_t *)asset->fs_instance;
 
       ImGui::Text("%s", font->name);
+
+      break;
+    }
+    case FS_ASSET_TYPE_DESCRIPTOR_BINDING: {
+
+      fs_descriptor_binding_t *descriptor_binding = (fs_descriptor_binding_t *)asset->fs_instance;
+
+      ImGui::Text("%s", descriptor_binding->name);
 
       break;
     }

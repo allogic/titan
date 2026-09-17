@@ -15,6 +15,13 @@ typedef enum inspector_type_t {
   INSPECTOR_TYPE_COUNT,
 } inspector_type_t;
 
+typedef enum fs_file_type_t {
+  FS_FILE_TYPE_NONE = 0,
+  FS_FILE_TYPE_DIRECTORY,
+  FS_FILE_TYPE_FILE,
+  FS_FILE_TYPE_COUNT,
+} fs_file_type_t;
+
 typedef struct fs_entry_t {
   char path[TI_PATH_SIZE];
   char name[TI_PATH_SIZE];
@@ -23,6 +30,8 @@ typedef struct fs_entry_t {
   uint8_t is_directory;
   uint8_t is_symlink;
   uint8_t is_open;
+  uint8_t should_open;
+  struct fs_entry_t *parent;
   struct fs_entry_t *children;
 } fs_entry_t;
 

@@ -108,11 +108,11 @@ uint8_t import_model(char const *asset_file, char const *model_file) {
       snprintf(model_name, TI_PATH_SIZE, "<unnamed>");
     }
 
-    uint64_t asset_magic = TI_ADB_ASSET_MAGIC;
-    adb_asset_type_t asset_type = ADB_ASSET_TYPE_MODEL;
+    uint64_t asset_magic = TI_FS_ASSET_MAGIC;
+    fs_asset_type_t asset_type = FS_ASSET_TYPE_MODEL;
 
     fs_file_write(file, &asset_magic, sizeof(uint64_t), 0);
-    fs_file_write(file, &asset_type, sizeof(adb_asset_type_t), 0);
+    fs_file_write(file, &asset_type, sizeof(fs_asset_type_t), 0);
     fs_file_write(file, model_name, TI_PATH_SIZE, 0);
 
     convert_gltf_model(file, gltf_data);
@@ -152,7 +152,7 @@ error:
 
   return status;
 }
-uint8_t import_pipeline(pipeline_type_t pipeline_type, char const *asset_file, char const *vertex_file, char const *fragment_file) {
+uint8_t import_pipeline(vk_pipeline_type_t pipeline_type, char const *asset_file, char const *vertex_file, char const *fragment_file) {
   uint8_t status = 0;
 
   uint32_t *spirv_vertex_words = 0;
@@ -234,17 +234,17 @@ uint8_t import_pipeline(pipeline_type_t pipeline_type, char const *asset_file, c
       snprintf(program_name, TI_PATH_SIZE, "<unnamed>");
     }
 
-    uint64_t asset_magic = TI_ADB_ASSET_MAGIC;
-    adb_asset_type_t asset_type = ADB_ASSET_TYPE_PIPELINE;
+    uint64_t asset_magic = TI_FS_ASSET_MAGIC;
+    fs_asset_type_t asset_type = FS_ASSET_TYPE_PIPELINE;
 
     fs_file_write(file, &asset_magic, sizeof(uint64_t), 0);
-    fs_file_write(file, &asset_type, sizeof(adb_asset_type_t), 0);
+    fs_file_write(file, &asset_type, sizeof(fs_asset_type_t), 0);
     fs_file_write(file, program_name, TI_PATH_SIZE, 0);
-    fs_file_write(file, &pipeline_type, sizeof(pipeline_type_t), 0);
+    fs_file_write(file, &pipeline_type, sizeof(vk_pipeline_type_t), 0);
 
     switch (pipeline_type) {
 
-      case PIPELINE_TYPE_DFLT: {
+      case VK_PIPELINE_TYPE_DFLT: {
 
         convert_spirv_input_variables(file, &vertex_module);
         convert_spirv_descriptor_bindings(file, &vertex_module);
@@ -257,19 +257,19 @@ uint8_t import_pipeline(pipeline_type_t pipeline_type, char const *asset_file, c
 
         break;
       }
-      case PIPELINE_TYPE_MESH: {
+      case VK_PIPELINE_TYPE_MESH: {
 
         // TODO
 
         break;
       }
-      case PIPELINE_TYPE_RAY: {
+      case VK_PIPELINE_TYPE_RAY: {
 
         // TODO
 
         break;
       }
-      case PIPELINE_TYPE_COMP: {
+      case VK_PIPELINE_TYPE_COMP: {
 
         // TODO
 
@@ -363,11 +363,11 @@ uint8_t import_font(char const *asset_file, char const *font_file) {
       snprintf(font_name, TI_PATH_SIZE, "<unnamed>");
     }
 
-    uint64_t asset_magic = TI_ADB_ASSET_MAGIC;
-    adb_asset_type_t asset_type = ADB_ASSET_TYPE_FONT;
+    uint64_t asset_magic = TI_FS_ASSET_MAGIC;
+    fs_asset_type_t asset_type = FS_ASSET_TYPE_FONT;
 
     fs_file_write(file, &asset_magic, sizeof(uint64_t), 0);
-    fs_file_write(file, &asset_type, sizeof(adb_asset_type_t), 0);
+    fs_file_write(file, &asset_type, sizeof(fs_asset_type_t), 0);
     fs_file_write(file, font_name, TI_PATH_SIZE, 0);
     fs_file_write(file, &buffer_size, sizeof(uint64_t), 0);
     fs_file_write(file, buffer, buffer_size, 0);

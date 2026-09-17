@@ -97,44 +97,44 @@ static VkDescriptorSetLayoutBinding s_debug_line_renderer_descriptor_set_layout_
   },
 };
 
-static buffer_t s_debug_line_vertex_buffer = {
+static vk_buffer_t s_debug_line_vertex_buffer = {
   .size = sizeof(debug_line_vertex_t) * TI_DEBUG_LINE_VERTEX_COUNT,
   .buffer_usage_flags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
   .memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 };
-static buffer_t s_debug_line_index_buffer = {
+static vk_buffer_t s_debug_line_index_buffer = {
   .size = sizeof(debug_line_index_t) * TI_DEBUG_LINE_INDEX_COUNT,
   .buffer_usage_flags = VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
   .memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 };
-static buffer_t s_full_screen_vertex_buffer = {
+static vk_buffer_t s_full_screen_vertex_buffer = {
   .host_data = s_full_screen_vertices,
   .size = sizeof(s_full_screen_vertices),
   .buffer_usage_flags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
   .memory_property_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 };
-static buffer_t s_full_screen_index_buffer = {
+static vk_buffer_t s_full_screen_index_buffer = {
   .host_data = (void *)s_full_screen_indices,
   .size = sizeof(s_full_screen_indices),
   .buffer_usage_flags = VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
   .memory_property_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 };
-static buffer_t s_time_info_buffer = {
+static vk_buffer_t s_time_info_buffer = {
   .size = sizeof(time_info_t),
   .buffer_usage_flags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
   .memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 };
-static buffer_t s_screen_info_buffer = {
+static vk_buffer_t s_screen_info_buffer = {
   .size = sizeof(screen_info_t),
   .buffer_usage_flags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
   .memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 };
-static buffer_t s_mouse_info_buffer = {
+static vk_buffer_t s_mouse_info_buffer = {
   .size = sizeof(mouse_info_t),
   .buffer_usage_flags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
   .memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 };
-static buffer_t s_camera_info_buffer = {
+static vk_buffer_t s_camera_info_buffer = {
   .size = sizeof(camera_info_t),
   .buffer_usage_flags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
   .memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -179,10 +179,10 @@ void renderer_create(void) {
   update_debug_line_descriptor_set();
 }
 void renderer_draw(void) {
-  TI_VK_CHECK(vkWaitForFences(g_window.device, 1, &s_frame_fence, 1, UINT64_MAX));
-  TI_VK_CHECK(vkResetFences(g_window.device, 1, &s_frame_fence));
+  TI_VK_CHECK(vkWaitForFences(g_vulkan.device, 1, &s_frame_fence, 1, UINT64_MAX));
+  TI_VK_CHECK(vkResetFences(g_vulkan.device, 1, &s_frame_fence));
 
-  TI_VK_CHECK(vkAcquireNextImageKHR(g_window.device, g_swapchain.handle, UINT64_MAX, s_image_available_semaphore, 0, &g_renderer.image_index));
+  TI_VK_CHECK(vkAcquireNextImageKHR(g_vulkan.device, g_swapchain.handle, UINT64_MAX, s_image_available_semaphore, 0, &g_renderer.image_index));
 
   update_coherent_buffer();
 
@@ -339,7 +339,7 @@ void renderer_draw(void) {
     .pWaitDstStageMask = primary_wait_stages,
   };
 
-  TI_VK_CHECK(vkQueueSubmit(g_window.primary_queue, 1, &primary_submit_info, s_frame_fence));
+  TI_VK_CHECK(vkQueueSubmit(g_vulkan.primary_queue, 1, &primary_submit_info, s_frame_fence));
 
   VkPresentInfoKHR present_info = {
     .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
@@ -350,7 +350,7 @@ void renderer_draw(void) {
     .pImageIndices = &g_renderer.image_index,
   };
 
-  VkResult result = vkQueuePresentKHR(g_window.present_queue, &present_info);
+  VkResult result = vkQueuePresentKHR(g_vulkan.present_queue, &present_info);
 
   switch (result) {
 
@@ -475,22 +475,22 @@ static void create_sync_object(void) {
 
   while (image_index < image_count) {
 
-    TI_VK_CHECK(vkCreateSemaphore(g_window.device, &semaphore_create_info, 0, &s_render_finished_semaphore[image_index]));
+    TI_VK_CHECK(vkCreateSemaphore(g_vulkan.device, &semaphore_create_info, 0, &s_render_finished_semaphore[image_index]));
 
     image_index++;
   }
 
-  TI_VK_CHECK(vkCreateSemaphore(g_window.device, &semaphore_create_info, 0, &s_image_available_semaphore));
-  TI_VK_CHECK(vkCreateFence(g_window.device, &fence_create_info, 0, &s_frame_fence));
+  TI_VK_CHECK(vkCreateSemaphore(g_vulkan.device, &semaphore_create_info, 0, &s_image_available_semaphore));
+  TI_VK_CHECK(vkCreateFence(g_vulkan.device, &fence_create_info, 0, &s_frame_fence));
 }
 static void create_command_pool(void) {
   VkCommandPoolCreateInfo command_pool_create_info = {
     .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
     .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-    .queueFamilyIndex = g_window.primary_queue_index,
+    .queueFamilyIndex = g_vulkan.primary_queue_index,
   };
 
-  TI_VK_CHECK(vkCreateCommandPool(g_window.device, &command_pool_create_info, 0, &g_renderer.command_pool));
+  TI_VK_CHECK(vkCreateCommandPool(g_vulkan.device, &command_pool_create_info, 0, &g_renderer.command_pool));
 }
 static void create_command_buffer(void) {
   VkCommandBufferAllocateInfo command_buffer_allocate_info = {
@@ -500,7 +500,7 @@ static void create_command_buffer(void) {
     .commandBufferCount = 1,
   };
 
-  TI_VK_CHECK(vkAllocateCommandBuffers(g_window.device, &command_buffer_allocate_info, &g_renderer.command_buffer));
+  TI_VK_CHECK(vkAllocateCommandBuffers(g_vulkan.device, &command_buffer_allocate_info, &g_renderer.command_buffer));
 }
 static void create_coherent_buffer(void) {
   buffer_create(&s_time_info_buffer);
@@ -767,19 +767,19 @@ static void destroy_sync_object(void) {
 
   while (image_index < image_count) {
 
-    vkDestroySemaphore(g_window.device, s_render_finished_semaphore[image_index], 0);
+    vkDestroySemaphore(g_vulkan.device, s_render_finished_semaphore[image_index], 0);
 
     image_index++;
   }
 
-  vkDestroySemaphore(g_window.device, s_image_available_semaphore, 0);
-  vkDestroyFence(g_window.device, s_frame_fence, 0);
+  vkDestroySemaphore(g_vulkan.device, s_image_available_semaphore, 0);
+  vkDestroyFence(g_vulkan.device, s_frame_fence, 0);
 }
 static void destroy_command_pool(void) {
-  vkDestroyCommandPool(g_window.device, g_renderer.command_pool, 0);
+  vkDestroyCommandPool(g_vulkan.device, g_renderer.command_pool, 0);
 }
 static void destroy_command_buffer(void) {
-  vkFreeCommandBuffers(g_window.device, g_renderer.command_pool, 1, &g_renderer.command_buffer);
+  vkFreeCommandBuffers(g_vulkan.device, g_renderer.command_pool, 1, &g_renderer.command_buffer);
 }
 static void destroy_buffer(void) {
   buffer_destroy(&s_debug_line_vertex_buffer);

@@ -5,8 +5,8 @@
 extern "C" {
 #endif // __cplusplus
 
-void pipeline_create(pipeline_t *pipeline);
-void pipeline_destroy(pipeline_t *pipeline);
+void vk_pipeline_create(vk_pipeline_t *pipeline);
+void vk_pipeline_destroy(vk_pipeline_t *pipeline);
 
 #ifdef __cplusplus
 }

@@ -5,10 +5,10 @@
 extern "C" {
 #endif // __cplusplus
 
-void buffer_create(buffer_t *buffer);
-void buffer_map(buffer_t *buffer);
-void buffer_unmap(buffer_t *buffer);
-void buffer_destroy(buffer_t *buffer);
+void buffer_create(vk_buffer_t *buffer);
+void buffer_map(vk_buffer_t *buffer);
+void buffer_unmap(vk_buffer_t *buffer);
+void buffer_destroy(vk_buffer_t *buffer);
 
 #ifdef __cplusplus
 }

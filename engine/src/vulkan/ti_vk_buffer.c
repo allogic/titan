@@ -1,9 +1,9 @@
 #include <ti_pch.h>
 
-void buffer_create(buffer_t *buffer) {
+void buffer_create(vk_buffer_t *buffer) {
   buffer->buffer_usage_flags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
-  buffer_t staging_buffer = {
+  vk_buffer_t staging_buffer = {
     .host_data = buffer->host_data,
     .size = buffer->size,
     .buffer_usage_flags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -18,11 +18,11 @@ void buffer_create(buffer_t *buffer) {
       .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
     };
 
-    TI_VK_CHECK(vkCreateBuffer(g_window.device, &buffer_create_info, 0, &buffer->buffer_handle));
+    TI_VK_CHECK(vkCreateBuffer(g_vulkan.device, &buffer_create_info, 0, &buffer->buffer_handle));
 
     VkMemoryRequirements memory_requirements = {0};
 
-    vkGetBufferMemoryRequirements(g_window.device, buffer->buffer_handle, &memory_requirements);
+    vkGetBufferMemoryRequirements(g_vulkan.device, buffer->buffer_handle, &memory_requirements);
 
     uint32_t memory_type_index = vk_find_memory_type_index(memory_requirements.memoryTypeBits, buffer->memory_property_flags);
 
@@ -38,8 +38,8 @@ void buffer_create(buffer_t *buffer) {
       .memoryTypeIndex = memory_type_index,
     };
 
-    TI_VK_CHECK(vkAllocateMemory(g_window.device, &memory_allocate_info, 0, &buffer->device_memory));
-    TI_VK_CHECK(vkBindBufferMemory(g_window.device, buffer->buffer_handle, buffer->device_memory, 0));
+    TI_VK_CHECK(vkAllocateMemory(g_vulkan.device, &memory_allocate_info, 0, &buffer->device_memory));
+    TI_VK_CHECK(vkBindBufferMemory(g_vulkan.device, buffer->buffer_handle, buffer->device_memory, 0));
   }
 
   {
@@ -50,11 +50,11 @@ void buffer_create(buffer_t *buffer) {
       .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
     };
 
-    TI_VK_CHECK(vkCreateBuffer(g_window.device, &buffer_create_info, 0, &staging_buffer.buffer_handle));
+    TI_VK_CHECK(vkCreateBuffer(g_vulkan.device, &buffer_create_info, 0, &staging_buffer.buffer_handle));
 
     VkMemoryRequirements memory_requirements = {0};
 
-    vkGetBufferMemoryRequirements(g_window.device, staging_buffer.buffer_handle, &memory_requirements);
+    vkGetBufferMemoryRequirements(g_vulkan.device, staging_buffer.buffer_handle, &memory_requirements);
 
     uint32_t memory_type_index = vk_find_memory_type_index(memory_requirements.memoryTypeBits, staging_buffer.memory_property_flags);
 
@@ -64,17 +64,17 @@ void buffer_create(buffer_t *buffer) {
       .memoryTypeIndex = memory_type_index,
     };
 
-    TI_VK_CHECK(vkAllocateMemory(g_window.device, &memory_allocate_info, 0, &staging_buffer.device_memory));
-    TI_VK_CHECK(vkBindBufferMemory(g_window.device, staging_buffer.buffer_handle, staging_buffer.device_memory, 0));
+    TI_VK_CHECK(vkAllocateMemory(g_vulkan.device, &memory_allocate_info, 0, &staging_buffer.device_memory));
+    TI_VK_CHECK(vkBindBufferMemory(g_vulkan.device, staging_buffer.buffer_handle, staging_buffer.device_memory, 0));
   }
 
   if (staging_buffer.host_data) {
 
-    TI_VK_CHECK(vkMapMemory(g_window.device, staging_buffer.device_memory, 0, staging_buffer.size, 0, &staging_buffer.device_data));
+    TI_VK_CHECK(vkMapMemory(g_vulkan.device, staging_buffer.device_memory, 0, staging_buffer.size, 0, &staging_buffer.device_data));
 
     memcpy(staging_buffer.device_data, staging_buffer.host_data, staging_buffer.size);
 
-    vkUnmapMemory(g_window.device, staging_buffer.device_memory);
+    vkUnmapMemory(g_vulkan.device, staging_buffer.device_memory);
 
     staging_buffer.device_data = 0;
   }
@@ -96,25 +96,25 @@ void buffer_create(buffer_t *buffer) {
 
   vk_primary_command_buffer_submit_immediate(command_buffer);
 
-  vkFreeMemory(g_window.device, staging_buffer.device_memory, 0);
-  vkDestroyBuffer(g_window.device, staging_buffer.buffer_handle, 0);
+  vkFreeMemory(g_vulkan.device, staging_buffer.device_memory, 0);
+  vkDestroyBuffer(g_vulkan.device, staging_buffer.buffer_handle, 0);
 }
-void buffer_map(buffer_t *buffer) {
-  TI_VK_CHECK(vkMapMemory(g_window.device, buffer->device_memory, 0, buffer->size, 0, &buffer->device_data));
+void buffer_map(vk_buffer_t *buffer) {
+  TI_VK_CHECK(vkMapMemory(g_vulkan.device, buffer->device_memory, 0, buffer->size, 0, &buffer->device_data));
 }
-void buffer_unmap(buffer_t *buffer) {
-  vkUnmapMemory(g_window.device, buffer->device_memory);
+void buffer_unmap(vk_buffer_t *buffer) {
+  vkUnmapMemory(g_vulkan.device, buffer->device_memory);
 
   buffer->device_data = 0;
 }
-void buffer_destroy(buffer_t *buffer) {
+void buffer_destroy(vk_buffer_t *buffer) {
   if (buffer->device_data) {
 
-    vkUnmapMemory(g_window.device, buffer->device_memory);
+    vkUnmapMemory(g_vulkan.device, buffer->device_memory);
 
     buffer->device_data = 0;
   }
 
-  vkFreeMemory(g_window.device, buffer->device_memory, 0);
-  vkDestroyBuffer(g_window.device, buffer->buffer_handle, 0);
+  vkFreeMemory(g_vulkan.device, buffer->device_memory, 0);
+  vkDestroyBuffer(g_vulkan.device, buffer->buffer_handle, 0);
 }

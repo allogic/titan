@@ -1,24 +1,24 @@
 #include <ti_pch.h>
 
-void adb_joint_load(adb_joint_t *joint, fs_file *file) {
-  memset(joint, 0, sizeof(adb_joint_t));
+void fs_joint_load(fs_joint_t *joint, fs_file *file) {
+  memset(joint, 0, sizeof(fs_joint_t));
 
   fs_file_read(file, joint->name, TI_PATH_SIZE, 0);
   fs_file_read(file, &joint->child_count, sizeof(uint64_t), 0);
 
-  joint->children = (adb_joint_t *)TI_ALLOC(sizeof(adb_joint_t) * joint->child_count, 0, 0);
+  joint->children = (fs_joint_t *)TI_ALLOC(sizeof(fs_joint_t) * joint->child_count, 0, 0);
 
   uint64_t child_index = 0;
   uint64_t child_count = joint->child_count;
 
   while (child_index < child_count) {
 
-    adb_joint_load(&joint->children[child_index], file);
+    fs_joint_load(&joint->children[child_index], file);
 
     child_index++;
   }
 }
-void adb_joint_store(adb_joint_t *joint, fs_file *file) {
+void fs_joint_store(fs_joint_t *joint, fs_file *file) {
   fs_file_write(file, joint->name, TI_PATH_SIZE, 0);
   fs_file_write(file, &joint->child_count, sizeof(uint64_t), 0);
 
@@ -27,23 +27,23 @@ void adb_joint_store(adb_joint_t *joint, fs_file *file) {
 
   while (child_index < child_count) {
 
-    adb_joint_store(&joint->children[child_index], file);
+    fs_joint_store(&joint->children[child_index], file);
 
     child_index++;
   }
 }
-void adb_joint_destroy(adb_joint_t *joint) {
+void fs_joint_destroy(fs_joint_t *joint) {
   uint64_t child_index = 0;
   uint64_t child_count = joint->child_count;
 
   while (child_index < child_count) {
 
-    adb_joint_destroy(&joint->children[child_index]);
+    fs_joint_destroy(&joint->children[child_index]);
 
     child_index++;
   }
 
   TI_FREE(joint->children);
 
-  memset(joint, 0, sizeof(adb_joint_t));
+  memset(joint, 0, sizeof(fs_joint_t));
 }
