@@ -334,6 +334,7 @@ uint8_t fs_import_font(char const *asset_file, char const *font_file) {
 
     fs_file_write(file, &asset_magic, sizeof(uint64_t), 0);
     fs_file_write(file, &asset_type, sizeof(fs_asset_type_t), 0);
+    fs_file_write(file, asset_file, TI_PATH_SIZE, 0);
     fs_file_write(file, font_name, TI_PATH_SIZE, 0);
     fs_file_write(file, &buffer_size, sizeof(uint64_t), 0);
     fs_file_write(file, buffer, buffer_size, 0);

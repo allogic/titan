@@ -111,18 +111,13 @@ fs_asset_t *fs_asset(char const *asset_path) {
 
   if (map_contains(&g_assets, asset_path, path_size) == 0) {
 
-    fs_file *file = 0;
+    fs_asset_t asset = {0};
 
-    if (fs_file_open(g_fs, asset_path, FS_READ, &file) == FS_SUCCESS) {
+    strcpy(asset.path, asset_path);
 
-      fs_asset_t asset = {0};
+    fs_asset_load(&asset);
 
-      fs_asset_load(&asset, file);
-
-      map_insert(&g_assets, asset_path, path_size, &asset, sizeof(fs_asset_t));
-
-      fs_file_close(file);
-    }
+    map_insert(&g_assets, asset_path, path_size, &asset, sizeof(fs_asset_t));
   }
 
   return map_at(&g_assets, asset_path, path_size);

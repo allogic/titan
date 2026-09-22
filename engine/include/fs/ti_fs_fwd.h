@@ -155,6 +155,7 @@ typedef struct fs_renderer_t {
 typedef struct fs_asset_t {
   uint64_t magic;
   fs_asset_type_t type;
+  char path[TI_PATH_SIZE];
   void *config;
 } fs_asset_t;
 

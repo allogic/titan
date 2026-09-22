@@ -402,19 +402,16 @@ static void draw_text_input(im_file_entry_t *file_entry) {
         }
         case IM_FILE_TYPE_ASSET: {
 
-          if (fs_file_open(g_fs, file_path, FS_WRITE, &file) == FS_SUCCESS) {
+          fs_asset_t asset = {
+            .magic = TI_FS_ASSET_MAGIC,
+            .type = s_new_asset_type,
+          };
 
-            fs_asset_t asset = {
-              .magic = TI_FS_ASSET_MAGIC,
-              .type = s_new_asset_type,
-            };
+          strcpy(asset.path, file_path);
 
-            fs_asset_create(&asset);
-            fs_asset_store(&asset, file);
-            fs_asset_destroy(&asset);
-
-            fs_file_close(file);
-          }
+          fs_asset_create(&asset);
+          fs_asset_store(&asset);
+          fs_asset_destroy(&asset);
 
           break;
         }

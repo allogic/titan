@@ -65,7 +65,13 @@ void fs_asset_create(fs_asset_t *asset) {
     }
   }
 }
-void fs_asset_load(fs_asset_t *asset, fs_file *file) {
+void fs_asset_load(fs_asset_t *asset) {
+  fs_file *file = 0;
+
+  if (fs_file_open(g_fs, asset->path, FS_READ, &file) != FS_SUCCESS) {
+    return;
+  }
+
   fs_file_read(file, &asset->magic, sizeof(uint64_t), 0);
 
   if (asset->magic != TI_FS_ASSET_MAGIC) {
@@ -75,6 +81,7 @@ void fs_asset_load(fs_asset_t *asset, fs_file *file) {
   // TODO: additionally do checksums..
 
   fs_file_read(file, &asset->type, sizeof(fs_asset_type_t), 0);
+  fs_file_read(file, asset->path, TI_PATH_SIZE, 0);
 
   switch (asset->type) {
 
@@ -159,14 +166,23 @@ void fs_asset_load(fs_asset_t *asset, fs_file *file) {
       break;
     }
   }
+
+  fs_file_close(file);
 }
-void fs_asset_store(fs_asset_t *asset, fs_file *file) {
+void fs_asset_store(fs_asset_t *asset) {
+  fs_file *file = 0;
+
+  if (fs_file_open(g_fs, asset->path, FS_WRITE, &file) != FS_SUCCESS) {
+    return;
+  }
+
   if (asset->magic != TI_FS_ASSET_MAGIC) {
     return;
   }
 
   fs_file_write(file, &asset->magic, sizeof(uint64_t), 0);
   fs_file_write(file, &asset->type, sizeof(fs_asset_type_t), 0);
+  fs_file_write(file, asset->path, TI_PATH_SIZE, 0);
 
   switch (asset->type) {
 
@@ -231,6 +247,8 @@ void fs_asset_store(fs_asset_t *asset, fs_file *file) {
       break;
     }
   }
+
+  fs_file_close(file);
 }
 void fs_asset_destroy(fs_asset_t *asset) {
   switch (asset->type) {

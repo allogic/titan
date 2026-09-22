@@ -351,8 +351,6 @@ static int draw_asset(void) {
       fs_framebuffer_t *framebuffer = (fs_framebuffer_t *)asset->config;
 
       ImGui::Text("Name: %s", framebuffer->name);
-      ImGui::Text("Width: %u", framebuffer->width);
-      ImGui::Text("Height: %u", framebuffer->height);
       ImGui::Text("Color Attachment Image: %s", framebuffer->color_attachment_image);
       ImGui::Text("Depth Attachment Image: %s", framebuffer->depth_attachment_image);
 

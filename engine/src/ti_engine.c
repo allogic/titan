@@ -39,14 +39,13 @@ static void import_dflt_assets(void) {
   fs_import_font("asset/font/material_symbols_rounded_fill.pak", "static/font/material_symbols_rounded_fill.ttf");
 }
 static void create_dflt_assets(void) {
-  fs_file *file = 0;
-
-  if (fs_file_open(g_fs, "asset/swapchain/main.pak", FS_WRITE, &file) == FS_SUCCESS) {
-
+  {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_SWAPCHAIN,
     };
+
+    strcpy(asset.path, "asset/swapchain/main.pak");
 
     fs_asset_create(&asset);
 
@@ -54,17 +53,16 @@ static void create_dflt_assets(void) {
 
     strcpy(swapchain->name, "main");
 
-    fs_asset_store(&asset, file);
+    fs_asset_store(&asset);
     fs_asset_destroy(&asset);
-
-    fs_file_close(file);
   }
-  if (fs_file_open(g_fs, "asset/renderer/main.pak", FS_WRITE, &file) == FS_SUCCESS) {
-
+  {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_RENDERER,
     };
+
+    strcpy(asset.path, "asset/renderer/main.pak");
 
     fs_asset_create(&asset);
 
@@ -76,18 +74,17 @@ static void create_dflt_assets(void) {
     strcpy(renderer->full_screen_vertex_buffer, "asset/renderer/main/full_screen_vertex_buffer.pak");
     strcpy(renderer->full_screen_index_buffer, "asset/renderer/main/full_screen_index_buffer.pak");
 
-    fs_asset_store(&asset, file);
+    fs_asset_store(&asset);
     fs_asset_destroy(&asset);
-
-    fs_file_close(file);
   }
 
-  if (fs_file_open(g_fs, "asset/renderpass/main.pak", FS_WRITE, &file) == FS_SUCCESS) {
-
+  {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_RENDERPASS,
     };
+
+    strcpy(asset.path, "asset/renderpass/main.pak");
 
     fs_asset_create(&asset);
 
@@ -100,17 +97,16 @@ static void create_dflt_assets(void) {
     renderpass->final_color_attachment_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     renderpass->final_depth_attachment_layout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
 
-    fs_asset_store(&asset, file);
+    fs_asset_store(&asset);
     fs_asset_destroy(&asset);
-
-    fs_file_close(file);
   }
-  if (fs_file_open(g_fs, "asset/renderpass/imgui.pak", FS_WRITE, &file) == FS_SUCCESS) {
-
+  {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_RENDERPASS,
     };
+
+    strcpy(asset.path, "asset/renderpass/imgui.pak");
 
     fs_asset_create(&asset);
 
@@ -123,18 +119,17 @@ static void create_dflt_assets(void) {
     renderpass->final_color_attachment_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     renderpass->final_depth_attachment_layout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
 
-    fs_asset_store(&asset, file);
+    fs_asset_store(&asset);
     fs_asset_destroy(&asset);
-
-    fs_file_close(file);
   }
 
-  if (fs_file_open(g_fs, "asset/framebuffer/main.pak", FS_WRITE, &file) == FS_SUCCESS) {
-
+  {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_FRAMEBUFFER,
     };
+
+    strcpy(asset.path, "asset/framebuffer/main.pak");
 
     fs_asset_create(&asset);
 
@@ -144,17 +139,16 @@ static void create_dflt_assets(void) {
     strcpy(framebuffer->color_attachment_image, "asset/framebuffer/main/attachments/color.pak");
     strcpy(framebuffer->depth_attachment_image, "asset/framebuffer/main/attachments/depth.pak");
 
-    fs_asset_store(&asset, file);
+    fs_asset_store(&asset);
     fs_asset_destroy(&asset);
-
-    fs_file_close(file);
   }
-  if (fs_file_open(g_fs, "asset/framebuffer/imgui.pak", FS_WRITE, &file) == FS_SUCCESS) {
-
+  {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_FRAMEBUFFER,
     };
+
+    strcpy(asset.path, "asset/framebuffer/imgui.pak");
 
     fs_asset_create(&asset);
 
@@ -164,18 +158,17 @@ static void create_dflt_assets(void) {
     strcpy(framebuffer->color_attachment_image, "asset/framebuffer/imgui/attachments/color.pak");
     strcpy(framebuffer->depth_attachment_image, "asset/framebuffer/imgui/attachments/depth.pak");
 
-    fs_asset_store(&asset, file);
+    fs_asset_store(&asset);
     fs_asset_destroy(&asset);
-
-    fs_file_close(file);
   }
 
-  if (fs_file_open(g_fs, "asset/buffer/time_info.pak", FS_WRITE, &file) == FS_SUCCESS) {
-
+  {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_BUFFER,
     };
+
+    strcpy(asset.path, "asset/buffer/time_info.pak");
 
     fs_asset_create(&asset);
 
@@ -189,17 +182,16 @@ static void create_dflt_assets(void) {
     buffer->memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     buffer->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset, file);
+    fs_asset_store(&asset);
     fs_asset_destroy(&asset);
-
-    fs_file_close(file);
   }
-  if (fs_file_open(g_fs, "asset/buffer/screen_info.pak", FS_WRITE, &file) == FS_SUCCESS) {
-
+  {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_BUFFER,
     };
+
+    strcpy(asset.path, "asset/buffer/screen_info.pak");
 
     fs_asset_create(&asset);
 
@@ -213,17 +205,16 @@ static void create_dflt_assets(void) {
     buffer->memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     buffer->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset, file);
+    fs_asset_store(&asset);
     fs_asset_destroy(&asset);
-
-    fs_file_close(file);
   }
-  if (fs_file_open(g_fs, "asset/buffer/mouse_info.pak", FS_WRITE, &file) == FS_SUCCESS) {
-
+  {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_BUFFER,
     };
+
+    strcpy(asset.path, "asset/buffer/mouse_info.pak");
 
     fs_asset_create(&asset);
 
@@ -237,17 +228,16 @@ static void create_dflt_assets(void) {
     buffer->memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     buffer->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset, file);
+    fs_asset_store(&asset);
     fs_asset_destroy(&asset);
-
-    fs_file_close(file);
   }
-  if (fs_file_open(g_fs, "asset/buffer/camera_info.pak", FS_WRITE, &file) == FS_SUCCESS) {
-
+  {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_BUFFER,
     };
+
+    strcpy(asset.path, "asset/buffer/camera_info.pak");
 
     fs_asset_create(&asset);
 
@@ -261,18 +251,17 @@ static void create_dflt_assets(void) {
     buffer->memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     buffer->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset, file);
+    fs_asset_store(&asset);
     fs_asset_destroy(&asset);
-
-    fs_file_close(file);
   }
 
-  if (fs_file_open(g_fs, "asset/framebuffer/main/attachments/color.pak", FS_WRITE, &file) == FS_SUCCESS) {
-
+  {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_IMAGE,
     };
+
+    strcpy(asset.path, "asset/framebuffer/main/attachments/color.pak");
 
     fs_asset_create(&asset);
 
@@ -294,17 +283,16 @@ static void create_dflt_assets(void) {
     image->memory_property_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
     image->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset, file);
+    fs_asset_store(&asset);
     fs_asset_destroy(&asset);
-
-    fs_file_close(file);
   }
-  if (fs_file_open(g_fs, "asset/framebuffer/main/attachments/depth.pak", FS_WRITE, &file) == FS_SUCCESS) {
-
+  {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_IMAGE,
     };
+
+    strcpy(asset.path, "asset/framebuffer/main/attachments/depth.pak");
 
     fs_asset_create(&asset);
 
@@ -326,18 +314,17 @@ static void create_dflt_assets(void) {
     image->memory_property_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
     image->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset, file);
+    fs_asset_store(&asset);
     fs_asset_destroy(&asset);
-
-    fs_file_close(file);
   }
 
-  if (fs_file_open(g_fs, "asset/framebuffer/imgui/attachments/color.pak", FS_WRITE, &file) == FS_SUCCESS) {
-
+  {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_IMAGE,
     };
+
+    strcpy(asset.path, "asset/framebuffer/imgui/attachments/color.pak");
 
     fs_asset_create(&asset);
 
@@ -359,17 +346,16 @@ static void create_dflt_assets(void) {
     image->memory_property_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
     image->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset, file);
+    fs_asset_store(&asset);
     fs_asset_destroy(&asset);
-
-    fs_file_close(file);
   }
-  if (fs_file_open(g_fs, "asset/framebuffer/imgui/attachments/depth.pak", FS_WRITE, &file) == FS_SUCCESS) {
-
+  {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_IMAGE,
     };
+
+    strcpy(asset.path, "asset/framebuffer/imgui/attachments/depth.pak");
 
     fs_asset_create(&asset);
 
@@ -391,18 +377,17 @@ static void create_dflt_assets(void) {
     image->memory_property_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
     image->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset, file);
+    fs_asset_store(&asset);
     fs_asset_destroy(&asset);
-
-    fs_file_close(file);
   }
 
-  if (fs_file_open(g_fs, "asset/renderer/main/debug_line_vertex_buffer.pak", FS_WRITE, &file) == FS_SUCCESS) {
-
+  {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_BUFFER,
     };
+
+    strcpy(asset.path, "asset/renderer/main/debug_line_vertex_buffer.pak");
 
     fs_asset_create(&asset);
 
@@ -416,17 +401,16 @@ static void create_dflt_assets(void) {
     buffer->memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     buffer->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset, file);
+    fs_asset_store(&asset);
     fs_asset_destroy(&asset);
-
-    fs_file_close(file);
   }
-  if (fs_file_open(g_fs, "asset/renderer/main/debug_line_index_buffer.pak", FS_WRITE, &file) == FS_SUCCESS) {
-
+  {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_BUFFER,
     };
+
+    strcpy(asset.path, "asset/renderer/main/debug_line_index_buffer.pak");
 
     fs_asset_create(&asset);
 
@@ -440,17 +424,16 @@ static void create_dflt_assets(void) {
     buffer->memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     buffer->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset, file);
+    fs_asset_store(&asset);
     fs_asset_destroy(&asset);
-
-    fs_file_close(file);
   }
-  if (fs_file_open(g_fs, "asset/renderer/main/full_screen_vertex_buffer.pak", FS_WRITE, &file) == FS_SUCCESS) {
-
+  {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_BUFFER,
     };
+
+    strcpy(asset.path, "asset/renderer/main/full_screen_vertex_buffer.pak");
 
     fs_asset_create(&asset);
 
@@ -464,17 +447,16 @@ static void create_dflt_assets(void) {
     buffer->memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     buffer->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset, file);
+    fs_asset_store(&asset);
     fs_asset_destroy(&asset);
-
-    fs_file_close(file);
   }
-  if (fs_file_open(g_fs, "asset/renderer/main/full_screen_index_buffer.pak", FS_WRITE, &file) == FS_SUCCESS) {
-
+  {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_BUFFER,
     };
+
+    strcpy(asset.path, "asset/renderer/main/full_screen_index_buffer.pak");
 
     fs_asset_create(&asset);
 
@@ -488,9 +470,7 @@ static void create_dflt_assets(void) {
     buffer->memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     buffer->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset, file);
+    fs_asset_store(&asset);
     fs_asset_destroy(&asset);
-
-    fs_file_close(file);
   }
 }
