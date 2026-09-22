@@ -3,12 +3,12 @@
 #include <imgui.h>
 
 static void draw_background(void);
-static void draw_file_controls(void);
-static void draw_file(void);
+static void draw_asset_controls(void);
+static void draw_asset(void);
 static void draw_entity_controls(void);
 static void draw_entity(void);
 
-static inspector_type_t s_inspector_type = INSPECTOR_TYPE_NONE;
+static im_inspector_type_t s_inspector_type = IM_INSPECTOR_TYPE_NONE;
 static comp_type_t s_selected_comp = COMP_TYPE_TRANSFORM;
 
 static void *s_selected_data = 0;
@@ -21,24 +21,24 @@ static const char *s_component_names[] = {
   "Skeleton",
 };
 
-void inspector_draw(void) {
+void im_inspector_draw(void) {
   ImGui::Begin("Inspector", 0, ImGuiWindowFlags_NoDecoration);
 
   draw_background();
 
   switch (s_inspector_type) {
 
-    case INSPECTOR_TYPE_ENTITY: {
+    case IM_INSPECTOR_TYPE_ENTITY: {
 
       draw_entity_controls();
       draw_entity();
 
       break;
     }
-    case INSPECTOR_TYPE_FILE: {
+    case IM_INSPECTOR_TYPE_ASSET: {
 
-      draw_file_controls();
-      draw_file();
+      draw_asset_controls();
+      draw_asset();
 
       break;
     }
@@ -46,12 +46,12 @@ void inspector_draw(void) {
 
   ImGui::End();
 }
-void inspector_select(inspector_type_t type, void *selection) {
+void im_inspector_select(im_inspector_type_t type, void *selection) {
   s_inspector_type = type;
   s_selected_data = selection;
 }
-void inspector_reset(void) {
-  s_inspector_type = INSPECTOR_TYPE_NONE;
+void im_inspector_reset(void) {
+  s_inspector_type = IM_INSPECTOR_TYPE_NONE;
   s_selected_comp = COMP_TYPE_TRANSFORM;
 
   s_selected_data = 0;
@@ -70,17 +70,17 @@ static void draw_background(void) {
     5.0F,
     ImDrawFlags_RoundCornersAll);
 }
-static void draw_file_controls(void) {
+static void draw_asset_controls(void) {
   // TODO
 }
-static void draw_file(void) {
+static void draw_asset(void) {
   fs_asset_t *asset = (fs_asset_t *)s_selected_data;
 
   switch (asset->type) {
 
     case FS_ASSET_TYPE_MODEL: {
 
-      fs_model_t *model = (fs_model_t *)asset->fs_instance;
+      fs_model_t *model = (fs_model_t *)asset->config;
 
       ImGui::Text("%s", model->name);
       ImGui::Text("Mesh Count: %llu", model->mesh_count);
@@ -133,7 +133,7 @@ static void draw_file(void) {
     }
     case FS_ASSET_TYPE_PIPELINE: {
 
-      fs_pipeline_t *pipeline = (fs_pipeline_t *)asset->fs_instance;
+      fs_pipeline_t *pipeline = (fs_pipeline_t *)asset->config;
 
       ImGui::Text("%s", pipeline->name);
 
@@ -229,7 +229,7 @@ static void draw_file(void) {
     }
     case FS_ASSET_TYPE_FONT: {
 
-      fs_font_t *font = (fs_font_t *)asset->fs_instance;
+      fs_font_t *font = (fs_font_t *)asset->config;
 
       ImGui::Text("%s", font->name);
 
@@ -237,9 +237,21 @@ static void draw_file(void) {
     }
     case FS_ASSET_TYPE_DESCRIPTOR_BINDING: {
 
-      fs_descriptor_binding_t *descriptor_binding = (fs_descriptor_binding_t *)asset->fs_instance;
+      fs_descriptor_binding_t *descriptor_binding = (fs_descriptor_binding_t *)asset->config;
 
       ImGui::Text("%s", descriptor_binding->name);
+
+      break;
+    }
+    case FS_ASSET_TYPE_FRAMEBUFFER: {
+
+      fs_framebuffer_t *framebuffer = (fs_framebuffer_t *)asset->config;
+
+      ImGui::Text("%s", framebuffer->name);
+
+      if (ImGui::Button("Add Color Attachment")) {
+        // TODO
+      }
 
       break;
     }

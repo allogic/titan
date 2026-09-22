@@ -5,10 +5,9 @@
 extern "C" {
 #endif // __cplusplus
 
-extern vk_framebuffer_t g_framebuffer;
-
-void framebuffer_create(void);
-void framebuffer_destroy(void);
+// TODO: remove renderpass dependency..
+void vk_framebuffer_create(vk_renderpass_t *renderpass, vk_framebuffer_t *framebuffer, char const *asset_path);
+void vk_framebuffer_destroy(vk_framebuffer_t *framebuffer);
 
 #ifdef __cplusplus
 }

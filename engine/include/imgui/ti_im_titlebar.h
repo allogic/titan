@@ -5,8 +5,8 @@
 extern "C" {
 #endif // __cplusplus
 
-void titlebar_draw(void);
-void titlebar_reset(void);
+void im_titlebar_draw(void);
+void im_titlebar_reset(void);
 
 #ifdef __cplusplus
 }

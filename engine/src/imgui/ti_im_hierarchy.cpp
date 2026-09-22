@@ -14,7 +14,7 @@ static char s_entity_name[TI_PATH_SIZE] = {0};
 
 static ecs_entity_t s_selected_entity = 0;
 
-void hierarchy_draw(void) {
+void im_hierarchy_draw(void) {
   ImGui::Begin("Hierarchy", 0, ImGuiWindowFlags_NoDecoration);
 
   check_background_clicks();
@@ -31,15 +31,15 @@ void hierarchy_draw(void) {
 
   ImGui::End();
 }
-void hierarchy_refresh(void) {
+void im_hierarchy_refresh(void) {
   // TODO
 }
-void hierarchy_reset(void) {
+void im_hierarchy_reset(void) {
   memset(s_entity_name, 0, TI_PATH_SIZE);
 
   s_selected_entity = 0;
 
-  inspector_select(INSPECTOR_TYPE_NONE, 0);
+  im_inspector_select(IM_INSPECTOR_TYPE_NONE, 0);
 }
 
 static void check_background_clicks(void) {
@@ -49,7 +49,7 @@ static void check_background_clicks(void) {
 
     s_selected_entity = 0;
 
-    inspector_select(INSPECTOR_TYPE_NONE, 0);
+    im_inspector_select(IM_INSPECTOR_TYPE_NONE, 0);
   }
 }
 
@@ -122,7 +122,7 @@ static void draw_tree(ecs_entity_t entity) {
 
     s_selected_entity = entity;
 
-    inspector_select(INSPECTOR_TYPE_ENTITY, (void *)entity);
+    im_inspector_select(IM_INSPECTOR_TYPE_ENTITY, (void *)entity);
   }
 
   draw_context_menu(entity);
@@ -167,7 +167,7 @@ static void draw_context_menu(ecs_entity_t entity) {
 
         s_selected_entity = 0;
 
-        inspector_select(INSPECTOR_TYPE_NONE, 0);
+        im_inspector_select(IM_INSPECTOR_TYPE_NONE, 0);
       }
     }
 

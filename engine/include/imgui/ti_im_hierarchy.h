@@ -5,9 +5,9 @@
 extern "C" {
 #endif // __cplusplus
 
-void hierarchy_draw(void);
-void hierarchy_refresh(void);
-void hierarchy_reset(void);
+void im_hierarchy_draw(void);
+void im_hierarchy_refresh(void);
+void im_hierarchy_reset(void);
 
 #ifdef __cplusplus
 }

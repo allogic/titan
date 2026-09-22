@@ -5,9 +5,9 @@
 extern "C" {
 #endif // __cplusplus
 
-void viewport_draw(void);
-void viewport_refresh(void);
-void viewport_reset(void);
+void im_viewport_draw(void);
+void im_viewport_refresh(void);
+void im_viewport_reset(void);
 
 #ifdef __cplusplus
 }

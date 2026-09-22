@@ -5,7 +5,7 @@
 extern "C" {
 #endif // __cplusplus
 
-void vk_pipeline_create(vk_pipeline_t *pipeline);
+void vk_pipeline_create(vk_pipeline_t *pipeline, char const *asset_path);
 void vk_pipeline_destroy(vk_pipeline_t *pipeline);
 
 #ifdef __cplusplus

@@ -43,7 +43,6 @@
 #include <physic/ti_physic_const.h>
 #include <comp/ti_comp_const.h>
 #include <vulkan/ti_vk_const.h>
-#include <renderer/ti_renderer_const.h>
 #include <fs/ti_fs_const.h>
 #include <imgui/ti_im_const.h>
 
@@ -52,9 +51,8 @@
 #include <physic/ti_physic_fwd.h>
 #include <comp/ti_comp_fwd.h>
 #include <platform/ti_pl_fwd.h>
-#include <vulkan/ti_vk_fwd.h>
 #include <fs/ti_fs_fwd.h>
-#include <renderer/ti_renderer_fwd.h>
+#include <vulkan/ti_vk_fwd.h>
 #include <imgui/ti_im_fwd.h>
 
 #ifdef BUILD_DEBUG
@@ -74,11 +72,8 @@
 #include <platform/ti_pl.h>
 #include <vulkan/ti_vk.h>
 #include <fs/ti_fs.h>
-#include <renderer/ti_renderer.h>
 #include <imgui/ti_im.h>
 
-#include <ti_archive.h>
 #include <ti_scene.h>
-#include <ti_import.h>
 
 #endif // TI_PCH_H

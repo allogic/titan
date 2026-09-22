@@ -9,24 +9,25 @@
 #include <imgui/ti_im_handle.h>
 #include <imgui/ti_im_titlebar.h>
 #include <imgui/ti_im_sidebar.h>
+#include <imgui/ti_im_renderer.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
-extern uint8_t g_show_inspector;
+extern uint8_t g_im_show_inspector;
 
-extern void *g_imgui_font_default_16;
+extern void *g_im_font_default_16;
 
-extern void *g_imgui_font_symbols_16;
-extern void *g_imgui_font_symbols_18;
-extern void *g_imgui_font_symbols_22;
-extern void *g_imgui_font_symbols_32;
+extern void *g_im_font_symbols_16;
+extern void *g_im_font_symbols_18;
+extern void *g_im_font_symbols_22;
+extern void *g_im_font_symbols_32;
 
-void imgui_create(void);
-void imgui_draw(VkCommandBuffer command_buffer);
-void imgui_message(HWND window_handle, UINT window_message, WPARAM w_param, LPARAM l_param);
-void imgui_destroy(void);
+void im_create(void);
+void im_draw(void);
+void im_message(HWND window_handle, UINT window_message, WPARAM w_param, LPARAM l_param);
+void im_destroy(void);
 
 #ifdef __cplusplus
 }

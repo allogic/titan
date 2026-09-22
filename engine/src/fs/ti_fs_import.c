@@ -25,7 +25,7 @@ static uint8_t compile_glsl_shader(char const *file_path, glslang_stage_t stage,
 static uint8_t convert_spirv_input_variables(fs_file *file, SpvReflectShaderModule *module);
 static uint8_t convert_spirv_descriptor_bindings(fs_file *file, SpvReflectShaderModule *module);
 
-uint8_t import_model(char const *asset_file, char const *model_file) {
+uint8_t fs_import_model(char const *asset_file, char const *model_file) {
   uint8_t status = 0;
 
   void *gltf_buffer = 0;
@@ -43,7 +43,6 @@ uint8_t import_model(char const *asset_file, char const *model_file) {
   LARGE_INTEGER t3 = {0};
   LARGE_INTEGER t4 = {0};
   LARGE_INTEGER t5 = {0};
-  LARGE_INTEGER t6 = {0};
 
   QueryPerformanceFrequency(&freq);
   QueryPerformanceCounter(&t0);
@@ -84,15 +83,6 @@ uint8_t import_model(char const *asset_file, char const *model_file) {
 
   QueryPerformanceCounter(&t4);
 
-  if (fs_mkdir_recursive(g_fs, asset_file, FS_READ | FS_WRITE) != FS_SUCCESS) {
-
-    status = 1;
-
-    goto error;
-  }
-
-  QueryPerformanceCounter(&t5);
-
   if (fs_file_open(g_fs, asset_file, FS_WRITE, &file) == FS_SUCCESS) {
 
     uint64_t path_size = strlen(asset_file);
@@ -120,23 +110,21 @@ uint8_t import_model(char const *asset_file, char const *model_file) {
     fs_file_close(file);
   }
 
-  QueryPerformanceCounter(&t6);
+  QueryPerformanceCounter(&t5);
 
   LONGLONG d0 = ((t1.QuadPart - t0.QuadPart) * 1000) / freq.QuadPart;
   LONGLONG d1 = ((t2.QuadPart - t1.QuadPart) * 1000) / freq.QuadPart;
   LONGLONG d2 = ((t3.QuadPart - t2.QuadPart) * 1000) / freq.QuadPart;
   LONGLONG d3 = ((t4.QuadPart - t3.QuadPart) * 1000) / freq.QuadPart;
   LONGLONG d4 = ((t5.QuadPart - t4.QuadPart) * 1000) / freq.QuadPart;
-  LONGLONG d5 = ((t6.QuadPart - t5.QuadPart) * 1000) / freq.QuadPart;
-  LONGLONG dt = d0 + d1 + d2 + d3 + d4 + d5;
+  LONGLONG dt = d0 + d1 + d2 + d3 + d4;
 
   printf("Importing %s\n", asset_file);
   printf("  Load file        %8lld ms\n", d0);
   printf("  Parse file       %8lld ms\n", d1);
   printf("  Load buffer      %8lld ms\n", d2);
   printf("  Validate         %8lld ms\n", d3);
-  printf("  Create directory %8lld ms\n", d4);
-  printf("  Convert model    %8lld ms\n", d5);
+  printf("  Convert model    %8lld ms\n", d4);
   printf("  Total            %8llu ms\n", dt);
   printf("\n");
 
@@ -152,7 +140,7 @@ error:
 
   return status;
 }
-uint8_t import_pipeline(vk_pipeline_type_t pipeline_type, char const *asset_file, char const *vertex_file, char const *fragment_file) {
+uint8_t fs_import_pipeline(fs_pipeline_type_t pipeline_type, char const *asset_file, char const *vertex_file, char const *fragment_file) {
   uint8_t status = 0;
 
   uint32_t *spirv_vertex_words = 0;
@@ -172,7 +160,6 @@ uint8_t import_pipeline(vk_pipeline_type_t pipeline_type, char const *asset_file
   LARGE_INTEGER t2 = {0};
   LARGE_INTEGER t3 = {0};
   LARGE_INTEGER t4 = {0};
-  LARGE_INTEGER t5 = {0};
 
   QueryPerformanceFrequency(&freq);
   QueryPerformanceCounter(&t0);
@@ -195,15 +182,6 @@ uint8_t import_pipeline(vk_pipeline_type_t pipeline_type, char const *asset_file
 
   QueryPerformanceCounter(&t2);
 
-  if (fs_mkdir_recursive(g_fs, asset_file, FS_READ | FS_WRITE) != FS_SUCCESS) {
-
-    status = 1;
-
-    goto error;
-  }
-
-  QueryPerformanceCounter(&t3);
-
   if (spvReflectCreateShaderModule(sizeof(uint32_t) * spirv_vertex_word_count, spirv_vertex_words, &vertex_module) != SPV_REFLECT_RESULT_SUCCESS) {
 
     status = 1;
@@ -217,7 +195,7 @@ uint8_t import_pipeline(vk_pipeline_type_t pipeline_type, char const *asset_file
     goto error;
   }
 
-  QueryPerformanceCounter(&t4);
+  QueryPerformanceCounter(&t3);
 
   if (fs_file_open(g_fs, asset_file, FS_WRITE, &file) == FS_SUCCESS) {
 
@@ -240,11 +218,11 @@ uint8_t import_pipeline(vk_pipeline_type_t pipeline_type, char const *asset_file
     fs_file_write(file, &asset_magic, sizeof(uint64_t), 0);
     fs_file_write(file, &asset_type, sizeof(fs_asset_type_t), 0);
     fs_file_write(file, program_name, TI_PATH_SIZE, 0);
-    fs_file_write(file, &pipeline_type, sizeof(vk_pipeline_type_t), 0);
+    fs_file_write(file, &pipeline_type, sizeof(fs_pipeline_type_t), 0);
 
     switch (pipeline_type) {
 
-      case VK_PIPELINE_TYPE_DFLT: {
+      case FS_PIPELINE_TYPE_DFLT: {
 
         convert_spirv_input_variables(file, &vertex_module);
         convert_spirv_descriptor_bindings(file, &vertex_module);
@@ -257,19 +235,19 @@ uint8_t import_pipeline(vk_pipeline_type_t pipeline_type, char const *asset_file
 
         break;
       }
-      case VK_PIPELINE_TYPE_MESH: {
+      case FS_PIPELINE_TYPE_MESH: {
 
         // TODO
 
         break;
       }
-      case VK_PIPELINE_TYPE_RAY: {
+      case FS_PIPELINE_TYPE_RAY: {
 
         // TODO
 
         break;
       }
-      case VK_PIPELINE_TYPE_COMP: {
+      case FS_PIPELINE_TYPE_COMP: {
 
         // TODO
 
@@ -280,21 +258,19 @@ uint8_t import_pipeline(vk_pipeline_type_t pipeline_type, char const *asset_file
     fs_file_close(file);
   }
 
-  QueryPerformanceCounter(&t5);
+  QueryPerformanceCounter(&t4);
 
   LONGLONG d0 = ((t1.QuadPart - t0.QuadPart) * 1000) / freq.QuadPart;
   LONGLONG d1 = ((t2.QuadPart - t1.QuadPart) * 1000) / freq.QuadPart;
   LONGLONG d2 = ((t3.QuadPart - t2.QuadPart) * 1000) / freq.QuadPart;
   LONGLONG d3 = ((t4.QuadPart - t3.QuadPart) * 1000) / freq.QuadPart;
-  LONGLONG d4 = ((t5.QuadPart - t4.QuadPart) * 1000) / freq.QuadPart;
-  LONGLONG dt = d0 + d1 + d2 + d3 + d4;
+  LONGLONG dt = d0 + d1 + d2 + d3;
 
   printf("Importing %s\n", asset_file);
   printf("  Compile vertex shader   %8lld ms\n", d0);
   printf("  Compile fragment shader %8lld ms\n", d1);
-  printf("  Create directory        %8lld ms\n", d2);
-  printf("  Convert vertex shader   %8lld ms\n", d3);
-  printf("  Convert fragment shader %8lld ms\n", d4);
+  printf("  Convert vertex shader   %8lld ms\n", d2);
+  printf("  Convert fragment shader %8lld ms\n", d3);
   printf("  Total                   %8llu ms\n", dt);
   printf("\n");
 
@@ -313,7 +289,7 @@ error:
 
   return status;
 }
-uint8_t import_font(char const *asset_file, char const *font_file) {
+uint8_t fs_import_font(char const *asset_file, char const *font_file) {
   uint8_t status = 0;
 
   void *buffer = 0;
@@ -325,7 +301,6 @@ uint8_t import_font(char const *asset_file, char const *font_file) {
   LARGE_INTEGER t0 = {0};
   LARGE_INTEGER t1 = {0};
   LARGE_INTEGER t2 = {0};
-  LARGE_INTEGER t3 = {0};
 
   QueryPerformanceFrequency(&freq);
   QueryPerformanceCounter(&t0);
@@ -338,15 +313,6 @@ uint8_t import_font(char const *asset_file, char const *font_file) {
   }
 
   QueryPerformanceCounter(&t1);
-
-  if (fs_mkdir_recursive(g_fs, asset_file, FS_READ | FS_WRITE) != FS_SUCCESS) {
-
-    status = 1;
-
-    goto error;
-  }
-
-  QueryPerformanceCounter(&t2);
 
   if (fs_file_open(g_fs, asset_file, FS_WRITE, &file) == FS_SUCCESS) {
 
@@ -375,17 +341,15 @@ uint8_t import_font(char const *asset_file, char const *font_file) {
     fs_file_close(file);
   }
 
-  QueryPerformanceCounter(&t3);
+  QueryPerformanceCounter(&t2);
 
   LONGLONG d0 = ((t1.QuadPart - t0.QuadPart) * 1000) / freq.QuadPart;
   LONGLONG d1 = ((t2.QuadPart - t1.QuadPart) * 1000) / freq.QuadPart;
-  LONGLONG d2 = ((t3.QuadPart - t2.QuadPart) * 1000) / freq.QuadPart;
-  LONGLONG dt = d0 + d1 + d2;
+  LONGLONG dt = d0 + d1;
 
   printf("Importing %s\n", asset_file);
   printf("  Read font        %8lld ms\n", d0);
-  printf("  Create directory %8lld ms\n", d1);
-  printf("  Convert font     %8lld ms\n", d2);
+  printf("  Convert font     %8lld ms\n", d1);
   printf("  Total            %8llu ms\n", dt);
   printf("\n");
 

@@ -7,11 +7,11 @@ void fs_pipeline_load(fs_pipeline_t *pipeline, fs_file *file) {
   memset(pipeline, 0, sizeof(fs_pipeline_t));
 
   fs_file_read(file, pipeline->name, TI_PATH_SIZE, 0);
-  fs_file_read(file, &pipeline->pipeline_type, sizeof(vk_pipeline_type_t), 0);
+  fs_file_read(file, &pipeline->pipeline_type, sizeof(fs_pipeline_type_t), 0);
 
   switch (pipeline->pipeline_type) {
 
-    case VK_PIPELINE_TYPE_DFLT: {
+    case FS_PIPELINE_TYPE_DFLT: {
 
       read_input_variables(pipeline, file);
       read_descriptor_bindings(pipeline, file);
@@ -26,19 +26,19 @@ void fs_pipeline_load(fs_pipeline_t *pipeline, fs_file *file) {
 
       break;
     }
-    case VK_PIPELINE_TYPE_MESH: {
+    case FS_PIPELINE_TYPE_MESH: {
 
       // TODO
 
       break;
     }
-    case VK_PIPELINE_TYPE_RAY: {
+    case FS_PIPELINE_TYPE_RAY: {
 
       // TODO
 
       break;
     }
-    case VK_PIPELINE_TYPE_COMP: {
+    case FS_PIPELINE_TYPE_COMP: {
 
       // TODO
 
@@ -54,7 +54,7 @@ void fs_pipeline_destroy(fs_pipeline_t *pipeline) {
 }
 
 static void read_input_variables(fs_pipeline_t *pipeline, fs_file *file) {
-  fs_file_read(file, &pipeline->input_variable_count, sizeof(vk_pipeline_type_t), 0);
+  fs_file_read(file, &pipeline->input_variable_count, sizeof(fs_pipeline_type_t), 0);
 
   pipeline->input_variables = (fs_input_variable_t *)TI_ALLOC(sizeof(fs_input_variable_t) * pipeline->input_variable_count, 0, 0);
 
@@ -74,7 +74,7 @@ static void read_input_variables(fs_pipeline_t *pipeline, fs_file *file) {
   }
 }
 static void read_descriptor_bindings(fs_pipeline_t *pipeline, fs_file *file) {
-  fs_file_read(file, &pipeline->descriptor_binding_count, sizeof(vk_pipeline_type_t), 0);
+  fs_file_read(file, &pipeline->descriptor_binding_count, sizeof(fs_pipeline_type_t), 0);
 
   pipeline->descriptor_bindings = (fs_descriptor_binding_t *)TI_ALLOC(sizeof(fs_descriptor_binding_t) * pipeline->descriptor_binding_count, 0, 0);
 

@@ -1,43 +1,7 @@
 #ifndef TI_VK_FWD_H
 #define TI_VK_FWD_H
 
-typedef enum vk_pipeline_type_t {
-  VK_PIPELINE_TYPE_DFLT = 0,
-  VK_PIPELINE_TYPE_MESH,
-  VK_PIPELINE_TYPE_RAY,
-  VK_PIPELINE_TYPE_COMP,
-} vk_pipeline_type_t;
-
-typedef struct vk_buffer_t {
-  uint32_t zero_data;
-  void *host_data;
-  void *device_data;
-  uint64_t size;
-  VkBufferUsageFlags buffer_usage_flags;
-  VkMemoryPropertyFlags memory_property_flags;
-  VkMemoryAllocateFlags memory_allocate_flags;
-  VkBuffer buffer_handle;
-  VkDeviceMemory device_memory;
-} vk_buffer_t;
-typedef struct vk_swapchain_t {
-  uint32_t is_dirty;
-  uint32_t image_count;
-  VkImage image[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
-  VkSwapchainKHR handle;
-} vk_swapchain_t;
-typedef struct vk_framebuffer_t {
-  VkImage color_image[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
-  VkImage depth_image[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
-  VkImageView color_image_view[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
-  VkImageView depth_image_view[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
-  VkDeviceMemory color_device_memory[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
-  VkDeviceMemory depth_device_memory[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
-  VkDescriptorImageInfo color_descriptor_image_info[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
-  VkDescriptorImageInfo depth_descriptor_image_info[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
-  VkSampler color_sampler[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
-  VkSampler depth_sampler[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
-  VkFramebuffer handle[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
-} vk_framebuffer_t;
+// TODO: assetify this as well..
 typedef struct vk_instance_t {
   uint32_t min_image_count;
   uint32_t max_image_count;
@@ -58,16 +22,31 @@ typedef struct vk_instance_t {
   VkDevice device;
   VkQueue primary_queue;
   VkQueue present_queue;
+  VkCommandPool command_pool;
+  VkCommandBuffer command_buffer;
 } vk_instance_t;
 
+typedef struct vk_swapchain_t {
+  fs_swapchain_t *config;
+  uint32_t is_dirty;
+  uint32_t image_count;
+  VkImage image[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
+  VkSwapchainKHR handle;
+} vk_swapchain_t;
+typedef struct vk_buffer_t {
+  fs_buffer_t *config;
+  void *host_data;
+  void *device_data;
+  VkBuffer buffer_handle;
+  VkDeviceMemory device_memory;
+} vk_buffer_t;
 typedef struct vk_model_t {
-  void *asset;
+  fs_model_t *config;
   vk_buffer_t vertex_buffer;
   vk_buffer_t index_buffer;
 } vk_model_t;
 typedef struct vk_pipeline_t {
-  void *asset;
-  vk_pipeline_type_t pipeline_type;
+  fs_pipeline_t *config;
   char const *vertex_shader;
   char const *task_shader;
   char const *mesh_shader;
@@ -114,10 +93,87 @@ typedef struct vk_pipeline_t {
   VkStridedDeviceAddressRegionKHR callable_region;
 } vk_pipeline_t;
 typedef struct vk_font_t {
-  void *asset;
+  fs_font_t *config;
 } vk_font_t;
 typedef struct vk_descriptor_binding_t {
-  void *asset;
+  fs_descriptor_binding_t *config;
 } vk_descriptor_binding_t;
+typedef struct vk_image_t {
+  fs_image_t *config;
+  VkImageView image_view;
+  VkDeviceMemory device_memory;
+  VkSampler sampler;
+  VkImage handle;
+} vk_image_t;
+typedef struct vk_framebuffer_t {
+  fs_framebuffer_t *config;
+  vk_image_t color_attachment[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
+  vk_image_t depth_attachment[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
+  VkFramebuffer handle[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
+} vk_framebuffer_t;
+typedef struct vk_renderpass_t {
+  fs_renderpass_t *config;
+  VkRenderPass handle;
+} vk_renderpass_t;
+
+typedef struct vk_time_info_t {
+  float time;
+  float delta_time;
+} vk_time_info_t;
+typedef struct vk_screen_info_t {
+  ivec2_t resolution;
+} vk_screen_info_t;
+typedef struct vk_mouse_info_t {
+  ivec2_t position;
+} vk_mouse_info_t;
+typedef struct vk_camera_info_t {
+  fvec4_t position;
+  fvec4_t direction;
+  fmat4x4_t view;
+  fmat4x4_t view_inv;
+  fmat4x4_t projection;
+  fmat4x4_t projection_inv;
+  fmat4x4_t view_projection;
+  fmat4x4_t view_projection_inv;
+  fvec4_t frustum_plane[FRUSTUM_PLANE_COUNT];
+} vk_camera_info_t;
+
+TI_STATIC_ASSERT(TI_ALIGN_OF(vk_time_info_t) == 4);
+TI_STATIC_ASSERT(TI_ALIGN_OF(vk_screen_info_t) == 4);
+TI_STATIC_ASSERT(TI_ALIGN_OF(vk_mouse_info_t) == 4);
+TI_STATIC_ASSERT(TI_ALIGN_OF(vk_camera_info_t) == 4);
+
+typedef struct vk_full_screen_vertex_t {
+  fvec4_t position;
+} vk_full_screen_vertex_t;
+typedef struct vk_debug_line_vertex_t {
+  fvec4_t position;
+  fvec4_t color;
+} vk_debug_line_vertex_t;
+
+TI_STATIC_ASSERT(TI_ALIGN_OF(vk_full_screen_vertex_t) == 4);
+TI_STATIC_ASSERT(TI_ALIGN_OF(vk_debug_line_vertex_t) == 4);
+
+typedef uint32_t vk_full_screen_index_t;
+typedef uint32_t vk_debug_line_index_t;
+
+typedef struct vk_renderer_t {
+  fs_renderer_t *config;
+  uint32_t is_debug_enabled;
+  uint32_t image_index;
+  uint32_t debug_line_vertex_offset;
+  uint32_t debug_line_index_offset;
+  VkDescriptorBufferInfo time_info_descriptor_buffer_info;
+  VkDescriptorBufferInfo screen_info_descriptor_buffer_info;
+  VkDescriptorBufferInfo mouse_info_descriptor_buffer_info;
+  VkDescriptorBufferInfo camera_info_descriptor_buffer_info;
+  VkFence frame_fence;
+  VkSemaphore render_finished_semaphore[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
+  VkSemaphore image_available_semaphore;
+  vk_buffer_t debug_line_vertex_buffer;
+  vk_buffer_t debug_line_index_buffer;
+  vk_buffer_t full_screen_vertex_buffer;
+  vk_buffer_t full_screen_index_buffer;
+} vk_renderer_t;
 
 #endif // TI_VK_FWD_H

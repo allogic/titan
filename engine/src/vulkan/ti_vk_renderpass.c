@@ -1,8 +1,8 @@
 #include <ti_pch.h>
 
-VkRenderPass g_renderpass = 0;
+void vk_renderpass_create(vk_renderpass_t *renderpass, char const *asset_path) {
+  renderpass->config = (fs_renderpass_t *)fs_get(asset_path);
 
-void renderpass_create(void) {
   VkAttachmentDescription color_attachment_description = {
     .format = VK_FORMAT_R8G8B8A8_UNORM,
     .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -10,8 +10,8 @@ void renderpass_create(void) {
     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-    .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    .initialLayout = renderpass->config->initial_color_attachment_layout,
+    .finalLayout = renderpass->config->final_color_attachment_layout,
   };
 
   VkAttachmentDescription depth_attachment_description = {
@@ -21,18 +21,18 @@ void renderpass_create(void) {
     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-    .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+    .initialLayout = renderpass->config->initial_depth_attachment_layout,
+    .finalLayout = renderpass->config->initial_depth_attachment_layout,
   };
 
   VkAttachmentReference color_attachment_reference = {
     .attachment = 0,
-    .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    .layout = renderpass->config->initial_color_attachment_layout, // TODO: verify this..
   };
 
   VkAttachmentReference depth_attachment_reference = {
     .attachment = 1,
-    .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+    .layout = renderpass->config->initial_depth_attachment_layout, // TODO: verify this..
   };
 
   VkSubpassDescription subpass_description = {
@@ -66,8 +66,8 @@ void renderpass_create(void) {
     .dependencyCount = 1,
   };
 
-  TI_VK_CHECK(vkCreateRenderPass(g_vulkan.device, &render_pass_create_info, 0, &g_renderpass));
+  TI_VK_CHECK(vkCreateRenderPass(g_vk_instance.device, &render_pass_create_info, 0, &renderpass->handle));
 }
-void renderpass_destroy(void) {
-  vkDestroyRenderPass(g_vulkan.device, g_renderpass, 0);
+void vk_renderpass_destroy(vk_renderpass_t *renderpass) {
+  vkDestroyRenderPass(g_vk_instance.device, renderpass->handle, 0);
 }

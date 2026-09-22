@@ -38,17 +38,6 @@ typedef struct map_iter_t {
   uint8_t first_step;
 } map_iter_t;
 
-typedef struct archive_record_t {
-  char name[TI_PATH_SIZE];
-  void *buffer;
-  uint64_t buffer_size;
-  uint64_t global_offset;
-} archive_record_t;
-typedef struct archive_t {
-  char file_path[TI_PATH_SIZE];
-  map_t records;
-} archive_t;
-
 typedef struct scene_t {
   char file_name[TI_PATH_SIZE];
   char file_path[TI_PATH_SIZE];

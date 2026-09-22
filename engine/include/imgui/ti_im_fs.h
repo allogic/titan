@@ -5,9 +5,9 @@
 extern "C" {
 #endif // __cplusplus
 
-void fs_draw(void);
-void fs_refresh(void);
-void fs_reset(void);
+void im_fs_draw(void);
+void im_fs_refresh(void);
+void im_fs_reset(void);
 
 #ifdef __cplusplus
 }

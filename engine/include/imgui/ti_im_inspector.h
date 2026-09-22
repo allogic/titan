@@ -5,9 +5,9 @@
 extern "C" {
 #endif // __cplusplus
 
-void inspector_draw(void);
-void inspector_select(inspector_type_t type, void *selection);
-void inspector_reset(void);
+void im_inspector_draw(void);
+void im_inspector_select(im_inspector_type_t type, void *selection);
+void im_inspector_reset(void);
 
 #ifdef __cplusplus
 }

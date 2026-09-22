@@ -13,7 +13,7 @@ fs_result fs_create(char const *static_path, char const *asset_path) {
     return result;
   }
 
-  result = result = fs_mount(g_fs, static_path, "static", FS_READ);
+  result = fs_mount(g_fs, static_path, "static", FS_READ);
 
   if (result != FS_SUCCESS) {
 
@@ -53,7 +53,7 @@ fs_result fs_mkdir_recursive(fs *fs, const char *file_path, int32_t options) {
     return result;
   }
 
-  while (fs_path_is_last(&path_it) == 0) {
+  while (result == FS_SUCCESS) {
 
     uint64_t end = path_it.segmentOffset + path_it.segmentLength;
 
@@ -61,21 +61,16 @@ fs_result fs_mkdir_recursive(fs *fs, const char *file_path, int32_t options) {
     buffer[end] = '\0';
 
     result = fs_mkdir(fs, buffer, options);
-
-    if ((result != FS_SUCCESS) && (result != FS_ALREADY_EXISTS)) {
-      break;
-    }
-
     result = fs_path_next(&path_it);
+  }
 
-    if (result != FS_SUCCESS) {
-      break;
-    }
+  if (result == FS_AT_END) {
+    result = FS_SUCCESS;
   }
 
   return result;
 }
-fs_result fs_remove_recursive(fs *fS, char const *file_path) {
+fs_result fs_remove_recursive(fs *fs, char const *file_path) {
   fs_result result = FS_SUCCESS;
   fs_file_info info;
 
@@ -131,6 +126,15 @@ fs_asset_t *fs_asset(char const *asset_path) {
   }
 
   return map_at(&g_assets, asset_path, path_size);
+}
+void *fs_get(char const *asset_path) {
+  fs_asset_t *asset = (fs_asset_t *)fs_asset(asset_path);
+
+  if (asset) {
+    return asset->config;
+  }
+
+  return 0;
 }
 void fs_destroy(void) {
   map_iter_t asset_it = map_iter(&g_assets);

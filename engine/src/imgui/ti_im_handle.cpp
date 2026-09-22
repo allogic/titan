@@ -9,7 +9,7 @@ static void draw_handles(void);
 
 static uint64_t s_selected_handle = 0;
 
-void handle_draw(void) {
+void im_handle_draw(void) {
   ImGui::Begin("Handle", 0, ImGuiWindowFlags_NoDecoration);
 
   draw_background();
@@ -23,13 +23,13 @@ void handle_draw(void) {
 
   ImGui::End();
 }
-void handle_refresh(void) {
+void im_handle_refresh(void) {
   // TODO
 }
-void handle_reset(void) {
+void im_handle_reset(void) {
   s_selected_handle = 0;
 
-  inspector_select(INSPECTOR_TYPE_NONE, 0);
+  im_inspector_select(IM_INSPECTOR_TYPE_NONE, 0);
 }
 
 static void check_background_clicks(void) {
@@ -39,7 +39,7 @@ static void check_background_clicks(void) {
 
     s_selected_handle = 0;
 
-    inspector_select(INSPECTOR_TYPE_NONE, 0);
+    im_inspector_select(IM_INSPECTOR_TYPE_NONE, 0);
   }
 }
 
@@ -73,7 +73,7 @@ static void draw_handles(void) {
 
         case FS_ASSET_TYPE_MODEL: {
 
-          fs_model_t *model = (fs_model_t *)asset->fs_instance;
+          fs_model_t *model = (fs_model_t *)asset->config;
 
           if (ImGui::TreeNodeEx(model->name, tree_node_flags | ImGuiTreeNodeFlags_Leaf)) {
 
@@ -84,7 +84,7 @@ static void draw_handles(void) {
         }
         case FS_ASSET_TYPE_PIPELINE: {
 
-          fs_pipeline_t *pipeline = (fs_pipeline_t *)asset->fs_instance;
+          fs_pipeline_t *pipeline = (fs_pipeline_t *)asset->config;
 
           if (ImGui::TreeNodeEx(pipeline->name, tree_node_flags | ImGuiTreeNodeFlags_Leaf)) {
 
@@ -95,7 +95,7 @@ static void draw_handles(void) {
         }
         case FS_ASSET_TYPE_FONT: {
 
-          fs_font_t *font = (fs_font_t *)asset->fs_instance;
+          fs_font_t *font = (fs_font_t *)asset->config;
 
           if (ImGui::TreeNodeEx(font->name, tree_node_flags | ImGuiTreeNodeFlags_Leaf)) {
 
@@ -106,7 +106,7 @@ static void draw_handles(void) {
         }
         case FS_ASSET_TYPE_DESCRIPTOR_BINDING: {
 
-          fs_descriptor_binding_t *descriptor_binding = (fs_descriptor_binding_t *)asset->fs_instance;
+          fs_descriptor_binding_t *descriptor_binding = (fs_descriptor_binding_t *)asset->config;
 
           if (ImGui::TreeNodeEx(descriptor_binding->name, tree_node_flags | ImGuiTreeNodeFlags_Leaf)) {
 

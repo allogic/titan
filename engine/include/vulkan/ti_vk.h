@@ -2,6 +2,7 @@
 #define TI_VK_H
 
 #include <vulkan/ti_vk_buffer.h>
+#include <vulkan/ti_vk_image.h>
 #include <vulkan/ti_vk_swapchain.h>
 #include <vulkan/ti_vk_framebuffer.h>
 #include <vulkan/ti_vk_renderpass.h>
@@ -9,6 +10,7 @@
 #include <vulkan/ti_vk_pipeline.h>
 #include <vulkan/ti_vk_font.h>
 #include <vulkan/ti_vk_descriptor_binding.h>
+#include <vulkan/ti_vk_renderer.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,7 +26,20 @@ extern VkPhysicalDeviceFragmentShadingRateFeaturesKHR g_physical_device_fragment
 extern VkPhysicalDeviceMultiviewFeatures g_physical_device_multiview_features;
 extern VkPhysicalDeviceMeshShaderFeaturesEXT g_physical_device_mesh_shader_features;
 
-extern vk_instance_t g_vulkan;
+extern vk_instance_t g_vk_instance;
+extern vk_swapchain_t g_vk_swapchain;
+extern vk_renderer_t g_vk_renderer;
+
+extern vk_renderpass_t g_vk_main_renderpass;
+extern vk_renderpass_t g_vk_imgui_renderpass;
+
+extern vk_framebuffer_t g_vk_main_framebuffer;
+extern vk_framebuffer_t g_vk_imgui_framebuffer;
+
+extern vk_buffer_t g_vk_time_info_buffer;
+extern vk_buffer_t g_vk_screen_info_buffer;
+extern vk_buffer_t g_vk_mouse_info_buffer;
+extern vk_buffer_t g_vk_camera_info_buffer;
 
 #ifdef BUILD_DEBUG
 extern PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT_proc;

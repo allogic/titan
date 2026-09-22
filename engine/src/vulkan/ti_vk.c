@@ -7,6 +7,8 @@ static VkBool32 vulkan_message_proc(VkDebugUtilsMessageSeverityFlagBitsEXT messa
 static void create_instance(void);
 static void create_surface(void);
 static void create_device(void);
+static void create_command_pool(void);
+static void create_command_buffer(void);
 
 static void find_physical_device(void);
 static void find_physical_device_queue_families(void);
@@ -17,9 +19,11 @@ static void check_physical_device_features(void);
 static void destroy_instance(void);
 static void destroy_surface(void);
 static void destroy_device(void);
+static void destroy_command_pool(void);
+static void destroy_command_buffer(void);
 
 #ifdef BUILD_DEBUG
-static char const *s_enabled_layer[] = {
+static char const *s_instance_layer[] = {
   "VK_LAYER_KHRONOS_validation",
 };
 #endif // BUILD_DEBUG
@@ -74,7 +78,20 @@ VkPhysicalDeviceMeshShaderFeaturesEXT g_physical_device_mesh_shader_features = {
   .pNext = &g_physical_device_multiview_features,
 };
 
-vk_instance_t g_vulkan = {0};
+vk_instance_t g_vk_instance = {0};
+vk_swapchain_t g_vk_swapchain = {0};
+vk_renderer_t g_vk_renderer = {0};
+
+vk_renderpass_t g_vk_main_renderpass = {0};
+vk_renderpass_t g_vk_imgui_renderpass = {0};
+
+vk_framebuffer_t g_vk_main_framebuffer = {0};
+vk_framebuffer_t g_vk_imgui_framebuffer = {0};
+
+vk_buffer_t g_vk_time_info_buffer = {0};
+vk_buffer_t g_vk_screen_info_buffer = {0};
+vk_buffer_t g_vk_mouse_info_buffer = {0};
+vk_buffer_t g_vk_camera_info_buffer = {0};
 
 #ifdef BUILD_DEBUG
 PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT_proc = 0;
@@ -105,48 +122,82 @@ void vk_create(void) {
   check_physical_device_features();
 
   create_device();
+  create_command_pool();
+  create_command_buffer();
 
   vk_update_surface_capabilities();
 
-  renderpass_create();
-  swapchain_create();
-  framebuffer_create();
-  renderer_create();
-  imgui_create();
+  vk_swapchain_create(&g_vk_swapchain, "asset/swapchain/main.pak");
+  vk_renderer_create(&g_vk_renderer, "asset/renderer/main.pak");
+
+  vk_renderpass_create(&g_vk_main_renderpass, "asset/renderpass/main.pak");
+  vk_renderpass_create(&g_vk_imgui_renderpass, "asset/renderpass/imgui.pak");
+
+  vk_framebuffer_create(&g_vk_main_renderpass, &g_vk_main_framebuffer, "asset/framebuffer/main.pak");
+  vk_framebuffer_create(&g_vk_imgui_renderpass, &g_vk_imgui_framebuffer, "asset/framebuffer/imgui.pak");
+
+  vk_buffer_create(&g_vk_time_info_buffer, "asset/buffer/time_info.pak");
+  vk_buffer_create(&g_vk_screen_info_buffer, "asset/buffer/screen_info.pak");
+  vk_buffer_create(&g_vk_mouse_info_buffer, "asset/buffer/mouse_info.pak");
+  vk_buffer_create(&g_vk_camera_info_buffer, "asset/buffer/camera_info.pak");
+
+  vk_buffer_map(&g_vk_time_info_buffer);
+  vk_buffer_map(&g_vk_screen_info_buffer);
+  vk_buffer_map(&g_vk_mouse_info_buffer);
+  vk_buffer_map(&g_vk_camera_info_buffer);
+
+  im_create();
 }
 void vk_destroy(void) {
-  TI_VK_CHECK(vkQueueWaitIdle(g_vulkan.primary_queue));
-  TI_VK_CHECK(vkQueueWaitIdle(g_vulkan.present_queue));
+  TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance.primary_queue));
+  TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance.present_queue));
 
-  imgui_destroy();
-  renderer_destroy();
-  framebuffer_destroy();
-  swapchain_destroy();
-  renderpass_destroy();
+  im_destroy();
 
+  vk_buffer_unmap(&g_vk_time_info_buffer);
+  vk_buffer_unmap(&g_vk_screen_info_buffer);
+  vk_buffer_unmap(&g_vk_mouse_info_buffer);
+  vk_buffer_unmap(&g_vk_camera_info_buffer);
+
+  vk_buffer_destroy(&g_vk_time_info_buffer);
+  vk_buffer_destroy(&g_vk_screen_info_buffer);
+  vk_buffer_destroy(&g_vk_mouse_info_buffer);
+  vk_buffer_destroy(&g_vk_camera_info_buffer);
+
+  vk_framebuffer_destroy(&g_vk_imgui_framebuffer);
+  vk_framebuffer_destroy(&g_vk_main_framebuffer);
+
+  vk_renderpass_destroy(&g_vk_imgui_renderpass);
+  vk_renderpass_destroy(&g_vk_main_renderpass);
+
+  vk_renderer_destroy(&g_vk_renderer);
+  vk_swapchain_destroy(&g_vk_swapchain);
+
+  destroy_command_buffer();
+  destroy_command_pool();
   destroy_device();
   destroy_surface();
   destroy_instance();
 }
 
 void vk_update_surface_capabilities(void) {
-  TI_VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(g_vulkan.physical_device, g_vulkan.surface, &g_vulkan.surface_capabilities));
+  TI_VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(g_vk_instance.physical_device, g_vk_instance.surface, &g_vk_instance.surface_capabilities));
 
-  g_window.window_width = g_vulkan.surface_capabilities.currentExtent.width;
-  g_window.window_height = g_vulkan.surface_capabilities.currentExtent.height;
+  g_pl_window.window_width = g_vk_instance.surface_capabilities.currentExtent.width;
+  g_pl_window.window_height = g_vk_instance.surface_capabilities.currentExtent.height;
 
-  g_vulkan.min_image_count = g_vulkan.surface_capabilities.minImageCount;
-  g_vulkan.max_image_count = g_vulkan.surface_capabilities.maxImageCount;
-  g_vulkan.surface_transform = g_vulkan.surface_capabilities.currentTransform;
+  g_vk_instance.min_image_count = g_vk_instance.surface_capabilities.minImageCount;
+  g_vk_instance.max_image_count = g_vk_instance.surface_capabilities.maxImageCount;
+  g_vk_instance.surface_transform = g_vk_instance.surface_capabilities.currentTransform;
 }
 
 uint32_t vk_find_memory_type_index(uint32_t type_filter, VkMemoryPropertyFlags memory_property_flags) {
   uint32_t memory_type_index = 0;
-  uint32_t memory_type_count = g_vulkan.physical_device_memory_properties2.memoryProperties.memoryTypeCount;
+  uint32_t memory_type_count = g_vk_instance.physical_device_memory_properties2.memoryProperties.memoryTypeCount;
 
   while (memory_type_index < memory_type_count) {
 
-    if ((type_filter & (1 << memory_type_index)) && ((g_vulkan.physical_device_memory_properties2.memoryProperties.memoryTypes[memory_type_index].propertyFlags & memory_property_flags) == memory_property_flags)) {
+    if ((type_filter & (1 << memory_type_index)) && ((g_vk_instance.physical_device_memory_properties2.memoryProperties.memoryTypes[memory_type_index].propertyFlags & memory_property_flags) == memory_property_flags)) {
       return memory_type_index;
     }
 
@@ -161,12 +212,12 @@ VkCommandBuffer vk_primary_command_buffer_record_immediate(void) {
 
   VkCommandBufferAllocateInfo command_buffer_allocate_info = {
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-    .commandPool = g_renderer.command_pool,
+    .commandPool = g_vk_instance.command_pool,
     .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
     .commandBufferCount = 1,
   };
 
-  TI_VK_CHECK(vkAllocateCommandBuffers(g_vulkan.device, &command_buffer_allocate_info, &command_buffer));
+  TI_VK_CHECK(vkAllocateCommandBuffers(g_vk_instance.device, &command_buffer_allocate_info, &command_buffer));
 
   VkCommandBufferBeginInfo command_buffer_begin_info = {
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -186,10 +237,10 @@ void vk_primary_command_buffer_submit_immediate(VkCommandBuffer command_buffer) 
     .pCommandBuffers = &command_buffer,
   };
 
-  TI_VK_CHECK(vkQueueSubmit(g_vulkan.primary_queue, 1, &submit_info, 0));
-  TI_VK_CHECK(vkQueueWaitIdle(g_vulkan.primary_queue));
+  TI_VK_CHECK(vkQueueSubmit(g_vk_instance.primary_queue, 1, &submit_info, 0));
+  TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance.primary_queue));
 
-  vkFreeCommandBuffers(g_vulkan.device, g_renderer.command_pool, 1, &command_buffer);
+  vkFreeCommandBuffers(g_vk_instance.device, g_vk_instance.command_pool, 1, &command_buffer);
 }
 
 #ifdef BUILD_DEBUG
@@ -246,18 +297,18 @@ static void create_instance(void) {
     .enabledExtensionCount = TI_ARRAY_COUNT(s_instance_extension),
 #ifdef BUILD_DEBUG
     .pNext = &debug_utils_messenger_create_info,
-    .ppEnabledLayerNames = s_enabled_layer,
-    .enabledLayerCount = TI_ARRAY_COUNT(s_enabled_layer),
+    .ppEnabledLayerNames = s_instance_layer,
+    .enabledLayerCount = TI_ARRAY_COUNT(s_instance_layer),
 #endif // BUILD_DEBUG
   };
 
-  TI_VK_CHECK(vkCreateInstance(&instance_create_info, 0, &g_vulkan.instance));
+  TI_VK_CHECK(vkCreateInstance(&instance_create_info, 0, &g_vk_instance.instance));
 
 #ifdef BUILD_DEBUG
-  vkCreateDebugUtilsMessengerEXT_proc = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(g_vulkan.instance, "vkCreateDebugUtilsMessengerEXT");
-  vkDestroyDebugUtilsMessengerEXT_proc = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(g_vulkan.instance, "vkDestroyDebugUtilsMessengerEXT");
+  vkCreateDebugUtilsMessengerEXT_proc = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(g_vk_instance.instance, "vkCreateDebugUtilsMessengerEXT");
+  vkDestroyDebugUtilsMessengerEXT_proc = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(g_vk_instance.instance, "vkDestroyDebugUtilsMessengerEXT");
 
-  TI_VK_CHECK(vkCreateDebugUtilsMessengerEXT_proc(g_vulkan.instance, &debug_utils_messenger_create_info, 0, &g_vulkan.debug_utils_messenger));
+  TI_VK_CHECK(vkCreateDebugUtilsMessengerEXT_proc(g_vk_instance.instance, &debug_utils_messenger_create_info, 0, &g_vk_instance.debug_utils_messenger));
 
   uint32_t instance_version = 0;
 
@@ -283,11 +334,11 @@ static void create_instance(void) {
 static void create_surface(void) {
   VkWin32SurfaceCreateInfoKHR win32_surface_create_info = {
     .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
-    .hwnd = g_window.window_handle,
-    .hinstance = g_window.module_handle,
+    .hwnd = g_pl_window.window_handle,
+    .hinstance = g_pl_window.module_handle,
   };
 
-  TI_VK_CHECK(vkCreateWin32SurfaceKHR(g_vulkan.instance, &win32_surface_create_info, 0, &g_vulkan.surface));
+  TI_VK_CHECK(vkCreateWin32SurfaceKHR(g_vk_instance.instance, &win32_surface_create_info, 0, &g_vk_instance.surface));
 }
 static void create_device(void) {
   float queue_priority = 1.0F;
@@ -295,13 +346,13 @@ static void create_device(void) {
   VkDeviceQueueCreateInfo device_queue_create_infos[2] = {
     {
       .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-      .queueFamilyIndex = g_vulkan.primary_queue_index,
+      .queueFamilyIndex = g_vk_instance.primary_queue_index,
       .queueCount = 1,
       .pQueuePriorities = &queue_priority,
     },
     {
       .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-      .queueFamilyIndex = g_vulkan.present_queue_index,
+      .queueFamilyIndex = g_vk_instance.present_queue_index,
       .queueCount = 1,
       .pQueuePriorities = &queue_priority,
     },
@@ -309,35 +360,54 @@ static void create_device(void) {
 
   VkDeviceCreateInfo device_create_info = {
     .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-    .pNext = &g_vulkan.physical_device_features2,
+    .pNext = &g_vk_instance.physical_device_features2,
     .pQueueCreateInfos = device_queue_create_infos,
     .queueCreateInfoCount = TI_ARRAY_COUNT(device_queue_create_infos),
     .pEnabledFeatures = 0,
     .ppEnabledExtensionNames = s_device_extension,
     .enabledExtensionCount = TI_ARRAY_COUNT(s_device_extension),
 #ifdef BUILD_DEBUG
-    .ppEnabledLayerNames = s_enabled_layer,
-    .enabledLayerCount = TI_ARRAY_COUNT(s_enabled_layer),
+    .ppEnabledLayerNames = 0,
+    .enabledLayerCount = 0,
 #endif // BUILD_DEBUG
   };
 
-  TI_VK_CHECK(vkCreateDevice(g_vulkan.physical_device, &device_create_info, 0, &g_vulkan.device));
+  TI_VK_CHECK(vkCreateDevice(g_vk_instance.physical_device, &device_create_info, 0, &g_vk_instance.device));
 
-  vkGetDeviceQueue(g_vulkan.device, g_vulkan.primary_queue_index, 0, &g_vulkan.primary_queue);
-  vkGetDeviceQueue(g_vulkan.device, g_vulkan.present_queue_index, 0, &g_vulkan.present_queue);
+  vkGetDeviceQueue(g_vk_instance.device, g_vk_instance.primary_queue_index, 0, &g_vk_instance.primary_queue);
+  vkGetDeviceQueue(g_vk_instance.device, g_vk_instance.present_queue_index, 0, &g_vk_instance.present_queue);
 
-  vkCmdDrawMeshTasksEXT_proc = (PFN_vkCmdDrawMeshTasksEXT)vkGetDeviceProcAddr(g_vulkan.device, "vkCmdDrawMeshTasksEXT");
-  vkCmdTraceRaysKHR_proc = (PFN_vkCmdTraceRaysKHR)vkGetDeviceProcAddr(g_vulkan.device, "vkCmdTraceRaysKHR");
-  vkCmdBuildAccelerationStructuresKHR_proc = (PFN_vkCmdBuildAccelerationStructuresKHR)vkGetDeviceProcAddr(g_vulkan.device, "vkCmdBuildAccelerationStructuresKHR");
+  vkCmdDrawMeshTasksEXT_proc = (PFN_vkCmdDrawMeshTasksEXT)vkGetDeviceProcAddr(g_vk_instance.device, "vkCmdDrawMeshTasksEXT");
+  vkCmdTraceRaysKHR_proc = (PFN_vkCmdTraceRaysKHR)vkGetDeviceProcAddr(g_vk_instance.device, "vkCmdTraceRaysKHR");
+  vkCmdBuildAccelerationStructuresKHR_proc = (PFN_vkCmdBuildAccelerationStructuresKHR)vkGetDeviceProcAddr(g_vk_instance.device, "vkCmdBuildAccelerationStructuresKHR");
 
-  vkCreateAccelerationStructureKHR_proc = (PFN_vkCreateAccelerationStructureKHR)vkGetDeviceProcAddr(g_vulkan.device, "vkCreateAccelerationStructureKHR");
-  vkCreateRayTracingPipelinesKHR_proc = (PFN_vkCreateRayTracingPipelinesKHR)vkGetDeviceProcAddr(g_vulkan.device, "vkCreateRayTracingPipelinesKHR");
+  vkCreateAccelerationStructureKHR_proc = (PFN_vkCreateAccelerationStructureKHR)vkGetDeviceProcAddr(g_vk_instance.device, "vkCreateAccelerationStructureKHR");
+  vkCreateRayTracingPipelinesKHR_proc = (PFN_vkCreateRayTracingPipelinesKHR)vkGetDeviceProcAddr(g_vk_instance.device, "vkCreateRayTracingPipelinesKHR");
 
-  vkGetAccelerationStructureBuildSizesKHR_proc = (PFN_vkGetAccelerationStructureBuildSizesKHR)vkGetDeviceProcAddr(g_vulkan.device, "vkGetAccelerationStructureBuildSizesKHR");
-  vkGetAccelerationStructureDeviceAddressKHR_proc = (PFN_vkGetAccelerationStructureDeviceAddressKHR)vkGetDeviceProcAddr(g_vulkan.device, "vkGetAccelerationStructureDeviceAddressKHR");
-  vkGetRayTracingShaderGroupHandlesKHR_proc = (PFN_vkGetRayTracingShaderGroupHandlesKHR)vkGetDeviceProcAddr(g_vulkan.device, "vkGetRayTracingShaderGroupHandlesKHR");
+  vkGetAccelerationStructureBuildSizesKHR_proc = (PFN_vkGetAccelerationStructureBuildSizesKHR)vkGetDeviceProcAddr(g_vk_instance.device, "vkGetAccelerationStructureBuildSizesKHR");
+  vkGetAccelerationStructureDeviceAddressKHR_proc = (PFN_vkGetAccelerationStructureDeviceAddressKHR)vkGetDeviceProcAddr(g_vk_instance.device, "vkGetAccelerationStructureDeviceAddressKHR");
+  vkGetRayTracingShaderGroupHandlesKHR_proc = (PFN_vkGetRayTracingShaderGroupHandlesKHR)vkGetDeviceProcAddr(g_vk_instance.device, "vkGetRayTracingShaderGroupHandlesKHR");
 
-  vkDestroyAccelerationStructureKHR_proc = (PFN_vkDestroyAccelerationStructureKHR)vkGetDeviceProcAddr(g_vulkan.device, "vkDestroyAccelerationStructureKHR");
+  vkDestroyAccelerationStructureKHR_proc = (PFN_vkDestroyAccelerationStructureKHR)vkGetDeviceProcAddr(g_vk_instance.device, "vkDestroyAccelerationStructureKHR");
+}
+static void create_command_pool(void) {
+  VkCommandPoolCreateInfo command_pool_create_info = {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+    .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+    .queueFamilyIndex = g_vk_instance.primary_queue_index,
+  };
+
+  TI_VK_CHECK(vkCreateCommandPool(g_vk_instance.device, &command_pool_create_info, 0, &g_vk_instance.command_pool));
+}
+static void create_command_buffer(void) {
+  VkCommandBufferAllocateInfo command_buffer_allocate_info = {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+    .commandPool = g_vk_instance.command_pool,
+    .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+    .commandBufferCount = 1,
+  };
+
+  TI_VK_CHECK(vkAllocateCommandBuffers(g_vk_instance.device, &command_buffer_allocate_info, &g_vk_instance.command_buffer));
 }
 
 static void find_physical_device(void) {
@@ -346,29 +416,29 @@ static void find_physical_device(void) {
 
   static VkPhysicalDevice physical_devices[TI_WINDOW_MAX_PHYSICAL_DEVICES] = {0};
 
-  TI_VK_CHECK(vkEnumeratePhysicalDevices(g_vulkan.instance, &physical_device_count, 0));
-  TI_VK_CHECK(vkEnumeratePhysicalDevices(g_vulkan.instance, &physical_device_count, physical_devices));
+  TI_VK_CHECK(vkEnumeratePhysicalDevices(g_vk_instance.instance, &physical_device_count, 0));
+  TI_VK_CHECK(vkEnumeratePhysicalDevices(g_vk_instance.instance, &physical_device_count, physical_devices));
 
   while (physical_device_index < physical_device_count) {
 
     VkPhysicalDevice physical_device = physical_devices[physical_device_index];
 
-    g_vulkan.physical_device_features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-    g_vulkan.physical_device_features2.pNext = &g_physical_device_mesh_shader_features;
+    g_vk_instance.physical_device_features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    g_vk_instance.physical_device_features2.pNext = &g_physical_device_mesh_shader_features;
 
-    g_vulkan.physical_device_properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-    g_vulkan.physical_device_properties2.pNext = &g_physical_device_ray_tracing_pipeline_properties;
+    g_vk_instance.physical_device_properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+    g_vk_instance.physical_device_properties2.pNext = &g_physical_device_ray_tracing_pipeline_properties;
 
-    g_vulkan.physical_device_memory_properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2;
-    g_vulkan.physical_device_memory_properties2.pNext = 0;
+    g_vk_instance.physical_device_memory_properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2;
+    g_vk_instance.physical_device_memory_properties2.pNext = 0;
 
-    vkGetPhysicalDeviceFeatures2(physical_device, &g_vulkan.physical_device_features2);
-    vkGetPhysicalDeviceProperties2(physical_device, &g_vulkan.physical_device_properties2);
-    vkGetPhysicalDeviceMemoryProperties2(physical_device, &g_vulkan.physical_device_memory_properties2);
+    vkGetPhysicalDeviceFeatures2(physical_device, &g_vk_instance.physical_device_features2);
+    vkGetPhysicalDeviceProperties2(physical_device, &g_vk_instance.physical_device_properties2);
+    vkGetPhysicalDeviceMemoryProperties2(physical_device, &g_vk_instance.physical_device_memory_properties2);
 
-    if (g_vulkan.physical_device_properties2.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+    if (g_vk_instance.physical_device_properties2.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
 
-      g_vulkan.physical_device = physical_device;
+      g_vk_instance.physical_device = physical_device;
 
       break;
     }
@@ -377,7 +447,7 @@ static void find_physical_device(void) {
   }
 
 #ifdef BUILD_DEBUG
-  VkPhysicalDeviceProperties *props = &g_vulkan.physical_device_properties2.properties;
+  VkPhysicalDeviceProperties *props = &g_vk_instance.physical_device_properties2.properties;
 
   char const *vendor_name = 0;
 
@@ -434,8 +504,8 @@ static void find_physical_device_queue_families(void) {
 
   static VkQueueFamilyProperties queue_family_properties[TI_WINDOW_MAX_QUEUE_FAMILY_PROPERTIES_COUNT] = {0};
 
-  vkGetPhysicalDeviceQueueFamilyProperties(g_vulkan.physical_device, &queue_family_property_count, 0);
-  vkGetPhysicalDeviceQueueFamilyProperties(g_vulkan.physical_device, &queue_family_property_count, queue_family_properties);
+  vkGetPhysicalDeviceQueueFamilyProperties(g_vk_instance.physical_device, &queue_family_property_count, 0);
+  vkGetPhysicalDeviceQueueFamilyProperties(g_vk_instance.physical_device, &queue_family_property_count, queue_family_properties);
 
   while (queue_family_property_index < queue_family_property_count) {
 
@@ -445,7 +515,7 @@ static void find_physical_device_queue_families(void) {
     VkBool32 compute_support = queue_family_property.queueFlags & VK_QUEUE_COMPUTE_BIT;
     VkBool32 present_support = 0;
 
-    TI_VK_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR(g_vulkan.physical_device, (uint32_t)queue_family_property_index, g_vulkan.surface, &present_support));
+    TI_VK_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR(g_vk_instance.physical_device, (uint32_t)queue_family_property_index, g_vk_instance.surface, &present_support));
 
     if (graphics_support && compute_support && (primary_queue_index == -1)) {
 
@@ -458,8 +528,8 @@ static void find_physical_device_queue_families(void) {
 
     if ((primary_queue_index != -1) && (present_queue_index != -1)) {
 
-      g_vulkan.primary_queue_index = (uint32_t)primary_queue_index;
-      g_vulkan.present_queue_index = (uint32_t)present_queue_index;
+      g_vk_instance.primary_queue_index = (uint32_t)primary_queue_index;
+      g_vk_instance.present_queue_index = (uint32_t)present_queue_index;
 
       break;
     }
@@ -469,8 +539,8 @@ static void find_physical_device_queue_families(void) {
 
 #ifdef BUILD_DEBUG
   printf("Selected Physical Queues\n");
-  printf("  Primary Queue Index: %d\n", g_vulkan.primary_queue_index);
-  printf("  Present Queue Index: %d\n", g_vulkan.present_queue_index);
+  printf("  Primary Queue Index: %d\n", g_vk_instance.primary_queue_index);
+  printf("  Present Queue Index: %d\n", g_vk_instance.present_queue_index);
   printf("\n");
 #endif // BUILD_DEBUG
 }
@@ -480,8 +550,8 @@ static void check_physical_device_extensions(void) {
 
   static VkExtensionProperties available_extension_properties[TI_WINDOW_MAX_EXTENSION_PROPERTIES_COUNT] = {0};
 
-  TI_VK_CHECK(vkEnumerateDeviceExtensionProperties(g_vulkan.physical_device, 0, &available_device_extension_count, 0));
-  TI_VK_CHECK(vkEnumerateDeviceExtensionProperties(g_vulkan.physical_device, 0, &available_device_extension_count, available_extension_properties));
+  TI_VK_CHECK(vkEnumerateDeviceExtensionProperties(g_vk_instance.physical_device, 0, &available_device_extension_count, 0));
+  TI_VK_CHECK(vkEnumerateDeviceExtensionProperties(g_vk_instance.physical_device, 0, &available_device_extension_count, available_extension_properties));
 
 #ifdef BUILD_DEBUG
   printf("Required Device Extensions\n");
@@ -570,14 +640,20 @@ static void check_physical_device_features(void) {
 
 static void destroy_instance(void) {
 #ifdef BUILD_DEBUG
-  vkDestroyDebugUtilsMessengerEXT_proc(g_vulkan.instance, g_vulkan.debug_utils_messenger, 0);
+  vkDestroyDebugUtilsMessengerEXT_proc(g_vk_instance.instance, g_vk_instance.debug_utils_messenger, 0);
 #endif // BUILD_DEBUG
 
-  vkDestroyInstance(g_vulkan.instance, 0);
+  vkDestroyInstance(g_vk_instance.instance, 0);
 }
 static void destroy_surface(void) {
-  vkDestroySurfaceKHR(g_vulkan.instance, g_vulkan.surface, 0);
+  vkDestroySurfaceKHR(g_vk_instance.instance, g_vk_instance.surface, 0);
 }
 static void destroy_device(void) {
-  vkDestroyDevice(g_vulkan.device, 0);
+  vkDestroyDevice(g_vk_instance.device, 0);
+}
+static void destroy_command_pool(void) {
+  vkDestroyCommandPool(g_vk_instance.device, g_vk_instance.command_pool, 0);
+}
+static void destroy_command_buffer(void) {
+  vkFreeCommandBuffers(g_vk_instance.device, g_vk_instance.command_pool, 1, &g_vk_instance.command_buffer);
 }

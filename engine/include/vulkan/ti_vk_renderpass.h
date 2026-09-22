@@ -5,10 +5,8 @@
 extern "C" {
 #endif // __cplusplus
 
-extern VkRenderPass g_renderpass;
-
-void renderpass_create(void);
-void renderpass_destroy(void);
+void vk_renderpass_create(vk_renderpass_t *renderpass, char const *asset_path);
+void vk_renderpass_destroy(vk_renderpass_t *renderpass);
 
 #ifdef __cplusplus
 }

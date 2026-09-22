@@ -4,17 +4,12 @@ static LRESULT window_message_proc(HWND window_handle, UINT window_message, WPAR
 
 static char const *s_window_class = "TITAN_WND_CLASS";
 
-pl_window_t g_window = {0};
-
-void window_create(uint32_t width, uint32_t height, char const *title) {
-  g_window.window_width = width;
-  g_window.window_height = height;
-  g_window.window_title = title;
-  g_window.is_first_frame = 1;
-  g_window.window_border_width = 1;
-  g_window.titlebar_height = 35;
-  g_window.sidebar_width = 46;
-  g_window.module_handle = GetModuleHandleA(0);
+void pl_window_create(pl_window_t *window) {
+  window->is_first_frame = 1;
+  window->window_border_width = 1;
+  window->titlebar_height = 35;
+  window->sidebar_width = 46;
+  window->module_handle = GetModuleHandleA(0);
 
   WNDCLASSEX window_class_ex = {
     .cbSize = sizeof(WNDCLASSEX),
@@ -22,7 +17,7 @@ void window_create(uint32_t width, uint32_t height, char const *title) {
     .lpfnWndProc = window_message_proc,
     .cbClsExtra = 0,
     .cbWndExtra = 0,
-    .hInstance = g_window.module_handle,
+    .hInstance = window->module_handle,
     .hIcon = LoadIconA(0, IDI_APPLICATION),
     .hCursor = LoadCursorA(0, IDC_ARROW),
     .hbrBackground = (HBRUSH)(COLOR_WINDOW + 1),
@@ -35,41 +30,41 @@ void window_create(uint32_t width, uint32_t height, char const *title) {
 
   INT screen_width = GetSystemMetrics(SM_CXSCREEN);
   INT screen_height = GetSystemMetrics(SM_CYSCREEN);
-  INT window_position_x = (screen_width - g_window.window_width) / 2;
-  INT window_position_y = (screen_height - g_window.window_height) / 2;
+  INT window_position_x = (screen_width - window->window_width) / 2;
+  INT window_position_y = (screen_height - window->window_height) / 2;
 
-  g_window.window_handle = CreateWindowExA(
+  window->window_handle = CreateWindowExA(
     0,
-    s_window_class, g_window.window_title,
+    s_window_class, window->window_title,
     WS_POPUP | WS_THICKFRAME,
     window_position_x, window_position_y,
-    g_window.window_width, g_window.window_height,
+    window->window_width, window->window_height,
     0,
     0,
-    g_window.module_handle,
-    &g_window);
+    window->module_handle,
+    window);
 
-  ShowWindow(g_window.window_handle, SW_SHOW);
+  ShowWindow(window->window_handle, SW_SHOW);
 
   vk_create();
 }
-void window_run(void) {
-  QueryPerformanceFrequency(&g_window.time_freq);
-  QueryPerformanceCounter(&g_window.time_prev);
+void pl_window_run(pl_window_t *window) {
+  QueryPerformanceFrequency(&window->time_freq);
+  QueryPerformanceCounter(&window->time_prev);
 
-  while (g_window.is_running) {
+  while (window->is_running) {
 
-    g_window.mouse_wheel_delta = 0;
+    window->mouse_wheel_delta = 0;
 
     uint32_t keyboard_key_index = 0;
     uint32_t keyboard_key_count = KEYBOARD_KEY_COUNT;
 
     while (keyboard_key_index < keyboard_key_count) {
 
-      if (g_window.keyboard_key_states[keyboard_key_index] == KEY_STATE_PRESSED) {
-        g_window.keyboard_key_states[keyboard_key_index] = KEY_STATE_DOWN;
-      } else if (g_window.keyboard_key_states[keyboard_key_index] == KEY_STATE_RELEASED) {
-        g_window.keyboard_key_states[keyboard_key_index] = KEY_STATE_UP;
+      if (window->keyboard_key_states[keyboard_key_index] == KEY_STATE_PRESSED) {
+        window->keyboard_key_states[keyboard_key_index] = KEY_STATE_DOWN;
+      } else if (window->keyboard_key_states[keyboard_key_index] == KEY_STATE_RELEASED) {
+        window->keyboard_key_states[keyboard_key_index] = KEY_STATE_UP;
       }
 
       keyboard_key_index++;
@@ -80,16 +75,16 @@ void window_run(void) {
 
     while (mouse_key_index < mouse_key_count) {
 
-      if (g_window.mouse_key_states[mouse_key_index] == KEY_STATE_PRESSED) {
-        g_window.mouse_key_states[mouse_key_index] = KEY_STATE_DOWN;
-      } else if (g_window.mouse_key_states[mouse_key_index] == KEY_STATE_RELEASED) {
-        g_window.mouse_key_states[mouse_key_index] = KEY_STATE_UP;
+      if (window->mouse_key_states[mouse_key_index] == KEY_STATE_PRESSED) {
+        window->mouse_key_states[mouse_key_index] = KEY_STATE_DOWN;
+      } else if (window->mouse_key_states[mouse_key_index] == KEY_STATE_RELEASED) {
+        window->mouse_key_states[mouse_key_index] = KEY_STATE_UP;
       }
 
       mouse_key_index++;
     }
 
-    static MSG msg = {0};
+    MSG msg = {0};
 
     while (PeekMessageA(&msg, 0, 0, 0, PM_REMOVE)) {
 
@@ -97,77 +92,90 @@ void window_run(void) {
       DispatchMessageA(&msg);
     }
 
-    renderer_draw();
+    vk_renderer_draw(&g_vk_renderer);
 
-    QueryPerformanceCounter(&g_window.time_curr);
+    QueryPerformanceCounter(&window->time_curr);
 
-    if (g_swapchain.is_dirty) {
+    if (g_vk_swapchain.is_dirty) {
 
-      g_swapchain.is_dirty = 0;
+      g_vk_swapchain.is_dirty = 0;
 
-      TI_VK_CHECK(vkQueueWaitIdle(g_vulkan.primary_queue));
-      TI_VK_CHECK(vkQueueWaitIdle(g_vulkan.present_queue));
+      TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance.primary_queue));
+      TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance.present_queue));
 
-      framebuffer_destroy();
-      swapchain_destroy();
+      vk_framebuffer_destroy(&g_vk_imgui_framebuffer);
+      vk_framebuffer_destroy(&g_vk_main_framebuffer);
+
+      vk_renderpass_destroy(&g_vk_imgui_renderpass);
+      vk_renderpass_destroy(&g_vk_main_renderpass);
+
+      vk_renderer_destroy(&g_vk_renderer);
+      vk_swapchain_destroy(&g_vk_swapchain);
 
       vk_update_surface_capabilities();
 
-      swapchain_create();
-      framebuffer_create();
+      vk_swapchain_create(&g_vk_swapchain, "asset/swapchain/main.pak");
+      vk_renderer_create(&g_vk_renderer, "asset/renderer/main.pak");
+
+      vk_renderpass_create(&g_vk_main_renderpass, "asset/renderpass/main.pak");
+      vk_renderpass_create(&g_vk_imgui_renderpass, "asset/renderpass/imgui.pak");
+
+      vk_framebuffer_create(&g_vk_main_renderpass, &g_vk_main_framebuffer, "asset/framebuffer/main.pak");
+      vk_framebuffer_create(&g_vk_imgui_renderpass, &g_vk_imgui_framebuffer, "asset/framebuffer/imgui.pak");
     }
 
-    double time_freq = (double)g_window.time_freq.QuadPart;
-    double time_prev = (double)g_window.time_prev.QuadPart;
-    double time_curr = (double)g_window.time_curr.QuadPart;
+    double time_freq = (double)window->time_freq.QuadPart;
+    double time_prev = (double)window->time_prev.QuadPart;
+    double time_curr = (double)window->time_curr.QuadPart;
 
     float delta_time = (float)((time_curr - time_prev) / time_freq);
 
     delta_time = clampf(delta_time, 0.0F, TI_WINDOW_MAX_DELTA_TIME);
 
-    g_window.delta_time = delta_time;
+    window->delta_time = delta_time;
 
-    g_window.time_prev = g_window.time_curr;
+    window->time_prev = window->time_curr;
 
-    g_window.time += delta_time;
-    g_window.elapsed_time_since_fps_count_update += delta_time;
+    window->time += delta_time;
+    window->elapsed_time_since_fps_count_update += delta_time;
 
-    g_window.fps_counter++;
-    g_vulkan.frame_index++;
+    window->fps_counter++;
 
-    if ((g_window.elapsed_time_since_fps_count_update > 1.0F) || (g_window.is_first_frame)) {
+    g_vk_instance.frame_index++; // TODO: move this into vulkan instance..
+
+    if ((window->elapsed_time_since_fps_count_update > 1.0F) || (window->is_first_frame)) {
 
       static char title_buffer[0x400] = {0};
 
       snprintf(title_buffer, sizeof(title_buffer), "%s %s.%s.%s (%s) - %d FPS",
-               g_window.window_title,
+               window->window_title,
                VERSION_MAJOR,
                VERSION_MINOR,
                VERSION_PATCH,
                GIT_VERSION_HASH,
-               g_window.fps_counter);
+               window->fps_counter);
 
-      SetWindowTextA(g_window.window_handle, title_buffer);
+      SetWindowTextA(window->window_handle, title_buffer);
 
-      g_window.elapsed_time_since_fps_count_update = 0.0F;
-      g_window.fps_counter = 0;
+      window->elapsed_time_since_fps_count_update = 0.0F;
+      window->fps_counter = 0;
     }
 
-    g_window.is_first_frame = 0;
+    window->is_first_frame = 0;
   }
 }
-void window_destroy(void) {
+void pl_window_destroy(pl_window_t *window) {
   vk_destroy();
 
-  DestroyWindow(g_window.window_handle);
+  DestroyWindow(window->window_handle);
 
-  UnregisterClassA(s_window_class, g_window.module_handle);
+  UnregisterClassA(s_window_class, window->module_handle);
 }
 
 static LRESULT window_message_proc(HWND window_handle, UINT window_message, WPARAM w_param, LPARAM l_param) {
   pl_window_t *window = (pl_window_t *)GetWindowLongPtr(window_handle, GWLP_USERDATA);
 
-  imgui_message(window_handle, window_message, w_param, l_param);
+  im_message(window_handle, window_message, w_param, l_param);
 
   switch (window_message) {
 

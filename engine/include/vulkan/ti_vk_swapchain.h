@@ -5,10 +5,8 @@
 extern "C" {
 #endif // __cplusplus
 
-extern vk_swapchain_t g_swapchain;
-
-void swapchain_create(void);
-void swapchain_destroy(void);
+void vk_swapchain_create(vk_swapchain_t *swapchain, char const *asset_path);
+void vk_swapchain_destroy(vk_swapchain_t *swapchain);
 
 #ifdef __cplusplus
 }

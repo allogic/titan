@@ -5,10 +5,10 @@
 extern "C" {
 #endif // __cplusplus
 
-extern sidebar_tab_t g_sidebar_tab;
+extern im_sidebar_tab_t g_sidebar_tab;
 
-void sidebar_draw(void);
-void sidebar_reset(void);
+void im_sidebar_draw(void);
+void im_sidebar_reset(void);
 
 #ifdef __cplusplus
 }

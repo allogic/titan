@@ -5,11 +5,9 @@
 extern "C" {
 #endif // __cplusplus
 
-extern pl_window_t g_window;
-
-void window_create(uint32_t width, uint32_t height, char const *title);
-void window_run(void);
-void window_destroy(void);
+void pl_window_create(pl_window_t *window);
+void pl_window_run(pl_window_t *window);
+void pl_window_destroy(pl_window_t *window);
 
 #ifdef __cplusplus
 }

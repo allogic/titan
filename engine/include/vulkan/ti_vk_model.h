@@ -5,7 +5,7 @@
 extern "C" {
 #endif // __cplusplus
 
-void vk_model_create(vk_model_t *model);
+void vk_model_create(vk_model_t *model, char const *asset_path);
 void vk_model_destroy(vk_model_t *model);
 
 #ifdef __cplusplus
