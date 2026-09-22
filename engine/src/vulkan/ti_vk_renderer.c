@@ -566,8 +566,8 @@ static void record_main_pass(vk_renderer_t *renderer) {
       .offset.x = 0,
       .offset.y = 0,
       .extent = {
-        .width = g_pl_window.window_width,
-        .height = g_pl_window.window_height,
+        .width = g_vk_main_framebuffer.width,
+        .height = g_vk_main_framebuffer.height,
       },
     },
     .pClearValues = clear_values,
@@ -579,8 +579,8 @@ static void record_main_pass(vk_renderer_t *renderer) {
   VkViewport viewport = {
     .x = 0.0F,
     .y = 0.0F,
-    .width = (float)g_pl_window.window_width,
-    .height = (float)g_pl_window.window_height,
+    .width = (float)g_vk_main_framebuffer.width,
+    .height = (float)g_vk_main_framebuffer.height,
     .minDepth = 0.0F,
     .maxDepth = 1.0F,
   };
@@ -591,8 +591,8 @@ static void record_main_pass(vk_renderer_t *renderer) {
     .offset.x = 0,
     .offset.y = 0,
     .extent = {
-      .width = g_pl_window.window_width,
-      .height = g_pl_window.window_height,
+      .width = g_vk_main_framebuffer.width,
+      .height = g_vk_main_framebuffer.height,
     },
   };
 
@@ -788,8 +788,8 @@ static void record_imgui_pass(vk_renderer_t *renderer) {
       .offset.x = 0,
       .offset.y = 0,
       .extent = {
-        .width = g_pl_window.window_width,
-        .height = g_pl_window.window_height,
+        .width = g_vk_imgui_framebuffer.width,
+        .height = g_vk_imgui_framebuffer.height,
       },
     },
     .pClearValues = clear_values,
@@ -801,8 +801,8 @@ static void record_imgui_pass(vk_renderer_t *renderer) {
   VkViewport viewport = {
     .x = 0.0F,
     .y = 0.0F,
-    .width = (float)g_pl_window.window_width,
-    .height = (float)g_pl_window.window_height,
+    .width = (float)g_vk_imgui_framebuffer.width,
+    .height = (float)g_vk_imgui_framebuffer.height,
     .minDepth = 0.0F,
     .maxDepth = 1.0F,
   };
@@ -813,8 +813,8 @@ static void record_imgui_pass(vk_renderer_t *renderer) {
     .offset.x = 0,
     .offset.y = 0,
     .extent = {
-      .width = g_pl_window.window_width,
-      .height = g_pl_window.window_height,
+      .width = g_vk_imgui_framebuffer.width,
+      .height = g_vk_imgui_framebuffer.height,
     },
   };
 

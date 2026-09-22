@@ -7,11 +7,55 @@ static void draw_background(void);
 static void draw_controls(void);
 static void draw_viewport(void);
 
-static uint8_t s_is_dirty = 1;
-
 static VkDescriptorSet *s_color_attachments = 0;
 static VkDescriptorSet *s_depth_attachments = 0;
 
+uint32_t g_viewport_width = 1;
+uint32_t g_viewport_height = 1;
+
+void im_viewport_update(void) {
+  {
+    uint64_t image_index = 0;
+    uint64_t image_count = g_vk_swapchain.image_count;
+
+    while (image_index < image_count) {
+
+      if (s_color_attachments) {
+        ImGui_ImplVulkan_RemoveTexture(s_color_attachments[image_index]);
+      }
+
+      if (s_depth_attachments) {
+        ImGui_ImplVulkan_RemoveTexture(s_depth_attachments[image_index]);
+      }
+
+      image_index++;
+    }
+
+    if (s_color_attachments) {
+      TI_FREE(s_color_attachments);
+    }
+
+    if (s_depth_attachments) {
+      TI_FREE(s_depth_attachments);
+    }
+  }
+
+  {
+    s_color_attachments = (VkDescriptorSet *)TI_ALLOC(sizeof(VkDescriptorSet) * g_vk_swapchain.image_count, 0, 0);
+    s_depth_attachments = (VkDescriptorSet *)TI_ALLOC(sizeof(VkDescriptorSet) * g_vk_swapchain.image_count, 0, 0);
+
+    uint64_t image_index = 0;
+    uint64_t image_count = g_vk_swapchain.image_count;
+
+    while (image_index < image_count) {
+
+      s_color_attachments[image_index] = ImGui_ImplVulkan_AddTexture(g_vk_main_framebuffer.color_attachment[image_index].image_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+      s_depth_attachments[image_index] = ImGui_ImplVulkan_AddTexture(g_vk_main_framebuffer.depth_attachment[image_index].image_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+      image_index++;
+    }
+  }
+}
 void im_viewport_draw(void) {
   ImGui::Begin("Viewport", 0, ImGuiWindowFlags_NoDecoration);
 
@@ -82,55 +126,15 @@ static void draw_controls(void) {
   */
 }
 static void draw_viewport(void) {
-  if (s_is_dirty) {
-
-    s_is_dirty = 0;
-
-    {
-      uint64_t image_index = 0;
-      uint64_t image_count = g_vk_swapchain.image_count;
-
-      while (image_index < image_count) {
-
-        if (s_color_attachments) {
-          ImGui_ImplVulkan_RemoveTexture(s_color_attachments[image_index]);
-        }
-
-        if (s_depth_attachments) {
-          ImGui_ImplVulkan_RemoveTexture(s_depth_attachments[image_index]);
-        }
-
-        image_index++;
-      }
-
-      if (s_color_attachments) {
-        TI_FREE(s_color_attachments);
-      }
-
-      if (s_depth_attachments) {
-        TI_FREE(s_depth_attachments);
-      }
-    }
-
-    {
-      s_color_attachments = (VkDescriptorSet *)TI_ALLOC(sizeof(VkDescriptorSet) * g_vk_swapchain.image_count, 0, 0);
-      s_depth_attachments = (VkDescriptorSet *)TI_ALLOC(sizeof(VkDescriptorSet) * g_vk_swapchain.image_count, 0, 0);
-
-      uint64_t image_index = 0;
-      uint64_t image_count = g_vk_swapchain.image_count;
-
-      while (image_index < image_count) {
-
-        s_color_attachments[image_index] = ImGui_ImplVulkan_AddTexture(g_vk_main_framebuffer.color_attachment[image_index].image_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-        s_depth_attachments[image_index] = ImGui_ImplVulkan_AddTexture(g_vk_main_framebuffer.depth_attachment[image_index].image_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-        image_index++;
-      }
-    }
-  }
-
   ImVec2 position = ImGui::GetWindowPos();
   ImVec2 size = ImGui::GetWindowSize();
+
+  if ((size.x != g_vk_main_framebuffer.width) || (size.y != g_vk_main_framebuffer.height)) {
+
+    g_vk_main_framebuffer.width = (uint32_t)size.x;
+    g_vk_main_framebuffer.height = (uint32_t)size.y;
+    g_vk_main_framebuffer.is_dirty = 1;
+  }
 
   ImDrawList *draw = ImGui::GetWindowDrawList();
 

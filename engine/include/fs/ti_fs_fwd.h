@@ -94,8 +94,6 @@ typedef struct fs_image_t {
 } fs_image_t;
 typedef struct fs_framebuffer_t {
   char name[TI_PATH_SIZE];
-  uint32_t width;
-  uint32_t height;
   char color_attachment_image[TI_PATH_SIZE];
   char depth_attachment_image[TI_PATH_SIZE];
 } fs_framebuffer_t;

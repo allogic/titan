@@ -133,8 +133,14 @@ void vk_create(void) {
   vk_renderpass_create(&g_vk_main_renderpass, "asset/renderpass/main.pak");
   vk_renderpass_create(&g_vk_imgui_renderpass, "asset/renderpass/imgui.pak");
 
-  vk_framebuffer_create(&g_vk_main_renderpass, &g_vk_main_framebuffer, "asset/framebuffer/main.pak");
-  vk_framebuffer_create(&g_vk_imgui_renderpass, &g_vk_imgui_framebuffer, "asset/framebuffer/imgui.pak");
+  g_vk_main_framebuffer.width = 1;
+  g_vk_main_framebuffer.height = 1;
+
+  g_vk_imgui_framebuffer.width = g_pl_window.window_width;
+  g_vk_imgui_framebuffer.height = g_pl_window.window_height;
+
+  vk_framebuffer_create(&g_vk_main_framebuffer, &g_vk_main_renderpass, "asset/framebuffer/main.pak");
+  vk_framebuffer_create(&g_vk_imgui_framebuffer, &g_vk_imgui_renderpass, "asset/framebuffer/imgui.pak");
 
   vk_buffer_create(&g_vk_time_info_buffer, "asset/buffer/time_info.pak");
   vk_buffer_create(&g_vk_screen_info_buffer, "asset/buffer/screen_info.pak");

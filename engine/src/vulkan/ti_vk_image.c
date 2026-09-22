@@ -1,15 +1,15 @@
 #include <ti_pch.h>
 
-void vk_image_create(vk_image_t *image, char const *asset_path) {
+void vk_image_create(vk_image_t *image, uint32_t width, uint32_t height, uint32_t depth, char const *asset_path) {
   image->config = (fs_image_t *)fs_get(asset_path);
 
   VkImageCreateInfo image_create_info = {
     .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
     .imageType = image->config->image_type,
     .extent = {
-      .width = image->config->width ? image->config->width : g_pl_window.window_width,     // TODO
-      .height = image->config->height ? image->config->height : g_pl_window.window_height, // TODO
-      .depth = image->config->depth,                                                       // TODO
+      .width = image->config->width ? image->config->width : width,     // TODO
+      .height = image->config->height ? image->config->height : height, // TODO
+      .depth = image->config->depth ? image->config->depth : depth,     // TODO
     },
     .mipLevels = image->config->mip_levels,
     .arrayLayers = 1,

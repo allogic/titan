@@ -141,10 +141,6 @@ static void create_dflt_assets(void) {
     fs_framebuffer_t *framebuffer = (fs_framebuffer_t *)asset.config;
 
     strcpy(framebuffer->name, "main");
-
-    framebuffer->width = 0;  // TODO
-    framebuffer->height = 0; // TODO
-
     strcpy(framebuffer->color_attachment_image, "asset/framebuffer/main/attachments/color.pak");
     strcpy(framebuffer->depth_attachment_image, "asset/framebuffer/main/attachments/depth.pak");
 
@@ -165,10 +161,6 @@ static void create_dflt_assets(void) {
     fs_framebuffer_t *framebuffer = (fs_framebuffer_t *)asset.config;
 
     strcpy(framebuffer->name, "main");
-
-    framebuffer->width = 0;  // TODO
-    framebuffer->height = 0; // TODO
-
     strcpy(framebuffer->color_attachment_image, "asset/framebuffer/imgui/attachments/color.pak");
     strcpy(framebuffer->depth_attachment_image, "asset/framebuffer/imgui/attachments/depth.pak");
 

@@ -52,6 +52,16 @@ void pl_window_run(pl_window_t *window) {
   QueryPerformanceFrequency(&window->time_freq);
   QueryPerformanceCounter(&window->time_prev);
 
+  // TODO: refactor this as well..
+
+  g_vk_main_framebuffer.width = 1;
+  g_vk_main_framebuffer.height = 1;
+
+  g_vk_imgui_framebuffer.width = g_pl_window.window_width;
+  g_vk_imgui_framebuffer.height = g_pl_window.window_height;
+
+  im_viewport_update(); // TODO: remove this and create a clear viewport API!
+
   while (window->is_running) {
 
     window->mouse_wheel_delta = 0;
@@ -96,6 +106,19 @@ void pl_window_run(pl_window_t *window) {
 
     QueryPerformanceCounter(&window->time_curr);
 
+    if (g_vk_main_framebuffer.is_dirty) {
+
+      g_vk_main_framebuffer.is_dirty = 0;
+
+      TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance.primary_queue));
+      TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance.present_queue));
+
+      vk_framebuffer_destroy(&g_vk_main_framebuffer);
+      vk_framebuffer_create(&g_vk_main_framebuffer, &g_vk_main_renderpass, "asset/framebuffer/main.pak");
+
+      im_viewport_update(); // TODO
+    }
+
     if (g_vk_swapchain.is_dirty) {
 
       g_vk_swapchain.is_dirty = 0;
@@ -120,8 +143,13 @@ void pl_window_run(pl_window_t *window) {
       vk_renderpass_create(&g_vk_main_renderpass, "asset/renderpass/main.pak");
       vk_renderpass_create(&g_vk_imgui_renderpass, "asset/renderpass/imgui.pak");
 
-      vk_framebuffer_create(&g_vk_main_renderpass, &g_vk_main_framebuffer, "asset/framebuffer/main.pak");
-      vk_framebuffer_create(&g_vk_imgui_renderpass, &g_vk_imgui_framebuffer, "asset/framebuffer/imgui.pak");
+      g_vk_imgui_framebuffer.width = g_pl_window.window_width;
+      g_vk_imgui_framebuffer.height = g_pl_window.window_height;
+
+      vk_framebuffer_create(&g_vk_main_framebuffer, &g_vk_main_renderpass, "asset/framebuffer/main.pak");
+      vk_framebuffer_create(&g_vk_imgui_framebuffer, &g_vk_imgui_renderpass, "asset/framebuffer/imgui.pak");
+
+      im_viewport_update(); // TODO
     }
 
     double time_freq = (double)window->time_freq.QuadPart;
