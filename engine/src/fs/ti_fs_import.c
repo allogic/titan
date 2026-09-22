@@ -11,19 +11,21 @@
 static cgltf_accessor *find_gltf_accessor(cgltf_primitive *gltf_primitive, cgltf_attribute_type attribute_type);
 static cgltf_node *find_gltf_root_node(cgltf_skin *gltf_skin);
 
-static void convert_gltf_float_accessor(fs_file *file, cgltf_accessor *gltf_accessor);
-static void convert_gltf_uint_accessor(fs_file *file, cgltf_accessor *gltf_accessor);
+static void convert_gltf_float_accessor_by_attribute(fs_primitive_t *primitive, cgltf_primitive *gltf_primitive, cgltf_attribute_type gltf_attribute_type);
+static void convert_gltf_uint_accessor_by_attribute(fs_primitive_t *primitive, cgltf_primitive *gltf_primitive, cgltf_attribute_type gltf_attribute_type);
 
-static void convert_gltf_model(fs_file *file, cgltf_data *gltf_data);
-static void convert_gltf_mesh(fs_file *file, cgltf_mesh *gltf_mesh, uint64_t mesh_index);
-static void convert_gltf_primitive(fs_file *file, cgltf_primitive *gltf_primitive, uint64_t primitive_index);
-static void convert_gltf_skin(fs_file *file, cgltf_skin *gltf_skin, uint64_t skin_index);
-static void convert_gltf_joint(fs_file *file, cgltf_node *gltf_node);
+static void convert_gltf_model(fs_model_t *model, cgltf_data *gltf_data);
+static void convert_gltf_mesh(fs_mesh_t *mesh, cgltf_mesh *gltf_mesh, uint64_t mesh_index);
+static void convert_gltf_primitive(fs_primitive_t *primitive, cgltf_primitive *gltf_primitive, uint64_t primitive_index);
+static void convert_gltf_skin(fs_skin_t *skin, cgltf_skin *gltf_skin, uint64_t skin_index);
+static void convert_gltf_joint(fs_joint_t *joint, cgltf_node *gltf_node);
+
+static void convert_ttf_font(fs_font_t *font, void *buffer, uint64_t buffer_size);
 
 static uint8_t compile_glsl_shader(char const *file_path, glslang_stage_t stage, uint32_t **words, uint64_t *word_count);
 
-static uint8_t convert_spirv_input_variables(fs_file *file, SpvReflectShaderModule *module);
-static uint8_t convert_spirv_descriptor_bindings(fs_file *file, SpvReflectShaderModule *module);
+static uint8_t convert_spirv_input_variables(fs_pipeline_t *pipeline, SpvReflectShaderModule *module);
+static uint8_t convert_spirv_descriptor_bindings(fs_pipeline_t *pipeline, SpvReflectShaderModule *module);
 
 uint8_t fs_import_model(char const *asset_file, char const *model_file) {
   uint8_t status = 0;
@@ -33,8 +35,6 @@ uint8_t fs_import_model(char const *asset_file, char const *model_file) {
 
   cgltf_options gltf_options = {0};
   cgltf_data *gltf_data = 0;
-
-  fs_file *file = 0;
 
   LARGE_INTEGER freq = {0};
   LARGE_INTEGER t0 = {0};
@@ -83,32 +83,32 @@ uint8_t fs_import_model(char const *asset_file, char const *model_file) {
 
   QueryPerformanceCounter(&t4);
 
-  if (fs_file_open(g_fs, asset_file, FS_WRITE, &file) == FS_SUCCESS) {
+  fs_asset_t asset = {
+    .magic = TI_FS_ASSET_MAGIC,
+    .type = FS_ASSET_TYPE_MODEL,
+  };
 
-    uint64_t path_size = strlen(asset_file);
+  strcpy(asset.path, asset_file);
 
-    const char *file_name = fs_path_file_name(asset_file, path_size);
-    const char *file_ext = fs_path_extension(asset_file, path_size);
+  fs_asset_create(&asset);
 
-    char model_name[TI_PATH_SIZE] = {0};
+  fs_model_t *model = (fs_model_t *)asset.config;
 
-    if (file_name && file_ext) {
-      memcpy(model_name, file_name, file_ext - file_name - 1);
-    } else {
-      snprintf(model_name, TI_PATH_SIZE, "<unnamed>");
-    }
+  uint64_t path_size = strlen(asset_file);
 
-    uint64_t asset_magic = TI_FS_ASSET_MAGIC;
-    fs_asset_type_t asset_type = FS_ASSET_TYPE_MODEL;
+  const char *file_name = fs_path_file_name(asset_file, path_size);
+  const char *file_ext = fs_path_extension(asset_file, path_size);
 
-    fs_file_write(file, &asset_magic, sizeof(uint64_t), 0);
-    fs_file_write(file, &asset_type, sizeof(fs_asset_type_t), 0);
-    fs_file_write(file, model_name, TI_PATH_SIZE, 0);
-
-    convert_gltf_model(file, gltf_data);
-
-    fs_file_close(file);
+  if (file_name && file_ext) {
+    memcpy(model->name, file_name, file_ext - file_name - 1);
+  } else {
+    snprintf(model->name, TI_PATH_SIZE, "<unnamed>");
   }
+
+  convert_gltf_model(model, gltf_data);
+
+  fs_asset_store(&asset);
+  fs_asset_destroy(&asset);
 
   QueryPerformanceCounter(&t5);
 
@@ -151,8 +151,6 @@ uint8_t fs_import_pipeline(fs_pipeline_type_t pipeline_type, char const *asset_f
 
   SpvReflectShaderModule vertex_module = {0};
   SpvReflectShaderModule fragment_module = {0};
-
-  fs_file *file = 0;
 
   LARGE_INTEGER freq = {0};
   LARGE_INTEGER t0 = {0};
@@ -197,66 +195,67 @@ uint8_t fs_import_pipeline(fs_pipeline_type_t pipeline_type, char const *asset_f
 
   QueryPerformanceCounter(&t3);
 
-  if (fs_file_open(g_fs, asset_file, FS_WRITE, &file) == FS_SUCCESS) {
+  fs_asset_t asset = {
+    .magic = TI_FS_ASSET_MAGIC,
+    .type = FS_ASSET_TYPE_PIPELINE,
+  };
 
-    uint64_t path_size = strlen(asset_file);
+  strcpy(asset.path, asset_file);
 
-    const char *file_name = fs_path_file_name(asset_file, path_size);
-    const char *file_ext = fs_path_extension(asset_file, path_size);
+  fs_asset_create(&asset);
 
-    char program_name[TI_PATH_SIZE] = {0};
+  fs_pipeline_t *pipeline = (fs_pipeline_t *)asset.config;
 
-    if (file_name && file_ext) {
-      memcpy(program_name, file_name, file_ext - file_name - 1);
-    } else {
-      snprintf(program_name, TI_PATH_SIZE, "<unnamed>");
-    }
+  uint64_t path_size = strlen(asset_file);
 
-    uint64_t asset_magic = TI_FS_ASSET_MAGIC;
-    fs_asset_type_t asset_type = FS_ASSET_TYPE_PIPELINE;
+  const char *file_name = fs_path_file_name(asset_file, path_size);
+  const char *file_ext = fs_path_extension(asset_file, path_size);
 
-    fs_file_write(file, &asset_magic, sizeof(uint64_t), 0);
-    fs_file_write(file, &asset_type, sizeof(fs_asset_type_t), 0);
-    fs_file_write(file, program_name, TI_PATH_SIZE, 0);
-    fs_file_write(file, &pipeline_type, sizeof(fs_pipeline_type_t), 0);
-
-    switch (pipeline_type) {
-
-      case FS_PIPELINE_TYPE_DFLT: {
-
-        convert_spirv_input_variables(file, &vertex_module);
-        convert_spirv_descriptor_bindings(file, &vertex_module);
-
-        fs_file_write(file, &spirv_vertex_word_count, sizeof(uint64_t), 0);
-        fs_file_write(file, spirv_vertex_words, sizeof(uint32_t) * spirv_vertex_word_count, 0);
-
-        fs_file_write(file, &spirv_fragment_word_count, sizeof(uint64_t), 0);
-        fs_file_write(file, spirv_fragment_words, sizeof(uint32_t) * spirv_fragment_word_count, 0);
-
-        break;
-      }
-      case FS_PIPELINE_TYPE_MESH: {
-
-        // TODO
-
-        break;
-      }
-      case FS_PIPELINE_TYPE_RAY: {
-
-        // TODO
-
-        break;
-      }
-      case FS_PIPELINE_TYPE_COMP: {
-
-        // TODO
-
-        break;
-      }
-    }
-
-    fs_file_close(file);
+  if (file_name && file_ext) {
+    memcpy(pipeline->name, file_name, file_ext - file_name - 1);
+  } else {
+    snprintf(pipeline->name, TI_PATH_SIZE, "<unnamed>");
   }
+
+  pipeline->pipeline_type = pipeline_type;
+
+  switch (pipeline_type) {
+
+    case FS_PIPELINE_TYPE_DFLT: {
+
+      convert_spirv_input_variables(pipeline, &vertex_module);
+      convert_spirv_descriptor_bindings(pipeline, &vertex_module);
+
+      pipeline->spirv_vertex_word_count = spirv_vertex_word_count;
+      pipeline->spirv_fragment_word_count = spirv_fragment_word_count;
+
+      pipeline->spirv_vertex_words = (uint32_t *)TI_ALLOC(sizeof(uint32_t) * spirv_vertex_word_count, 0, spirv_vertex_words);
+      pipeline->spirv_fragment_words = (uint32_t *)TI_ALLOC(sizeof(uint32_t) * spirv_fragment_word_count, 0, spirv_fragment_words);
+
+      break;
+    }
+    case FS_PIPELINE_TYPE_MESH: {
+
+      // TODO
+
+      break;
+    }
+    case FS_PIPELINE_TYPE_RAY: {
+
+      // TODO
+
+      break;
+    }
+    case FS_PIPELINE_TYPE_COMP: {
+
+      // TODO
+
+      break;
+    }
+  }
+
+  fs_asset_store(&asset);
+  fs_asset_destroy(&asset);
 
   QueryPerformanceCounter(&t4);
 
@@ -295,8 +294,6 @@ uint8_t fs_import_font(char const *asset_file, char const *font_file) {
   void *buffer = 0;
   uint64_t buffer_size = 0;
 
-  fs_file *file = 0;
-
   LARGE_INTEGER freq = {0};
   LARGE_INTEGER t0 = {0};
   LARGE_INTEGER t1 = {0};
@@ -314,33 +311,32 @@ uint8_t fs_import_font(char const *asset_file, char const *font_file) {
 
   QueryPerformanceCounter(&t1);
 
-  if (fs_file_open(g_fs, asset_file, FS_WRITE, &file) == FS_SUCCESS) {
+  fs_asset_t asset = {
+    .magic = TI_FS_ASSET_MAGIC,
+    .type = FS_ASSET_TYPE_FONT,
+  };
 
-    uint64_t path_size = strlen(asset_file);
+  strcpy(asset.path, asset_file);
 
-    const char *file_name = fs_path_file_name(asset_file, path_size);
-    const char *file_ext = fs_path_extension(asset_file, path_size);
+  fs_asset_create(&asset);
 
-    char font_name[TI_PATH_SIZE] = {0};
+  fs_font_t *font = (fs_font_t *)asset.config;
 
-    if (file_name && file_ext) {
-      memcpy(font_name, file_name, file_ext - file_name - 1);
-    } else {
-      snprintf(font_name, TI_PATH_SIZE, "<unnamed>");
-    }
+  uint64_t path_size = strlen(asset_file);
 
-    uint64_t asset_magic = TI_FS_ASSET_MAGIC;
-    fs_asset_type_t asset_type = FS_ASSET_TYPE_FONT;
+  const char *file_name = fs_path_file_name(asset_file, path_size);
+  const char *file_ext = fs_path_extension(asset_file, path_size);
 
-    fs_file_write(file, &asset_magic, sizeof(uint64_t), 0);
-    fs_file_write(file, &asset_type, sizeof(fs_asset_type_t), 0);
-    fs_file_write(file, asset_file, TI_PATH_SIZE, 0);
-    fs_file_write(file, font_name, TI_PATH_SIZE, 0);
-    fs_file_write(file, &buffer_size, sizeof(uint64_t), 0);
-    fs_file_write(file, buffer, buffer_size, 0);
-
-    fs_file_close(file);
+  if (file_name && file_ext) {
+    memcpy(font->name, file_name, file_ext - file_name - 1);
+  } else {
+    snprintf(font->name, TI_PATH_SIZE, "<unnamed>");
   }
+
+  convert_ttf_font(font, buffer, buffer_size);
+
+  fs_asset_store(&asset);
+  fs_asset_destroy(&asset);
 
   QueryPerformanceCounter(&t2);
 
@@ -408,172 +404,352 @@ static cgltf_node *find_gltf_root_node(cgltf_skin *gltf_skin) {
   return gltf_root_joint;
 }
 
-static void convert_gltf_float_accessor(fs_file *file, cgltf_accessor *gltf_accessor) {
+static void convert_gltf_float_accessor_by_attribute(fs_primitive_t *primitive, cgltf_primitive *gltf_primitive, cgltf_attribute_type gltf_attribute_type) {
   uint64_t component_count = 0;
   uint64_t value_index = 0;
   uint64_t value_count = 0;
   uint64_t value_stride = 0;
 
-  float *float_buffer = 0;
+  cgltf_accessor *gltf_accessor = find_gltf_accessor(gltf_primitive, gltf_attribute_type);
 
-  if (gltf_accessor) {
+  if (gltf_accessor == 0) {
+    return;
+  }
 
-    component_count = cgltf_num_components(gltf_accessor->type);
-    value_index = 0;
-    value_count = gltf_accessor->count;
-    value_stride = sizeof(float) * component_count;
+  component_count = cgltf_num_components(gltf_accessor->type);
+  value_index = 0;
+  value_count = gltf_accessor->count;
+  value_stride = sizeof(float) * component_count;
 
-    fs_file_write(file, &value_count, sizeof(uint64_t), 0);
-    fs_file_write(file, &value_stride, sizeof(uint64_t), 0);
+  switch (gltf_attribute_type) {
 
-    float_buffer = (float *)TI_ALLOC(value_stride, 0, 0);
+    case cgltf_attribute_type_position: {
 
-    while (value_index < value_count) {
+      primitive->position_count = value_count;
+      primitive->position_stride = value_stride;
+      primitive->positions = TI_ALLOC(value_stride, 0, 0);
 
-      cgltf_accessor_read_float(gltf_accessor, value_index, float_buffer, component_count);
+      break;
+    }
+    case cgltf_attribute_type_normal: {
 
-      fs_file_write(file, float_buffer, value_stride, 0);
+      primitive->normal_count = value_count;
+      primitive->normal_stride = value_stride;
+      primitive->normals = TI_ALLOC(value_stride, 0, 0);
 
-      value_index++;
+      break;
+    }
+    case cgltf_attribute_type_tangent: {
+
+      primitive->tangent_count = value_count;
+      primitive->tangent_stride = value_stride;
+      primitive->tangents = TI_ALLOC(value_stride, 0, 0);
+
+      break;
+    }
+    case cgltf_attribute_type_texcoord: {
+
+      primitive->texcoord_count = value_count;
+      primitive->texcoord_stride = value_stride;
+      primitive->texcoords = TI_ALLOC(value_stride, 0, 0);
+
+      break;
+    }
+    case cgltf_attribute_type_color: {
+
+      primitive->color_count = value_count;
+      primitive->color_stride = value_stride;
+      primitive->colors = TI_ALLOC(value_stride, 0, 0);
+
+      break;
+    }
+    case cgltf_attribute_type_joints: {
+
+      primitive->joint_count = value_count;
+      primitive->joint_stride = value_stride;
+      primitive->joints = TI_ALLOC(value_stride, 0, 0);
+
+      break;
+    }
+    case cgltf_attribute_type_weights: {
+
+      primitive->weight_count = value_count;
+      primitive->weight_stride = value_stride;
+      primitive->weights = TI_ALLOC(value_stride, 0, 0);
+
+      break;
+    }
+  }
+
+  while (value_index < value_count) {
+
+    switch (gltf_attribute_type) {
+
+      case cgltf_attribute_type_position: {
+
+        cgltf_accessor_read_float(gltf_accessor, value_index, primitive->positions, component_count);
+
+        break;
+      }
+      case cgltf_attribute_type_normal: {
+
+        cgltf_accessor_read_float(gltf_accessor, value_index, primitive->normals, component_count);
+
+        break;
+      }
+      case cgltf_attribute_type_tangent: {
+
+        cgltf_accessor_read_float(gltf_accessor, value_index, primitive->tangents, component_count);
+
+        break;
+      }
+      case cgltf_attribute_type_texcoord: {
+
+        cgltf_accessor_read_float(gltf_accessor, value_index, primitive->texcoords, component_count);
+
+        break;
+      }
+      case cgltf_attribute_type_color: {
+
+        cgltf_accessor_read_float(gltf_accessor, value_index, primitive->colors, component_count);
+
+        break;
+      }
+      case cgltf_attribute_type_joints: {
+
+        cgltf_accessor_read_float(gltf_accessor, value_index, primitive->joints, component_count);
+
+        break;
+      }
+      case cgltf_attribute_type_weights: {
+
+        cgltf_accessor_read_float(gltf_accessor, value_index, primitive->weights, component_count);
+
+        break;
+      }
     }
 
-    TI_FREE(float_buffer);
-
-  } else {
-
-    fs_file_write(file, &value_count, sizeof(uint64_t), 0);
-    fs_file_write(file, &value_stride, sizeof(uint64_t), 0);
+    value_index++;
   }
 }
-static void convert_gltf_uint_accessor(fs_file *file, cgltf_accessor *gltf_accessor) {
+static void convert_gltf_uint_accessor_by_attribute(fs_primitive_t *primitive, cgltf_primitive *gltf_primitive, cgltf_attribute_type gltf_attribute_type) {
   uint64_t component_count = 0;
   uint64_t value_index = 0;
   uint64_t value_count = 0;
   uint64_t value_stride = 0;
 
-  uint32_t *int_buffer = 0;
+  cgltf_accessor *gltf_accessor = find_gltf_accessor(gltf_primitive, gltf_attribute_type);
 
-  if (gltf_accessor) {
+  if (gltf_accessor == 0) {
+    return;
+  }
 
-    component_count = cgltf_num_components(gltf_accessor->type);
-    value_count = gltf_accessor->count;
-    value_stride = sizeof(uint32_t) * component_count;
+  component_count = cgltf_num_components(gltf_accessor->type);
+  value_count = gltf_accessor->count;
+  value_stride = sizeof(uint32_t) * component_count;
 
-    fs_file_write(file, &value_count, sizeof(uint64_t), 0);
-    fs_file_write(file, &value_stride, sizeof(uint64_t), 0);
+  switch (gltf_attribute_type) {
 
-    int_buffer = (uint32_t *)TI_ALLOC(value_stride, 0, 0);
+    case cgltf_attribute_type_position: {
 
-    while (value_index < value_count) {
+      primitive->position_count = value_count;
+      primitive->position_stride = value_stride;
+      primitive->positions = TI_ALLOC(value_stride, 0, 0);
 
-      cgltf_accessor_read_uint(gltf_accessor, value_index, int_buffer, component_count);
+      break;
+    }
+    case cgltf_attribute_type_normal: {
 
-      fs_file_write(file, int_buffer, value_stride, 0);
+      primitive->normal_count = value_count;
+      primitive->normal_stride = value_stride;
+      primitive->normals = TI_ALLOC(value_stride, 0, 0);
 
-      value_index++;
+      break;
+    }
+    case cgltf_attribute_type_tangent: {
+
+      primitive->tangent_count = value_count;
+      primitive->tangent_stride = value_stride;
+      primitive->tangents = TI_ALLOC(value_stride, 0, 0);
+
+      break;
+    }
+    case cgltf_attribute_type_texcoord: {
+
+      primitive->texcoord_count = value_count;
+      primitive->texcoord_stride = value_stride;
+      primitive->texcoords = TI_ALLOC(value_stride, 0, 0);
+
+      break;
+    }
+    case cgltf_attribute_type_color: {
+
+      primitive->color_count = value_count;
+      primitive->color_stride = value_stride;
+      primitive->colors = TI_ALLOC(value_stride, 0, 0);
+
+      break;
+    }
+    case cgltf_attribute_type_joints: {
+
+      primitive->joint_count = value_count;
+      primitive->joint_stride = value_stride;
+      primitive->joints = TI_ALLOC(value_stride, 0, 0);
+
+      break;
+    }
+    case cgltf_attribute_type_weights: {
+
+      primitive->weight_count = value_count;
+      primitive->weight_stride = value_stride;
+      primitive->weights = TI_ALLOC(value_stride, 0, 0);
+
+      break;
+    }
+  }
+
+  while (value_index < value_count) {
+
+    switch (gltf_attribute_type) {
+
+      case cgltf_attribute_type_position: {
+
+        cgltf_accessor_read_uint(gltf_accessor, value_index, primitive->positions, component_count);
+
+        break;
+      }
+      case cgltf_attribute_type_normal: {
+
+        cgltf_accessor_read_uint(gltf_accessor, value_index, primitive->normals, component_count);
+
+        break;
+      }
+      case cgltf_attribute_type_tangent: {
+
+        cgltf_accessor_read_uint(gltf_accessor, value_index, primitive->tangents, component_count);
+
+        break;
+      }
+      case cgltf_attribute_type_texcoord: {
+
+        cgltf_accessor_read_uint(gltf_accessor, value_index, primitive->texcoords, component_count);
+
+        break;
+      }
+      case cgltf_attribute_type_color: {
+
+        cgltf_accessor_read_uint(gltf_accessor, value_index, primitive->colors, component_count);
+
+        break;
+      }
+      case cgltf_attribute_type_joints: {
+
+        cgltf_accessor_read_uint(gltf_accessor, value_index, primitive->joints, component_count);
+
+        break;
+      }
+      case cgltf_attribute_type_weights: {
+
+        cgltf_accessor_read_uint(gltf_accessor, value_index, primitive->weights, component_count);
+
+        break;
+      }
     }
 
-    TI_FREE(int_buffer);
-
-  } else {
-
-    fs_file_write(file, &value_count, sizeof(uint64_t), 0);
-    fs_file_write(file, &value_stride, sizeof(uint64_t), 0);
+    value_index++;
   }
 }
 
-static void convert_gltf_model(fs_file *file, cgltf_data *gltf_data) {
+static void convert_gltf_model(fs_model_t *model, cgltf_data *gltf_data) {
+  model->mesh_count = gltf_data->meshes_count;
+  model->meshes = (fs_mesh_t *)TI_ALLOC(sizeof(fs_mesh_t) * gltf_data->meshes_count, 0, 0);
+
   uint64_t mesh_index = 0;
   uint64_t mesh_count = gltf_data->meshes_count;
 
-  fs_file_write(file, &mesh_count, sizeof(uint64_t), 0);
-
   while (mesh_index < mesh_count) {
 
-    convert_gltf_mesh(file, &gltf_data->meshes[mesh_index], mesh_index);
+    convert_gltf_mesh(&model->meshes[mesh_index], &gltf_data->meshes[mesh_index], mesh_index);
 
     mesh_index++;
   }
 
+  model->skin_count = gltf_data->skins_count;
+  model->skins = (fs_skin_t *)TI_ALLOC(sizeof(fs_skin_t) * gltf_data->skins_count, 0, 0);
+
   uint64_t skin_index = 0;
   uint64_t skin_count = gltf_data->skins_count;
 
-  fs_file_write(file, &skin_count, sizeof(uint64_t), 0);
-
   while (skin_index < skin_count) {
 
-    convert_gltf_skin(file, &gltf_data->skins[skin_index], skin_index);
+    convert_gltf_skin(&model->skins[skin_index], &gltf_data->skins[skin_index], skin_index);
 
     skin_index++;
   }
 }
-static void convert_gltf_mesh(fs_file *file, cgltf_mesh *gltf_mesh, uint64_t mesh_index) {
-  char mesh_name[TI_PATH_SIZE] = {0};
-
+static void convert_gltf_mesh(fs_mesh_t *mesh, cgltf_mesh *gltf_mesh, uint64_t mesh_index) {
   if (gltf_mesh->name) {
-    strcpy(mesh_name, gltf_mesh->name);
+    strcpy(mesh->name, gltf_mesh->name);
   } else {
-    snprintf(mesh_name, TI_PATH_SIZE, "mesh %llu", mesh_index);
+    snprintf(mesh->name, TI_PATH_SIZE, "mesh %llu", mesh_index);
   }
+
+  mesh->primitive_count = gltf_mesh->primitives_count;
+  mesh->primitives = (fs_primitive_t *)TI_ALLOC(sizeof(fs_primitive_t) * gltf_mesh->primitives_count, 0, 0);
 
   uint64_t primitive_index = 0;
   uint64_t primitive_count = gltf_mesh->primitives_count;
 
-  fs_file_write(file, mesh_name, TI_PATH_SIZE, 0);
-  fs_file_write(file, &primitive_count, sizeof(uint64_t), 0);
-
   while (primitive_index < primitive_count) {
 
-    convert_gltf_primitive(file, &gltf_mesh->primitives[primitive_index], primitive_index);
+    convert_gltf_primitive(&mesh->primitives[primitive_index], &gltf_mesh->primitives[primitive_index], primitive_index);
 
     primitive_index++;
   }
 }
-static void convert_gltf_primitive(fs_file *file, cgltf_primitive *gltf_primitive, uint64_t primitive_index) {
-  char primitive_name[TI_PATH_SIZE] = {0};
+static void convert_gltf_primitive(fs_primitive_t *primitive, cgltf_primitive *gltf_primitive, uint64_t primitive_index) {
+  snprintf(primitive->name, TI_PATH_SIZE, "primitive %llu", primitive_index);
 
-  snprintf(primitive_name, TI_PATH_SIZE, "primitive %llu", primitive_index);
-
-  fs_file_write(file, primitive_name, TI_PATH_SIZE, 0);
-
-  convert_gltf_float_accessor(file, find_gltf_accessor(gltf_primitive, cgltf_attribute_type_position));
-  convert_gltf_float_accessor(file, find_gltf_accessor(gltf_primitive, cgltf_attribute_type_normal));
-  convert_gltf_float_accessor(file, find_gltf_accessor(gltf_primitive, cgltf_attribute_type_tangent));
-  convert_gltf_float_accessor(file, find_gltf_accessor(gltf_primitive, cgltf_attribute_type_texcoord));
-  convert_gltf_float_accessor(file, find_gltf_accessor(gltf_primitive, cgltf_attribute_type_color));
-  convert_gltf_uint_accessor(file, find_gltf_accessor(gltf_primitive, cgltf_attribute_type_joints));
-  convert_gltf_float_accessor(file, find_gltf_accessor(gltf_primitive, cgltf_attribute_type_weights));
+  convert_gltf_float_accessor_by_attribute(primitive, gltf_primitive, cgltf_attribute_type_position);
+  convert_gltf_float_accessor_by_attribute(primitive, gltf_primitive, cgltf_attribute_type_normal);
+  convert_gltf_float_accessor_by_attribute(primitive, gltf_primitive, cgltf_attribute_type_tangent);
+  convert_gltf_float_accessor_by_attribute(primitive, gltf_primitive, cgltf_attribute_type_texcoord);
+  convert_gltf_float_accessor_by_attribute(primitive, gltf_primitive, cgltf_attribute_type_color);
+  convert_gltf_uint_accessor_by_attribute(primitive, gltf_primitive, cgltf_attribute_type_joints);
+  convert_gltf_float_accessor_by_attribute(primitive, gltf_primitive, cgltf_attribute_type_weights);
 }
-static void convert_gltf_skin(fs_file *file, cgltf_skin *gltf_skin, uint64_t skin_index) {
-  char skin_name[TI_PATH_SIZE] = {0};
-
+static void convert_gltf_skin(fs_skin_t *skin, cgltf_skin *gltf_skin, uint64_t skin_index) {
   if (gltf_skin->name) {
-    strcpy(skin_name, gltf_skin->name);
+    strcpy(skin->name, gltf_skin->name);
   } else {
-    snprintf(skin_name, TI_PATH_SIZE, "skin %llu", skin_index);
+    snprintf(skin->name, TI_PATH_SIZE, "skin %llu", skin_index);
   }
 
-  fs_file_write(file, skin_name, TI_PATH_SIZE, 0);
+  skin->root_joint = (fs_joint_t *)TI_ALLOC(sizeof(fs_joint_t), 1, 0);
 
-  convert_gltf_joint(file, find_gltf_root_node(gltf_skin));
+  convert_gltf_joint(skin->root_joint, find_gltf_root_node(gltf_skin));
 }
-static void convert_gltf_joint(fs_file *file, cgltf_node *gltf_node) {
-  char joint_name[TI_PATH_SIZE] = {0};
+static void convert_gltf_joint(fs_joint_t *joint, cgltf_node *gltf_node) {
+  strcpy(joint->name, gltf_node->name);
 
-  strcpy(joint_name, gltf_node->name);
+  joint->child_count = gltf_node->children_count;
+  joint->children = (fs_joint_t *)TI_ALLOC(sizeof(fs_joint_t) * gltf_node->children_count, 1, 0);
 
   uint64_t child_index = 0;
   uint64_t child_count = gltf_node->children_count;
 
-  fs_file_write(file, joint_name, TI_PATH_SIZE, 0);
-  fs_file_write(file, &child_count, sizeof(uint64_t), 0);
-
   while (child_index < child_count) {
 
-    convert_gltf_joint(file, gltf_node->children[child_index]);
+    convert_gltf_joint(&joint->children[child_index], gltf_node->children[child_index]);
 
     child_index++;
   }
+}
+
+static void convert_ttf_font(fs_font_t *font, void *buffer, uint64_t buffer_size) {
+  font->buffer = TI_ALLOC(buffer_size, 0, 0);
+  memcpy(font->buffer, buffer, buffer_size);
+  font->buffer_size = buffer_size;
 }
 
 static uint8_t compile_glsl_shader(char const *file_path, glslang_stage_t stage, uint32_t **words, uint64_t *word_count) {
@@ -662,10 +838,8 @@ error:
   return status;
 }
 
-static uint8_t convert_spirv_input_variables(fs_file *file, SpvReflectShaderModule *module) {
+static uint8_t convert_spirv_input_variables(fs_pipeline_t *pipeline, SpvReflectShaderModule *module) {
   uint8_t status = 0;
-
-  char variable_name[TI_PATH_SIZE] = {0};
 
   uint32_t input_variable_index = 0;
   uint32_t input_variable_count = 0;
@@ -688,22 +862,23 @@ static uint8_t convert_spirv_input_variables(fs_file *file, SpvReflectShaderModu
     goto error;
   }
 
-  fs_file_write(file, &input_variable_count, sizeof(uint32_t), 0);
+  pipeline->input_variable_count = input_variable_count;
+  pipeline->input_variables = (fs_input_variable_t *)TI_ALLOC(sizeof(fs_input_variable_t) * input_variable_count, 0, 0);
 
   while (input_variable_index < input_variable_count) {
 
-    SpvReflectInterfaceVariable *input_variable = input_variables[input_variable_index];
+    fs_input_variable_t *input_variable = &pipeline->input_variables[input_variable_index];
+    SpvReflectInterfaceVariable *spirv_input_variable = input_variables[input_variable_index];
 
-    if (input_variable->name) {
-      snprintf(variable_name, TI_PATH_SIZE, "%s", input_variable->name);
+    if (spirv_input_variable->name) {
+      snprintf(input_variable->name, TI_PATH_SIZE, "%s", spirv_input_variable->name);
     } else {
-      snprintf(variable_name, TI_PATH_SIZE, "<unnamed>");
+      snprintf(input_variable->name, TI_PATH_SIZE, "<unnamed>");
     }
 
-    fs_file_write(file, variable_name, TI_PATH_SIZE, 0);
-    fs_file_write(file, &input_variable->location, sizeof(uint32_t), 0);
-    fs_file_write(file, &input_variable->format, sizeof(int32_t), 0);
-    fs_file_write(file, &input_variable->built_in, sizeof(int32_t), 0);
+    input_variable->location = spirv_input_variable->location;
+    input_variable->format = spirv_input_variable->format;
+    input_variable->built_in = spirv_input_variable->built_in;
 
     input_variable_index++;
   }
@@ -716,11 +891,8 @@ error:
 
   return status;
 }
-static uint8_t convert_spirv_descriptor_bindings(fs_file *file, SpvReflectShaderModule *module) {
+static uint8_t convert_spirv_descriptor_bindings(fs_pipeline_t *pipeline, SpvReflectShaderModule *module) {
   uint8_t status = 0;
-
-  char binding_name[TI_PATH_SIZE] = {0};
-  char variable_name[TI_PATH_SIZE] = {0};
 
   uint32_t descriptor_binding_index = 0;
   uint32_t descriptor_binding_count = 0;
@@ -743,45 +915,47 @@ static uint8_t convert_spirv_descriptor_bindings(fs_file *file, SpvReflectShader
     goto error;
   }
 
-  fs_file_write(file, &descriptor_binding_count, sizeof(uint32_t), 0);
+  pipeline->descriptor_binding_count = descriptor_binding_count;
+  pipeline->descriptor_bindings = TI_ALLOC(sizeof(fs_descriptor_binding_t) * descriptor_binding_count, 0, 0);
 
   while (descriptor_binding_index < descriptor_binding_count) {
 
-    SpvReflectDescriptorBinding *descriptor_binding = descriptor_bindings[descriptor_binding_index];
+    fs_descriptor_binding_t *descriptor_binding = &pipeline->descriptor_bindings[descriptor_binding_index];
+    SpvReflectDescriptorBinding *spriv_descriptor_binding = descriptor_bindings[descriptor_binding_index];
 
-    if (descriptor_binding->name) {
-      snprintf(binding_name, TI_PATH_SIZE, "%s", descriptor_binding->name);
+    if (spriv_descriptor_binding->name) {
+      snprintf(descriptor_binding->name, TI_PATH_SIZE, "%s", spriv_descriptor_binding->name);
     } else {
-      snprintf(binding_name, TI_PATH_SIZE, "<unnamed>");
+      snprintf(descriptor_binding->name, TI_PATH_SIZE, "<unnamed>");
     }
 
-    fs_file_write(file, binding_name, TI_PATH_SIZE, 0);
-    fs_file_write(file, &descriptor_binding->set, sizeof(uint32_t), 0);
-    fs_file_write(file, &descriptor_binding->binding, sizeof(uint32_t), 0);
-    fs_file_write(file, &descriptor_binding->descriptor_type, sizeof(int32_t), 0);
+    descriptor_binding->set = spriv_descriptor_binding->set;
+    descriptor_binding->binding = spriv_descriptor_binding->binding;
+    descriptor_binding->descriptor_type = spriv_descriptor_binding->descriptor_type;
 
-    if ((descriptor_binding->descriptor_type == SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER) ||
-        (descriptor_binding->descriptor_type == SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER)) {
+    if ((spriv_descriptor_binding->descriptor_type == SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER) ||
+        (spriv_descriptor_binding->descriptor_type == SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER)) {
 
-      fs_file_write(file, &descriptor_binding->block.size, sizeof(uint32_t), 0);
-      fs_file_write(file, &descriptor_binding->block.member_count, sizeof(uint32_t), 0);
+      descriptor_binding->block_size = spriv_descriptor_binding->block.size;
+      descriptor_binding->block_variable_count = spriv_descriptor_binding->block.member_count;
+      descriptor_binding->block_variables = TI_ALLOC(sizeof(fs_block_variable_t) * spriv_descriptor_binding->block.member_count, 0, 0);
 
       uint32_t block_variable_index = 0;
-      uint32_t block_variable_count = descriptor_binding->block.member_count;
+      uint32_t block_variable_count = spriv_descriptor_binding->block.member_count;
 
       while (block_variable_index < block_variable_count) {
 
-        SpvReflectBlockVariable *block_variable = &descriptor_binding->block.members[block_variable_index];
+        fs_block_variable_t *block_variable = &descriptor_binding->block_variables[block_variable_index];
+        SpvReflectBlockVariable *spriv_block_variable = &spriv_descriptor_binding->block.members[block_variable_index];
 
-        if (block_variable->name) {
-          snprintf(variable_name, TI_PATH_SIZE, "%s", block_variable->name);
+        if (spriv_block_variable->name) {
+          snprintf(block_variable->name, TI_PATH_SIZE, "%s", spriv_block_variable->name);
         } else {
-          snprintf(variable_name, TI_PATH_SIZE, "<unnamed>");
+          snprintf(block_variable->name, TI_PATH_SIZE, "<unnamed>");
         }
 
-        fs_file_write(file, variable_name, TI_PATH_SIZE, 0);
-        fs_file_write(file, &block_variable->offset, sizeof(uint32_t), 0);
-        fs_file_write(file, &block_variable->size, sizeof(uint32_t), 0);
+        block_variable->offset = spriv_block_variable->offset;
+        block_variable->size = spriv_block_variable->size;
 
         block_variable_index++;
       }

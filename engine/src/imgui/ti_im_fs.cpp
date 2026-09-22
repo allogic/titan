@@ -315,8 +315,8 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
 
         if (ImGui::MenuItem("Pipeline")) {
 
-          fs_import_pipeline(FS_PIPELINE_TYPE_DFLT, "asset/shader/standard/brdf.pak", "static/shader/standard/brdf.vert", "static/shader/standard/brdf.frag");
-          fs_import_pipeline(FS_PIPELINE_TYPE_DFLT, "asset/shader/debug/line.pak", "static/shader/debug/line.vert", "static/shader/debug/line.frag");
+          fs_import_pipeline(FS_PIPELINE_TYPE_DFLT, "asset/pipeline/standard/brdf.pak", "static/shader/standard/brdf.vert", "static/shader/standard/brdf.frag");
+          fs_import_pipeline(FS_PIPELINE_TYPE_DFLT, "asset/pipeline/debug/line.pak", "static/shader/debug/line.vert", "static/shader/debug/line.frag");
 
           im_fs_refresh();
         }
