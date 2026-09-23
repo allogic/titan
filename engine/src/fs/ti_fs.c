@@ -2,8 +2,6 @@
 
 fs *g_fs = 0;
 
-map_t g_assets = {0};
-
 fs_result fs_create(char const *static_path, char const *asset_path) {
   fs_result result = FS_SUCCESS;
 
@@ -105,31 +103,6 @@ fs_result fs_remove_recursive(fs *fs, char const *file_path) {
   }
 
   return fs_remove(g_fs, file_path, 0);
-}
-fs_asset_t *fs_asset(char const *asset_path) {
-  uint64_t path_size = strlen(asset_path);
-
-  if (map_contains(&g_assets, asset_path, path_size) == 0) {
-
-    fs_asset_t asset = {0};
-
-    strcpy(asset.path, asset_path);
-
-    fs_asset_load(&asset);
-
-    map_insert(&g_assets, asset_path, path_size, &asset, sizeof(fs_asset_t));
-  }
-
-  return map_at(&g_assets, asset_path, path_size);
-}
-void *fs_get(char const *asset_path) {
-  fs_asset_t *asset = (fs_asset_t *)fs_asset(asset_path);
-
-  if (asset) {
-    return asset->config;
-  }
-
-  return 0;
 }
 void fs_destroy(void) {
   map_iter_t asset_it = map_iter(&g_assets);

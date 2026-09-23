@@ -93,6 +93,8 @@ vk_buffer_t g_vk_screen_info_buffer = {0};
 vk_buffer_t g_vk_mouse_info_buffer = {0};
 vk_buffer_t g_vk_camera_info_buffer = {0};
 
+map_t g_vk_instances = {0};
+
 #ifdef BUILD_DEBUG
 PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT_proc = 0;
 PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT_proc = 0;

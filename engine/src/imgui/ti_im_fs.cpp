@@ -147,7 +147,7 @@ static void draw_tree(im_file_entry_t *file_entry) {
     if (file_entry->is_directory || file_entry->is_symlink) {
       im_inspector_select(IM_INSPECTOR_TYPE_NONE, 0);
     } else {
-      im_inspector_select(IM_INSPECTOR_TYPE_ASSET, fs_asset(file_entry->path));
+      im_inspector_select(IM_INSPECTOR_TYPE_ASSET, file_entry->path);
     }
   }
 

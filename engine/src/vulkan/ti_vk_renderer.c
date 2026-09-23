@@ -99,6 +99,7 @@ static VkDescriptorSetLayoutBinding s_debug_line_renderer_descriptor_set_layout_
   },
 };
 
+// TODO: remove this stuff..
 // static pipeline_t s_debug_line_renderer_pipeline = {
 //   .pipeline_type = PIPELINE_TYPE_DFLT,
 //   .vertex_shader = "asset/shader/debug/line/vertex.spv",
@@ -129,8 +130,7 @@ void vk_renderer_create(vk_renderer_t *renderer, char const *asset_path) {
   create_debug_line_buffer(renderer);
   create_full_screen_buffer(renderer);
 
-  // TODO
-  // pipeline_create(&s_debug_line_renderer_pipeline);
+  vk_pipeline_create(&renderer->debug_line_pipeline, "asset/pipeline/debug/line.pak");
 
   update_debug_line_descriptor_set(renderer);
 }
@@ -332,7 +332,7 @@ void vk_renderer_draw(vk_renderer_t *renderer) {
   }
 }
 void vk_renderer_destroy(vk_renderer_t *renderer) {
-  // pipeline_destroy(&s_debug_line_renderer_pipeline);
+  vk_pipeline_destroy(&renderer->debug_line_pipeline);
 
   destroy_buffer(renderer);
   destroy_sync_object(renderer);

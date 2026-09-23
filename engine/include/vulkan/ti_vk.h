@@ -41,6 +41,8 @@ extern vk_buffer_t g_vk_screen_info_buffer;
 extern vk_buffer_t g_vk_mouse_info_buffer;
 extern vk_buffer_t g_vk_camera_info_buffer;
 
+extern map_t g_vk_instances;
+
 #ifdef BUILD_DEBUG
 extern PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT_proc;
 extern PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT_proc;

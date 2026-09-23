@@ -177,6 +177,7 @@ typedef struct vk_renderer_t {
   vk_buffer_t debug_line_index_buffer;
   vk_buffer_t full_screen_vertex_buffer;
   vk_buffer_t full_screen_index_buffer;
+  vk_pipeline_t debug_line_pipeline;
 } vk_renderer_t;
 
 #endif // TI_VK_FWD_H

@@ -37,6 +37,9 @@ int32_t main(int32_t argc, char **argv) {
 static void import_dflt_assets(void) {
   fs_import_font("asset/font/commit_mono_latin_400_normal.pak", "static/font/commit_mono_latin_400_normal.ttf");
   fs_import_font("asset/font/material_symbols_rounded_fill.pak", "static/font/material_symbols_rounded_fill.ttf");
+
+  fs_import_pipeline(FS_PIPELINE_TYPE_DFLT, "asset/pipeline/standard/brdf.pak", "static/shader/standard/brdf.vert", "static/shader/standard/brdf.frag");
+  fs_import_pipeline(FS_PIPELINE_TYPE_DFLT, "asset/pipeline/debug/line.pak", "static/shader/debug/line.vert", "static/shader/debug/line.frag");
 }
 static void create_dflt_assets(void) {
   {
