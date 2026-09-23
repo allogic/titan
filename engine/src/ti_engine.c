@@ -35,10 +35,20 @@ int32_t main(int32_t argc, char **argv) {
 }
 
 static void import_dflt_assets(void) {
-  fs_import_font("asset/font/commit_mono_latin_400_normal.pak", "static/font/commit_mono_latin_400_normal.ttf");
-  fs_import_font("asset/font/material_symbols_rounded_fill.pak", "static/font/material_symbols_rounded_fill.ttf");
+  fs_file_info info = {0};
+
+  if (fs_info(g_fs, "asset/font/commit_mono_latin_400_normal.pak", 0, &info) == FS_DOES_NOT_EXIST) {
+    fs_import_font("asset/font/commit_mono_latin_400_normal.pak", "static/font/commit_mono_latin_400_normal.ttf");
+  }
+
+  if (fs_info(g_fs, "asset/font/material_symbols_rounded_fill.pak", 0, &info) == FS_DOES_NOT_EXIST) {
+    fs_import_font("asset/font/material_symbols_rounded_fill.pak", "static/font/material_symbols_rounded_fill.ttf");
+  }
 }
+
 static void create_dflt_assets(void) {
+  fs_file_info info = {0};
+
   {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
@@ -53,7 +63,10 @@ static void create_dflt_assets(void) {
 
     strcpy(swapchain->name, "main");
 
-    fs_asset_store(&asset);
+    if (fs_info(g_fs, asset.path, 0, &info) == FS_DOES_NOT_EXIST) {
+      fs_asset_store(&asset);
+    }
+
     fs_asset_destroy(&asset);
   }
   {
@@ -74,7 +87,10 @@ static void create_dflt_assets(void) {
     strcpy(renderer->full_screen_vertex_buffer, "asset/renderer/main/full_screen_vertex_buffer.pak");
     strcpy(renderer->full_screen_index_buffer, "asset/renderer/main/full_screen_index_buffer.pak");
 
-    fs_asset_store(&asset);
+    if (fs_info(g_fs, asset.path, 0, &info) == FS_DOES_NOT_EXIST) {
+      fs_asset_store(&asset);
+    }
+
     fs_asset_destroy(&asset);
   }
 
@@ -97,7 +113,10 @@ static void create_dflt_assets(void) {
     renderpass->final_color_attachment_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     renderpass->final_depth_attachment_layout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
 
-    fs_asset_store(&asset);
+    if (fs_info(g_fs, asset.path, 0, &info) == FS_DOES_NOT_EXIST) {
+      fs_asset_store(&asset);
+    }
+
     fs_asset_destroy(&asset);
   }
   {
@@ -119,7 +138,10 @@ static void create_dflt_assets(void) {
     renderpass->final_color_attachment_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     renderpass->final_depth_attachment_layout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
 
-    fs_asset_store(&asset);
+    if (fs_info(g_fs, asset.path, 0, &info) == FS_DOES_NOT_EXIST) {
+      fs_asset_store(&asset);
+    }
+
     fs_asset_destroy(&asset);
   }
 
@@ -139,7 +161,10 @@ static void create_dflt_assets(void) {
     strcpy(framebuffer->color_attachment_image, "asset/framebuffer/main/attachments/color.pak");
     strcpy(framebuffer->depth_attachment_image, "asset/framebuffer/main/attachments/depth.pak");
 
-    fs_asset_store(&asset);
+    if (fs_info(g_fs, asset.path, 0, &info) == FS_DOES_NOT_EXIST) {
+      fs_asset_store(&asset);
+    }
+
     fs_asset_destroy(&asset);
   }
   {
@@ -158,7 +183,10 @@ static void create_dflt_assets(void) {
     strcpy(framebuffer->color_attachment_image, "asset/framebuffer/imgui/attachments/color.pak");
     strcpy(framebuffer->depth_attachment_image, "asset/framebuffer/imgui/attachments/depth.pak");
 
-    fs_asset_store(&asset);
+    if (fs_info(g_fs, asset.path, 0, &info) == FS_DOES_NOT_EXIST) {
+      fs_asset_store(&asset);
+    }
+
     fs_asset_destroy(&asset);
   }
 
@@ -182,7 +210,10 @@ static void create_dflt_assets(void) {
     buffer->memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     buffer->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset);
+    if (fs_info(g_fs, asset.path, 0, &info) == FS_DOES_NOT_EXIST) {
+      fs_asset_store(&asset);
+    }
+
     fs_asset_destroy(&asset);
   }
   {
@@ -205,7 +236,10 @@ static void create_dflt_assets(void) {
     buffer->memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     buffer->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset);
+    if (fs_info(g_fs, asset.path, 0, &info) == FS_DOES_NOT_EXIST) {
+      fs_asset_store(&asset);
+    }
+
     fs_asset_destroy(&asset);
   }
   {
@@ -228,7 +262,10 @@ static void create_dflt_assets(void) {
     buffer->memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     buffer->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset);
+    if (fs_info(g_fs, asset.path, 0, &info) == FS_DOES_NOT_EXIST) {
+      fs_asset_store(&asset);
+    }
+
     fs_asset_destroy(&asset);
   }
   {
@@ -251,7 +288,10 @@ static void create_dflt_assets(void) {
     buffer->memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     buffer->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset);
+    if (fs_info(g_fs, asset.path, 0, &info) == FS_DOES_NOT_EXIST) {
+      fs_asset_store(&asset);
+    }
+
     fs_asset_destroy(&asset);
   }
 
@@ -283,7 +323,10 @@ static void create_dflt_assets(void) {
     image->memory_property_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
     image->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset);
+    if (fs_info(g_fs, asset.path, 0, &info) == FS_DOES_NOT_EXIST) {
+      fs_asset_store(&asset);
+    }
+
     fs_asset_destroy(&asset);
   }
   {
@@ -314,7 +357,10 @@ static void create_dflt_assets(void) {
     image->memory_property_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
     image->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset);
+    if (fs_info(g_fs, asset.path, 0, &info) == FS_DOES_NOT_EXIST) {
+      fs_asset_store(&asset);
+    }
+
     fs_asset_destroy(&asset);
   }
 
@@ -346,7 +392,10 @@ static void create_dflt_assets(void) {
     image->memory_property_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
     image->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset);
+    if (fs_info(g_fs, asset.path, 0, &info) == FS_DOES_NOT_EXIST) {
+      fs_asset_store(&asset);
+    }
+
     fs_asset_destroy(&asset);
   }
   {
@@ -377,7 +426,10 @@ static void create_dflt_assets(void) {
     image->memory_property_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
     image->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset);
+    if (fs_info(g_fs, asset.path, 0, &info) == FS_DOES_NOT_EXIST) {
+      fs_asset_store(&asset);
+    }
+
     fs_asset_destroy(&asset);
   }
 
@@ -401,7 +453,10 @@ static void create_dflt_assets(void) {
     buffer->memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     buffer->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset);
+    if (fs_info(g_fs, asset.path, 0, &info) == FS_DOES_NOT_EXIST) {
+      fs_asset_store(&asset);
+    }
+
     fs_asset_destroy(&asset);
   }
   {
@@ -424,7 +479,10 @@ static void create_dflt_assets(void) {
     buffer->memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     buffer->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset);
+    if (fs_info(g_fs, asset.path, 0, &info) == FS_DOES_NOT_EXIST) {
+      fs_asset_store(&asset);
+    }
+
     fs_asset_destroy(&asset);
   }
   {
@@ -447,7 +505,10 @@ static void create_dflt_assets(void) {
     buffer->memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     buffer->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset);
+    if (fs_info(g_fs, asset.path, 0, &info) == FS_DOES_NOT_EXIST) {
+      fs_asset_store(&asset);
+    }
+
     fs_asset_destroy(&asset);
   }
   {
@@ -470,7 +531,10 @@ static void create_dflt_assets(void) {
     buffer->memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     buffer->memory_allocate_flags = 0;
 
-    fs_asset_store(&asset);
+    if (fs_info(g_fs, asset.path, 0, &info) == FS_DOES_NOT_EXIST) {
+      fs_asset_store(&asset);
+    }
+
     fs_asset_destroy(&asset);
   }
 }
