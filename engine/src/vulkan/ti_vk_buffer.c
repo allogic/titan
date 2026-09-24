@@ -1,7 +1,11 @@
 #include <ti_pch.h>
 
 void vk_buffer_create(vk_buffer_t *buffer, char const *asset_path) {
-  buffer->config = (fs_buffer_t *)fs_get(asset_path);
+  buffer->asset.path = asset_path;
+
+  fs_asset_load(&buffer->asset);
+
+  fs_buffer_t *config = (fs_buffer_t *)buffer->asset.instance;
 
   VkBuffer staging_buffer = 0;
   VkDeviceMemory staging_device_memory = 0;
@@ -9,8 +13,8 @@ void vk_buffer_create(vk_buffer_t *buffer, char const *asset_path) {
   {
     VkBufferCreateInfo buffer_create_info = {
       .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-      .size = buffer->config->size,
-      .usage = buffer->config->buffer_usage_flags,
+      .size = config->size,
+      .usage = config->buffer_usage_flags,
       .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
     };
 
@@ -20,11 +24,11 @@ void vk_buffer_create(vk_buffer_t *buffer, char const *asset_path) {
 
     vkGetBufferMemoryRequirements(g_vk_instance.device, buffer->buffer_handle, &memory_requirements);
 
-    uint32_t memory_type_index = vk_find_memory_type_index(memory_requirements.memoryTypeBits, buffer->config->memory_property_flags);
+    uint32_t memory_type_index = vk_find_memory_type_index(memory_requirements.memoryTypeBits, config->memory_property_flags);
 
     VkMemoryAllocateFlagsInfo memory_allocate_flags_info = {
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO,
-      .flags = buffer->config->memory_allocate_flags,
+      .flags = config->memory_allocate_flags,
     };
 
     VkMemoryAllocateInfo memory_allocate_info = {
@@ -41,7 +45,7 @@ void vk_buffer_create(vk_buffer_t *buffer, char const *asset_path) {
   {
     VkBufferCreateInfo buffer_create_info = {
       .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-      .size = buffer->config->size,
+      .size = config->size,
       .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
       .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
     };
@@ -68,24 +72,24 @@ void vk_buffer_create(vk_buffer_t *buffer, char const *asset_path) {
 
     void *staging_device_data = 0;
 
-    TI_VK_CHECK(vkMapMemory(g_vk_instance.device, staging_device_memory, 0, buffer->config->size, 0, &staging_device_data));
+    TI_VK_CHECK(vkMapMemory(g_vk_instance.device, staging_device_memory, 0, config->size, 0, &staging_device_data));
 
-    memcpy(staging_device_data, buffer->host_data, buffer->config->size);
+    memcpy(staging_device_data, buffer->host_data, config->size);
 
     vkUnmapMemory(g_vk_instance.device, staging_device_memory);
   }
 
   VkCommandBuffer command_buffer = vk_primary_command_buffer_record_immediate();
 
-  if (buffer->config->zero_data) {
+  if (config->zero_data) {
 
-    vkCmdFillBuffer(command_buffer, buffer->buffer_handle, 0, buffer->config->size, 0);
+    vkCmdFillBuffer(command_buffer, buffer->buffer_handle, 0, config->size, 0);
   }
 
   VkBufferCopy buffer_copy = {
     .srcOffset = 0,
     .dstOffset = 0,
-    .size = buffer->config->size,
+    .size = config->size,
   };
 
   vkCmdCopyBuffer(command_buffer, staging_buffer, buffer->buffer_handle, 1, &buffer_copy);
@@ -96,7 +100,9 @@ void vk_buffer_create(vk_buffer_t *buffer, char const *asset_path) {
   vkDestroyBuffer(g_vk_instance.device, staging_buffer, 0);
 }
 void vk_buffer_map(vk_buffer_t *buffer) {
-  TI_VK_CHECK(vkMapMemory(g_vk_instance.device, buffer->device_memory, 0, buffer->config->size, 0, &buffer->device_data));
+  fs_buffer_t *config = (fs_buffer_t *)buffer->asset.instance;
+
+  TI_VK_CHECK(vkMapMemory(g_vk_instance.device, buffer->device_memory, 0, config->size, 0, &buffer->device_data));
 }
 void vk_buffer_unmap(vk_buffer_t *buffer) {
   vkUnmapMemory(g_vk_instance.device, buffer->device_memory);
@@ -113,4 +119,6 @@ void vk_buffer_destroy(vk_buffer_t *buffer) {
 
   vkFreeMemory(g_vk_instance.device, buffer->device_memory, 0);
   vkDestroyBuffer(g_vk_instance.device, buffer->buffer_handle, 0);
+
+  fs_asset_destroy(&buffer->asset);
 }

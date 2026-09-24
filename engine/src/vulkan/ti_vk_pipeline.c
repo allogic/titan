@@ -7,34 +7,39 @@ static void create_pipeline_layout(vk_pipeline_t *pipeline);
 
 static void create_sbt_buffer(vk_pipeline_t *pipeline);
 
-static void create_dflt_pipeline(vk_pipeline_t *pipeline);
-static void create_mesh_pipeline(vk_pipeline_t *pipeline);
+static void create_dflt_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *renderpass);
+static void create_mesh_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *renderpass);
 static void create_ray_pipeline(vk_pipeline_t *pipeline);
 static void create_comp_pipeline(vk_pipeline_t *pipeline);
 
 static void destroy_sbt_buffer(vk_pipeline_t *pipeline);
 
-void vk_pipeline_create(vk_pipeline_t *pipeline, char const *asset_path) {
-  pipeline->config = (fs_pipeline_t *)fs_get(asset_path);
-  pipeline->descriptor_set_layout = (VkDescriptorSetLayout *)TI_ALLOC(sizeof(VkDescriptorSetLayout) * pipeline->descriptor_set_count, 0, 0);
-  pipeline->descriptor_set = (VkDescriptorSet *)TI_ALLOC(sizeof(VkDescriptorSet) * pipeline->descriptor_set_count, 0, 0);
+void vk_pipeline_create(vk_pipeline_t *pipeline, vk_renderpass_t *renderpass, char const *asset_path) {
+  pipeline->asset.path = asset_path;
+
+  fs_asset_load(&pipeline->asset);
+
+  fs_pipeline_t *config = (fs_pipeline_t *)pipeline->asset.instance;
+
+  pipeline->descriptor_set_layout = (VkDescriptorSetLayout *)TI_ALLOC(sizeof(VkDescriptorSetLayout) * config->descriptor_set_count, 0, 0);
+  pipeline->descriptor_set = (VkDescriptorSet *)TI_ALLOC(sizeof(VkDescriptorSet) * config->descriptor_set_count, 0, 0);
 
   create_descriptor_pool(pipeline);
   create_descriptor_set_layout(pipeline);
   create_descriptor_set(pipeline);
   create_pipeline_layout(pipeline);
 
-  switch (pipeline->config->pipeline_type) {
+  switch (config->pipeline_type) {
 
     case FS_PIPELINE_TYPE_DFLT: {
 
-      create_dflt_pipeline(pipeline);
+      create_dflt_pipeline(pipeline, renderpass);
 
       break;
     }
     case FS_PIPELINE_TYPE_MESH: {
 
-      create_mesh_pipeline(pipeline);
+      create_mesh_pipeline(pipeline, renderpass);
 
       break;
     }
@@ -55,7 +60,9 @@ void vk_pipeline_create(vk_pipeline_t *pipeline, char const *asset_path) {
   }
 }
 void vk_pipeline_destroy(vk_pipeline_t *pipeline) {
-  switch (pipeline->config->pipeline_type) {
+  fs_pipeline_t *config = (fs_pipeline_t *)pipeline->asset.instance;
+
+  switch (config->pipeline_type) {
 
     case FS_PIPELINE_TYPE_RAY: {
 
@@ -72,15 +79,19 @@ void vk_pipeline_destroy(vk_pipeline_t *pipeline) {
 
   TI_FREE(pipeline->descriptor_set_layout);
   TI_FREE(pipeline->descriptor_set);
+
+  fs_asset_destroy(&pipeline->asset);
 }
 
 static void create_descriptor_pool(vk_pipeline_t *pipeline) {
+  fs_pipeline_t *config = (fs_pipeline_t *)pipeline->asset.instance;
+
   uint32_t descriptor_pool_index = 0;
   uint32_t descriptor_pool_count = pipeline->descriptor_pool_size_count;
 
   while (descriptor_pool_index < descriptor_pool_count) {
 
-    pipeline->descriptor_pool_size[descriptor_pool_index].descriptorCount *= pipeline->descriptor_set_count;
+    pipeline->descriptor_pool_size[descriptor_pool_index].descriptorCount *= config->descriptor_set_count;
 
     descriptor_pool_index++;
   }
@@ -89,7 +100,7 @@ static void create_descriptor_pool(vk_pipeline_t *pipeline) {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
     .pPoolSizes = pipeline->descriptor_pool_size,
     .poolSizeCount = pipeline->descriptor_pool_size_count,
-    .maxSets = pipeline->descriptor_set_count,
+    .maxSets = config->descriptor_set_count,
   };
 
   TI_VK_CHECK(vkCreateDescriptorPool(g_vk_instance.device, &descriptor_pool_create_info, 0, &pipeline->descriptor_pool));
@@ -105,8 +116,10 @@ static void create_descriptor_set_layout(vk_pipeline_t *pipeline) {
   TI_VK_CHECK(vkCreateDescriptorSetLayout(g_vk_instance.device, &descriptor_set_layout_create_info, 0, &pipeline->descriptor_set_layout_base));
 }
 static void create_descriptor_set(vk_pipeline_t *pipeline) {
+  fs_pipeline_t *config = (fs_pipeline_t *)pipeline->asset.instance;
+
   uint32_t descriptor_set_index = 0;
-  uint32_t descriptor_set_count = pipeline->descriptor_set_count;
+  uint32_t descriptor_set_count = config->descriptor_set_count;
 
   while (descriptor_set_index < descriptor_set_count) {
 
@@ -117,7 +130,7 @@ static void create_descriptor_set(vk_pipeline_t *pipeline) {
 
   VkDescriptorSetAllocateInfo descriptor_set_allocate_info = {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-    .descriptorSetCount = pipeline->descriptor_set_count,
+    .descriptorSetCount = config->descriptor_set_count,
     .descriptorPool = pipeline->descriptor_pool,
     .pSetLayouts = pipeline->descriptor_set_layout,
   };
@@ -232,46 +245,31 @@ static void create_sbt_buffer(vk_pipeline_t *pipeline) {
   pipeline->callable_region.size = 0;
 }
 
-static void create_dflt_pipeline(vk_pipeline_t *pipeline) {
+static void create_dflt_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *renderpass) {
+  fs_pipeline_t *config = (fs_pipeline_t *)pipeline->asset.instance;
+
   VkShaderModule vertex_module = 0;
   VkShaderModule fragment_module = 0;
 
-  // TODO
-  /*
   {
-    uint8_t *shader_bytes = 0;
-    uint64_t shader_size = 0;
-
-    fsutil_load_binary(&shader_bytes, &shader_size, pipeline->vertex_shader);
-
     VkShaderModuleCreateInfo shader_module_create_info = {
       .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-      .pCode = (uint32_t const *)shader_bytes,
-      .codeSize = shader_size,
+      .pCode = config->spirv_vertex_words,
+      .codeSize = config->spirv_vertex_word_count * sizeof(uint32_t),
     };
 
-    TI_VK_CHECK(vkCreateShaderModule(g_pl_window.device, &shader_module_create_info, 0, &vertex_module));
-
-    TI_FREE(shader_bytes);
+    TI_VK_CHECK(vkCreateShaderModule(g_vk_instance.device, &shader_module_create_info, 0, &vertex_module));
   }
 
   {
-    uint8_t *shader_bytes = 0;
-    uint64_t shader_size = 0;
-
-    fsutil_load_binary(&shader_bytes, &shader_size, pipeline->fragment_shader);
-
     VkShaderModuleCreateInfo shader_module_create_info = {
       .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-      .pCode = (uint32_t const *)shader_bytes,
-      .codeSize = shader_size,
+      .pCode = config->spirv_fragment_words,
+      .codeSize = config->spirv_fragment_word_count * sizeof(uint32_t),
     };
 
-    TI_VK_CHECK(vkCreateShaderModule(g_pl_window.device, &shader_module_create_info, 0, &fragment_module));
-
-    TI_FREE(shader_bytes);
+    TI_VK_CHECK(vkCreateShaderModule(g_vk_instance.device, &shader_module_create_info, 0, &fragment_module));
   }
-  */
 
   VkPipelineShaderStageCreateInfo pipeline_shader_stage_create_info[] = {
     {
@@ -298,7 +296,7 @@ static void create_dflt_pipeline(vk_pipeline_t *pipeline) {
 
   VkPipelineInputAssemblyStateCreateInfo pipeline_input_assembly_state_create_info = {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-    .topology = pipeline->primitive_topology,
+    .topology = config->primitive_topology,
     .primitiveRestartEnable = 0,
   };
 
@@ -332,9 +330,9 @@ static void create_dflt_pipeline(vk_pipeline_t *pipeline) {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
     .depthClampEnable = 0,
     .rasterizerDiscardEnable = 0,
-    .polygonMode = pipeline->polygon_mode,
+    .polygonMode = config->polygon_mode,
     .lineWidth = 1.0F,
-    .cullMode = pipeline->cull_mode,
+    .cullMode = config->cull_mode_flags,
     .frontFace = VK_FRONT_FACE_CLOCKWISE,
     .depthBiasEnable = 0,
     .depthBiasConstantFactor = 0.0F,
@@ -354,7 +352,7 @@ static void create_dflt_pipeline(vk_pipeline_t *pipeline) {
 
   VkPipelineColorBlendAttachmentState pipeline_color_blend_attachment_state = {
     .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-    .blendEnable = pipeline->enable_blending,
+    .blendEnable = config->enable_blending,
     .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
     .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
     .colorBlendOp = VK_BLEND_OP_ADD,
@@ -365,8 +363,8 @@ static void create_dflt_pipeline(vk_pipeline_t *pipeline) {
 
   VkPipelineDepthStencilStateCreateInfo pipeline_depth_stencil_state_create_info = {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-    .depthTestEnable = pipeline->enable_depth_test,
-    .depthWriteEnable = pipeline->enable_depth_write,
+    .depthTestEnable = config->enable_depth_test,
+    .depthWriteEnable = config->enable_depth_write,
     .depthCompareOp = VK_COMPARE_OP_LESS,
     .depthBoundsTestEnable = 0,
     .stencilTestEnable = 0,
@@ -410,7 +408,7 @@ static void create_dflt_pipeline(vk_pipeline_t *pipeline) {
     .pColorBlendState = &pipeline_color_blend_state_create_info,
     .pDynamicState = &pipeline_dynamic_state_create_info,
     .layout = pipeline->pipeline_layout,
-    .renderPass = *pipeline->render_pass,
+    .renderPass = renderpass->handle,
     .subpass = 0,
     .basePipelineHandle = 0,
   };
@@ -420,7 +418,9 @@ static void create_dflt_pipeline(vk_pipeline_t *pipeline) {
   vkDestroyShaderModule(g_vk_instance.device, vertex_module, 0);
   vkDestroyShaderModule(g_vk_instance.device, fragment_module, 0);
 }
-static void create_mesh_pipeline(vk_pipeline_t *pipeline) {
+static void create_mesh_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *renderpass) {
+  fs_pipeline_t *config = (fs_pipeline_t *)pipeline->asset.instance;
+
   VkShaderModule task_module = 0;
   VkShaderModule mesh_module = 0;
   VkShaderModule fragment_module = 0;
@@ -530,9 +530,9 @@ static void create_mesh_pipeline(vk_pipeline_t *pipeline) {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
     .depthClampEnable = 0,
     .rasterizerDiscardEnable = 0,
-    .polygonMode = pipeline->polygon_mode,
+    .polygonMode = config->polygon_mode,
     .lineWidth = 1.0F,
-    .cullMode = pipeline->cull_mode,
+    .cullMode = config->cull_mode_flags,
     .frontFace = VK_FRONT_FACE_CLOCKWISE,
     .depthBiasEnable = 0,
     .depthBiasConstantFactor = 0.0F,
@@ -552,7 +552,7 @@ static void create_mesh_pipeline(vk_pipeline_t *pipeline) {
 
   VkPipelineColorBlendAttachmentState pipeline_color_blend_attachment_state = {
     .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-    .blendEnable = pipeline->enable_blending,
+    .blendEnable = config->enable_blending,
     .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
     .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
     .colorBlendOp = VK_BLEND_OP_ADD,
@@ -563,8 +563,8 @@ static void create_mesh_pipeline(vk_pipeline_t *pipeline) {
 
   VkPipelineDepthStencilStateCreateInfo pipeline_depth_stencil_state_create_info = {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-    .depthTestEnable = pipeline->enable_depth_test,
-    .depthWriteEnable = pipeline->enable_depth_write,
+    .depthTestEnable = config->enable_depth_test,
+    .depthWriteEnable = config->enable_depth_write,
     .depthCompareOp = VK_COMPARE_OP_LESS,
     .depthBoundsTestEnable = 0,
     .stencilTestEnable = 0,
@@ -608,7 +608,7 @@ static void create_mesh_pipeline(vk_pipeline_t *pipeline) {
     .pColorBlendState = &pipeline_color_blend_state_create_info,
     .pDynamicState = &pipeline_dynamic_state_create_info,
     .layout = pipeline->pipeline_layout,
-    .renderPass = *pipeline->render_pass,
+    .renderPass = renderpass->handle,
     .subpass = 0,
     .basePipelineHandle = 0,
   };

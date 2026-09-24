@@ -101,36 +101,32 @@ static VkDescriptorSetLayoutBinding s_debug_line_renderer_descriptor_set_layout_
 
 // TODO: remove this stuff..
 // static pipeline_t s_debug_line_renderer_pipeline = {
-//   .pipeline_type = PIPELINE_TYPE_DFLT,
-//   .vertex_shader = "asset/shader/debug/line/vertex.spv",
-//   .fragment_shader = "asset/shader/debug/line/fragment.spv",
-//   .primitive_topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
-//   .polygon_mode = VK_POLYGON_MODE_FILL,
-//   .cull_mode = VK_CULL_MODE_BACK_BIT,
-//   .enable_blending = 1,
-//   .enable_depth_test = 1,
-//   .enable_depth_write = 1,
+//
 //   .vertex_input_binding_description = s_debug_line_vertex_input_binding_description,
 //   .vertex_input_binding_description_count = TI_ARRAY_COUNT(s_debug_line_vertex_input_binding_description),
 //   .vertex_input_attribute_description = s_debug_line_vertex_input_attribute_description,
 //   .vertex_input_attribute_description_count = TI_ARRAY_COUNT(s_debug_line_vertex_input_attribute_description),
+//
 //   .descriptor_pool_size = s_debug_line_renderer_descriptor_pool_size,
 //   .descriptor_pool_size_count = TI_ARRAY_COUNT(s_debug_line_renderer_descriptor_pool_size),
 //   .descriptor_set_layout_binding = s_debug_line_renderer_descriptor_set_layout_binding,
 //   .descriptor_set_layout_binding_count = TI_ARRAY_COUNT(s_debug_line_renderer_descriptor_set_layout_binding),
-//   .descriptor_set_count = 1,
-//   .render_pass = &g_renderpass,
+//
 // };
 
 void vk_renderer_create(vk_renderer_t *renderer, char const *asset_path) {
-  renderer->config = (fs_renderer_t *)fs_get(asset_path);
+  renderer->asset.path = asset_path;
+
+  fs_asset_load(&renderer->asset);
+
+  fs_renderer_t *config = (fs_renderer_t *)renderer->asset.instance;
 
   create_sync_object(renderer);
   create_descriptor_info(renderer);
   create_debug_line_buffer(renderer);
   create_full_screen_buffer(renderer);
 
-  vk_pipeline_create(&renderer->debug_line_pipeline, "asset/pipeline/debug/line.pak");
+  vk_pipeline_create(&renderer->debug_line_pipeline, &g_vk_main_renderpass, "asset/pipeline/debug/line.pak");
 
   update_debug_line_descriptor_set(renderer);
 }
@@ -336,6 +332,8 @@ void vk_renderer_destroy(vk_renderer_t *renderer) {
 
   destroy_buffer(renderer);
   destroy_sync_object(renderer);
+
+  fs_asset_destroy(&renderer->asset);
 }
 
 void vk_renderer_draw_debug_line(vk_renderer_t *renderer, fvec3_t from, fvec3_t to, fvec4_t color) {
@@ -467,15 +465,19 @@ static void create_descriptor_info(vk_renderer_t *renderer) {
   renderer->camera_info_descriptor_buffer_info.range = VK_WHOLE_SIZE;
 }
 static void create_debug_line_buffer(vk_renderer_t *renderer) {
-  vk_buffer_create(&renderer->debug_line_vertex_buffer, renderer->config->debug_line_vertex_buffer);
-  vk_buffer_create(&renderer->debug_line_index_buffer, renderer->config->debug_line_index_buffer);
+  fs_renderer_t *config = (fs_renderer_t *)renderer->asset.instance;
+
+  vk_buffer_create(&renderer->debug_line_vertex_buffer, config->debug_line_vertex_buffer);
+  vk_buffer_create(&renderer->debug_line_index_buffer, config->debug_line_index_buffer);
 
   vk_buffer_map(&renderer->debug_line_vertex_buffer);
   vk_buffer_map(&renderer->debug_line_index_buffer);
 }
 static void create_full_screen_buffer(vk_renderer_t *renderer) {
-  vk_buffer_create(&renderer->full_screen_vertex_buffer, renderer->config->full_screen_vertex_buffer);
-  vk_buffer_create(&renderer->full_screen_index_buffer, renderer->config->full_screen_index_buffer);
+  fs_renderer_t *config = (fs_renderer_t *)renderer->asset.instance;
+
+  vk_buffer_create(&renderer->full_screen_vertex_buffer, config->full_screen_vertex_buffer);
+  vk_buffer_create(&renderer->full_screen_index_buffer, config->full_screen_index_buffer);
 }
 
 static void update_debug_line_descriptor_set(vk_renderer_t *renderer) {

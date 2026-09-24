@@ -27,26 +27,26 @@ typedef struct vk_instance_t {
 } vk_instance_t;
 
 typedef struct vk_swapchain_t {
-  fs_swapchain_t *config;
+  fs_asset_t asset;
   uint32_t is_dirty;
   uint32_t image_count;
   VkImage image[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
   VkSwapchainKHR handle;
 } vk_swapchain_t;
 typedef struct vk_buffer_t {
-  fs_buffer_t *config;
+  fs_asset_t asset;
   void *host_data;
   void *device_data;
   VkBuffer buffer_handle;
   VkDeviceMemory device_memory;
 } vk_buffer_t;
 typedef struct vk_model_t {
-  fs_model_t *config;
+  fs_asset_t asset;
   vk_buffer_t vertex_buffer;
   vk_buffer_t index_buffer;
 } vk_model_t;
 typedef struct vk_pipeline_t {
-  fs_pipeline_t *config;
+  fs_asset_t asset;
   char const *vertex_shader;
   char const *task_shader;
   char const *mesh_shader;
@@ -56,24 +56,16 @@ typedef struct vk_pipeline_t {
   char const *ray_intersect_shader;
   char const *fragment_shader;
   char const *compute_shader;
-  uint32_t enable_blending;
-  uint32_t enable_depth_test;
-  uint32_t enable_depth_write;
   uint32_t vertex_input_binding_description_count;
   uint32_t vertex_input_attribute_description_count;
   uint32_t push_constant_range_count;
   uint32_t descriptor_pool_size_count;
   uint32_t descriptor_set_layout_binding_count;
-  uint32_t descriptor_set_count;
-  VkPrimitiveTopology primitive_topology;
-  VkPolygonMode polygon_mode;
-  VkCullModeFlags cull_mode;
   VkVertexInputBindingDescription *vertex_input_binding_description;
   VkVertexInputAttributeDescription *vertex_input_attribute_description;
   VkPushConstantRange *push_constant_range;
   VkDescriptorPoolSize *descriptor_pool_size;
   VkDescriptorSetLayoutBinding *descriptor_set_layout_binding;
-  VkRenderPass *render_pass;
   VkDescriptorPool descriptor_pool;
   VkDescriptorSetLayout descriptor_set_layout_base;
   VkDescriptorSetLayout *descriptor_set_layout;
@@ -93,20 +85,20 @@ typedef struct vk_pipeline_t {
   VkStridedDeviceAddressRegionKHR callable_region;
 } vk_pipeline_t;
 typedef struct vk_font_t {
-  fs_font_t *config;
+  fs_asset_t asset;
 } vk_font_t;
 typedef struct vk_descriptor_binding_t {
-  fs_descriptor_binding_t *config;
+  fs_asset_t asset;
 } vk_descriptor_binding_t;
 typedef struct vk_image_t {
-  fs_image_t *config;
+  fs_asset_t asset;
   VkImageView image_view;
   VkDeviceMemory device_memory;
   VkSampler sampler;
   VkImage handle;
 } vk_image_t;
 typedef struct vk_framebuffer_t {
-  fs_framebuffer_t *config;
+  fs_asset_t asset;
   uint8_t is_dirty;
   uint32_t width;
   uint32_t height;
@@ -115,7 +107,7 @@ typedef struct vk_framebuffer_t {
   VkFramebuffer handle[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
 } vk_framebuffer_t;
 typedef struct vk_renderpass_t {
-  fs_renderpass_t *config;
+  fs_asset_t asset;
   VkRenderPass handle;
 } vk_renderpass_t;
 
@@ -161,7 +153,7 @@ typedef uint32_t vk_full_screen_index_t;
 typedef uint32_t vk_debug_line_index_t;
 
 typedef struct vk_renderer_t {
-  fs_renderer_t *config;
+  fs_asset_t asset;
   uint32_t is_debug_enabled;
   uint32_t image_index;
   uint32_t debug_line_vertex_offset;

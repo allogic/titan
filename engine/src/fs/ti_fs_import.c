@@ -86,13 +86,12 @@ uint8_t fs_import_model(char const *asset_file, char const *model_file) {
   fs_asset_t asset = {
     .magic = TI_FS_ASSET_MAGIC,
     .type = FS_ASSET_TYPE_MODEL,
+    .path = asset_file,
   };
-
-  strcpy(asset.path, asset_file);
 
   fs_asset_create(&asset);
 
-  fs_model_t *model = (fs_model_t *)asset.config;
+  fs_model_t *model = (fs_model_t *)asset.instance;
 
   uint64_t path_size = strlen(asset_file);
 
@@ -198,13 +197,12 @@ uint8_t fs_import_pipeline(fs_pipeline_type_t pipeline_type, char const *asset_f
   fs_asset_t asset = {
     .magic = TI_FS_ASSET_MAGIC,
     .type = FS_ASSET_TYPE_PIPELINE,
+    .path = asset_file,
   };
-
-  strcpy(asset.path, asset_file);
 
   fs_asset_create(&asset);
 
-  fs_pipeline_t *pipeline = (fs_pipeline_t *)asset.config;
+  fs_pipeline_t *pipeline = (fs_pipeline_t *)asset.instance;
 
   uint64_t path_size = strlen(asset_file);
 
@@ -253,6 +251,17 @@ uint8_t fs_import_pipeline(fs_pipeline_type_t pipeline_type, char const *asset_f
       break;
     }
   }
+
+  // TODO: find a way to easily configure the imported pipelines
+  //       after they were imported.. (this is hard coded now, and it is wrong!)
+
+  pipeline->primitive_topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+  pipeline->polygon_mode = VK_POLYGON_MODE_FILL;
+  pipeline->cull_mode_flags = VK_CULL_MODE_BACK_BIT;
+  pipeline->enable_blending = 1;
+  pipeline->enable_depth_test = 1;
+  pipeline->enable_depth_write = 1;
+  pipeline->descriptor_set_count = 1; // TODO
 
   fs_asset_store(&asset);
   fs_asset_destroy(&asset);
@@ -314,13 +323,12 @@ uint8_t fs_import_font(char const *asset_file, char const *font_file) {
   fs_asset_t asset = {
     .magic = TI_FS_ASSET_MAGIC,
     .type = FS_ASSET_TYPE_FONT,
+    .path = asset_file,
   };
-
-  strcpy(asset.path, asset_file);
 
   fs_asset_create(&asset);
 
-  fs_font_t *font = (fs_font_t *)asset.config;
+  fs_font_t *font = (fs_font_t *)asset.instance;
 
   uint64_t path_size = strlen(asset_file);
 
@@ -771,7 +779,7 @@ static uint8_t compile_glsl_shader(char const *file_path, glslang_stage_t stage,
     .language = GLSLANG_SOURCE_GLSL,
     .stage = stage,
     .client = GLSLANG_CLIENT_VULKAN,
-    .client_version = GLSLANG_TARGET_VULKAN_1_2,
+    .client_version = GLSLANG_TARGET_VULKAN_1_3,
     .target_language = GLSLANG_TARGET_SPV,
     .target_language_version = GLSLANG_TARGET_SPV_1_6,
     .code = buffer,

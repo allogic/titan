@@ -405,9 +405,8 @@ static void draw_text_input(im_file_entry_t *file_entry) {
           fs_asset_t asset = {
             .magic = TI_FS_ASSET_MAGIC,
             .type = s_new_asset_type,
+            .path = file_path,
           };
-
-          strcpy(asset.path, file_path);
 
           fs_asset_create(&asset);
           fs_asset_store(&asset);

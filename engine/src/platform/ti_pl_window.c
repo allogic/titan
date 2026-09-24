@@ -138,10 +138,11 @@ void pl_window_run(pl_window_t *window) {
       vk_update_surface_capabilities();
 
       vk_swapchain_create(&g_vk_swapchain, "asset/swapchain/main.pak");
-      vk_renderer_create(&g_vk_renderer, "asset/renderer/main.pak");
 
       vk_renderpass_create(&g_vk_main_renderpass, "asset/renderpass/main.pak");
       vk_renderpass_create(&g_vk_imgui_renderpass, "asset/renderpass/imgui.pak");
+
+      vk_renderer_create(&g_vk_renderer, "asset/renderer/main.pak");
 
       g_vk_imgui_framebuffer.width = g_pl_window.window_width;
       g_vk_imgui_framebuffer.height = g_pl_window.window_height;

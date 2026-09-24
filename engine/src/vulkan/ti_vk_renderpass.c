@@ -1,7 +1,11 @@
 #include <ti_pch.h>
 
 void vk_renderpass_create(vk_renderpass_t *renderpass, char const *asset_path) {
-  renderpass->config = (fs_renderpass_t *)fs_get(asset_path);
+  renderpass->asset.path = asset_path;
+
+  fs_asset_load(&renderpass->asset);
+
+  fs_renderpass_t *config = (fs_renderpass_t *)renderpass->asset.instance;
 
   VkAttachmentDescription color_attachment_description = {
     .format = VK_FORMAT_R8G8B8A8_UNORM,
@@ -10,8 +14,8 @@ void vk_renderpass_create(vk_renderpass_t *renderpass, char const *asset_path) {
     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-    .initialLayout = renderpass->config->initial_color_attachment_layout,
-    .finalLayout = renderpass->config->final_color_attachment_layout,
+    .initialLayout = config->initial_color_attachment_layout,
+    .finalLayout = config->final_color_attachment_layout,
   };
 
   VkAttachmentDescription depth_attachment_description = {
@@ -21,18 +25,18 @@ void vk_renderpass_create(vk_renderpass_t *renderpass, char const *asset_path) {
     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-    .initialLayout = renderpass->config->initial_depth_attachment_layout,
-    .finalLayout = renderpass->config->initial_depth_attachment_layout,
+    .initialLayout = config->initial_depth_attachment_layout,
+    .finalLayout = config->initial_depth_attachment_layout,
   };
 
   VkAttachmentReference color_attachment_reference = {
     .attachment = 0,
-    .layout = renderpass->config->initial_color_attachment_layout, // TODO: verify this..
+    .layout = config->initial_color_attachment_layout, // TODO: verify this..
   };
 
   VkAttachmentReference depth_attachment_reference = {
     .attachment = 1,
-    .layout = renderpass->config->initial_depth_attachment_layout, // TODO: verify this..
+    .layout = config->initial_depth_attachment_layout, // TODO: verify this..
   };
 
   VkSubpassDescription subpass_description = {
@@ -70,4 +74,6 @@ void vk_renderpass_create(vk_renderpass_t *renderpass, char const *asset_path) {
 }
 void vk_renderpass_destroy(vk_renderpass_t *renderpass) {
   vkDestroyRenderPass(g_vk_instance.device, renderpass->handle, 0);
+
+  fs_asset_destroy(&renderpass->asset);
 }

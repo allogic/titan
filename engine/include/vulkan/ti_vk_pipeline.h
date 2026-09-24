@@ -5,7 +5,8 @@
 extern "C" {
 #endif // __cplusplus
 
-void vk_pipeline_create(vk_pipeline_t *pipeline, char const *asset_path);
+// TODO: fix dependency injection of renderpass..
+void vk_pipeline_create(vk_pipeline_t *pipeline, vk_renderpass_t *renderpass, char const *asset_path);
 void vk_pipeline_destroy(vk_pipeline_t *pipeline);
 
 #ifdef __cplusplus

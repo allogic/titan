@@ -1,15 +1,19 @@
 #include <ti_pch.h>
 
 void vk_framebuffer_create(vk_framebuffer_t *framebuffer, vk_renderpass_t *renderpass, char const *asset_path) {
-  framebuffer->config = (fs_framebuffer_t *)fs_get(asset_path);
+  framebuffer->asset.path = asset_path;
+
+  fs_asset_load(&framebuffer->asset);
+
+  fs_framebuffer_t *config = (fs_framebuffer_t *)framebuffer->asset.instance;
 
   uint32_t image_index = 0;
   uint32_t image_count = g_vk_swapchain.image_count;
 
   while (image_index < image_count) {
 
-    vk_image_create(&framebuffer->color_attachment[image_index], framebuffer->width, framebuffer->height, 1, framebuffer->config->color_attachment_image);
-    vk_image_create(&framebuffer->depth_attachment[image_index], framebuffer->width, framebuffer->height, 1, framebuffer->config->depth_attachment_image);
+    vk_image_create(&framebuffer->color_attachment[image_index], framebuffer->width, framebuffer->height, 1, config->color_attachment_image);
+    vk_image_create(&framebuffer->depth_attachment[image_index], framebuffer->width, framebuffer->height, 1, config->depth_attachment_image);
 
     VkImageView image_attachments[] = {
       framebuffer->color_attachment[image_index].image_view,
@@ -44,4 +48,6 @@ void vk_framebuffer_destroy(vk_framebuffer_t *framebuffer) {
 
     image_index++;
   }
+
+  fs_asset_destroy(&framebuffer->asset);
 }

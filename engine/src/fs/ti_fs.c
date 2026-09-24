@@ -29,8 +29,6 @@ fs_result fs_create(char const *static_path, char const *asset_path) {
     return result;
   }
 
-  map_create(&g_assets);
-
   return result;
 }
 fs_result fs_mkdir_recursive(fs *fs, const char *file_path, int32_t options) {
@@ -105,16 +103,5 @@ fs_result fs_remove_recursive(fs *fs, char const *file_path) {
   return fs_remove(g_fs, file_path, 0);
 }
 void fs_destroy(void) {
-  map_iter_t asset_it = map_iter(&g_assets);
-
-  while (map_next(&asset_it)) {
-
-    fs_asset_t *asset = (fs_asset_t *)map_value(&asset_it);
-
-    fs_asset_destroy(asset);
-  }
-
-  map_destroy(&g_assets);
-
   fs_uninit(g_fs);
 }

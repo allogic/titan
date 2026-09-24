@@ -27,6 +27,14 @@ void fs_pipeline_load(fs_pipeline_t *pipeline, fs_file *file) {
       pipeline->spirv_fragment_words = (uint32_t *)TI_ALLOC(sizeof(uint32_t) * pipeline->spirv_fragment_word_count, 0, 0);
       fs_file_read(file, pipeline->spirv_fragment_words, sizeof(uint32_t) * pipeline->spirv_fragment_word_count, 0);
 
+      fs_file_read(file, &pipeline->enable_blending, sizeof(uint8_t), 0);
+      fs_file_read(file, &pipeline->enable_depth_test, sizeof(uint8_t), 0);
+      fs_file_read(file, &pipeline->enable_depth_write, sizeof(uint8_t), 0);
+
+      fs_file_read(file, &pipeline->primitive_topology, sizeof(VkPrimitiveTopology), 0);
+      fs_file_read(file, &pipeline->polygon_mode, sizeof(VkPolygonMode), 0);
+      fs_file_read(file, &pipeline->cull_mode_flags, sizeof(VkCullModeFlags), 0);
+
       break;
     }
     case FS_PIPELINE_TYPE_MESH: {
@@ -48,6 +56,8 @@ void fs_pipeline_load(fs_pipeline_t *pipeline, fs_file *file) {
       break;
     }
   }
+
+  fs_file_read(file, &pipeline->descriptor_set_count, sizeof(uint32_t), 0);
 }
 void fs_pipeline_store(fs_pipeline_t *pipeline, fs_file *file) {
   fs_file_write(file, pipeline->name, TI_PATH_SIZE, 0);
@@ -66,6 +76,14 @@ void fs_pipeline_store(fs_pipeline_t *pipeline, fs_file *file) {
       fs_file_write(file, &pipeline->spirv_fragment_word_count, sizeof(uint64_t), 0);
       fs_file_write(file, pipeline->spirv_fragment_words, sizeof(uint32_t) * pipeline->spirv_fragment_word_count, 0);
 
+      fs_file_write(file, &pipeline->enable_blending, sizeof(uint8_t), 0);
+      fs_file_write(file, &pipeline->enable_depth_test, sizeof(uint8_t), 0);
+      fs_file_write(file, &pipeline->enable_depth_write, sizeof(uint8_t), 0);
+
+      fs_file_write(file, &pipeline->primitive_topology, sizeof(VkPrimitiveTopology), 0);
+      fs_file_write(file, &pipeline->polygon_mode, sizeof(VkPolygonMode), 0);
+      fs_file_write(file, &pipeline->cull_mode_flags, sizeof(VkCullModeFlags), 0);
+
       break;
     }
     case FS_PIPELINE_TYPE_MESH: {
@@ -87,6 +105,8 @@ void fs_pipeline_store(fs_pipeline_t *pipeline, fs_file *file) {
       break;
     }
   }
+
+  fs_file_write(file, &pipeline->descriptor_set_count, sizeof(uint32_t), 0);
 }
 void fs_pipeline_destroy(fs_pipeline_t *pipeline) {
   // TODO

@@ -38,6 +38,7 @@ typedef struct map_iter_t {
   uint8_t first_step;
 } map_iter_t;
 
+// TODO: assetify this entry..
 typedef struct scene_t {
   char file_name[TI_PATH_SIZE];
   char file_path[TI_PATH_SIZE];

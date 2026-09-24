@@ -35,11 +35,23 @@ int32_t main(int32_t argc, char **argv) {
 }
 
 static void import_dflt_assets(void) {
-  fs_import_font("asset/font/commit_mono_latin_400_normal.pak", "static/font/commit_mono_latin_400_normal.ttf");
-  fs_import_font("asset/font/material_symbols_rounded_fill.pak", "static/font/material_symbols_rounded_fill.ttf");
+  fs_file_info info = {0};
 
-  fs_import_pipeline(FS_PIPELINE_TYPE_DFLT, "asset/pipeline/standard/brdf.pak", "static/shader/standard/brdf.vert", "static/shader/standard/brdf.frag");
-  fs_import_pipeline(FS_PIPELINE_TYPE_DFLT, "asset/pipeline/debug/line.pak", "static/shader/debug/line.vert", "static/shader/debug/line.frag");
+  if (fs_info(g_fs, "asset/pipeline/standard/brdf.pak", 0, &info) == FS_DOES_NOT_EXIST) {
+    fs_import_pipeline(FS_PIPELINE_TYPE_DFLT, "asset/pipeline/standard/brdf.pak", "static/shader/standard/brdf.vert", "static/shader/standard/brdf.frag");
+  }
+
+  if (fs_info(g_fs, "asset/pipeline/debug/line.pak", 0, &info) == FS_DOES_NOT_EXIST) {
+    fs_import_pipeline(FS_PIPELINE_TYPE_DFLT, "asset/pipeline/debug/line.pak", "static/shader/debug/line.vert", "static/shader/debug/line.frag");
+  }
+
+  if (fs_info(g_fs, "asset/font/commit_mono_latin_400_normal.pak", 0, &info) == FS_DOES_NOT_EXIST) {
+    fs_import_font("asset/font/commit_mono_latin_400_normal.pak", "static/font/commit_mono_latin_400_normal.ttf");
+  }
+
+  if (fs_info(g_fs, "asset/font/material_symbols_rounded_fill.pak", 0, &info) == FS_DOES_NOT_EXIST) {
+    fs_import_font("asset/font/material_symbols_rounded_fill.pak", "static/font/material_symbols_rounded_fill.ttf");
+  }
 }
 static void create_dflt_assets(void) {
   fs_file_info info = {0};
@@ -48,13 +60,12 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_SWAPCHAIN,
+      .path = "asset/swapchain/main.pak",
     };
-
-    strcpy(asset.path, "asset/swapchain/main.pak");
 
     fs_asset_create(&asset);
 
-    fs_swapchain_t *swapchain = (fs_swapchain_t *)asset.config;
+    fs_swapchain_t *swapchain = (fs_swapchain_t *)asset.instance;
 
     strcpy(swapchain->name, "main");
 
@@ -68,13 +79,12 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_RENDERER,
+      .path = "asset/renderer/main.pak",
     };
-
-    strcpy(asset.path, "asset/renderer/main.pak");
 
     fs_asset_create(&asset);
 
-    fs_renderer_t *renderer = (fs_renderer_t *)asset.config;
+    fs_renderer_t *renderer = (fs_renderer_t *)asset.instance;
 
     strcpy(renderer->name, "main");
     strcpy(renderer->debug_line_vertex_buffer, "asset/renderer/main/debug_line_vertex_buffer.pak");
@@ -93,13 +103,12 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_RENDERPASS,
+      .path = "asset/renderpass/main.pak",
     };
-
-    strcpy(asset.path, "asset/renderpass/main.pak");
 
     fs_asset_create(&asset);
 
-    fs_renderpass_t *renderpass = (fs_renderpass_t *)asset.config;
+    fs_renderpass_t *renderpass = (fs_renderpass_t *)asset.instance;
 
     strcpy(renderpass->name, "main");
 
@@ -118,13 +127,12 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_RENDERPASS,
+      .path = "asset/renderpass/imgui.pak",
     };
-
-    strcpy(asset.path, "asset/renderpass/imgui.pak");
 
     fs_asset_create(&asset);
 
-    fs_renderpass_t *renderpass = (fs_renderpass_t *)asset.config;
+    fs_renderpass_t *renderpass = (fs_renderpass_t *)asset.instance;
 
     strcpy(renderpass->name, "imgui");
 
@@ -144,13 +152,12 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_FRAMEBUFFER,
+      .path = "asset/framebuffer/main.pak",
     };
-
-    strcpy(asset.path, "asset/framebuffer/main.pak");
 
     fs_asset_create(&asset);
 
-    fs_framebuffer_t *framebuffer = (fs_framebuffer_t *)asset.config;
+    fs_framebuffer_t *framebuffer = (fs_framebuffer_t *)asset.instance;
 
     strcpy(framebuffer->name, "main");
     strcpy(framebuffer->color_attachment_image, "asset/framebuffer/main/attachments/color.pak");
@@ -166,13 +173,12 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_FRAMEBUFFER,
+      .path = "asset/framebuffer/imgui.pak",
     };
-
-    strcpy(asset.path, "asset/framebuffer/imgui.pak");
 
     fs_asset_create(&asset);
 
-    fs_framebuffer_t *framebuffer = (fs_framebuffer_t *)asset.config;
+    fs_framebuffer_t *framebuffer = (fs_framebuffer_t *)asset.instance;
 
     strcpy(framebuffer->name, "main");
     strcpy(framebuffer->color_attachment_image, "asset/framebuffer/imgui/attachments/color.pak");
@@ -189,13 +195,12 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_BUFFER,
+      .path = "asset/buffer/time_info.pak",
     };
-
-    strcpy(asset.path, "asset/buffer/time_info.pak");
 
     fs_asset_create(&asset);
 
-    fs_buffer_t *buffer = (fs_buffer_t *)asset.config;
+    fs_buffer_t *buffer = (fs_buffer_t *)asset.instance;
 
     strcpy(buffer->name, "main");
 
@@ -215,13 +220,12 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_BUFFER,
+      .path = "asset/buffer/screen_info.pak",
     };
-
-    strcpy(asset.path, "asset/buffer/screen_info.pak");
 
     fs_asset_create(&asset);
 
-    fs_buffer_t *buffer = (fs_buffer_t *)asset.config;
+    fs_buffer_t *buffer = (fs_buffer_t *)asset.instance;
 
     strcpy(buffer->name, "main");
 
@@ -241,13 +245,12 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_BUFFER,
+      .path = "asset/buffer/mouse_info.pak",
     };
-
-    strcpy(asset.path, "asset/buffer/mouse_info.pak");
 
     fs_asset_create(&asset);
 
-    fs_buffer_t *buffer = (fs_buffer_t *)asset.config;
+    fs_buffer_t *buffer = (fs_buffer_t *)asset.instance;
 
     strcpy(buffer->name, "main");
 
@@ -267,13 +270,12 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_BUFFER,
+      .path = "asset/buffer/camera_info.pak",
     };
-
-    strcpy(asset.path, "asset/buffer/camera_info.pak");
 
     fs_asset_create(&asset);
 
-    fs_buffer_t *buffer = (fs_buffer_t *)asset.config;
+    fs_buffer_t *buffer = (fs_buffer_t *)asset.instance;
 
     strcpy(buffer->name, "main");
 
@@ -294,13 +296,12 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_IMAGE,
+      .path = "asset/framebuffer/main/attachments/color.pak",
     };
-
-    strcpy(asset.path, "asset/framebuffer/main/attachments/color.pak");
 
     fs_asset_create(&asset);
 
-    fs_image_t *image = (fs_image_t *)asset.config;
+    fs_image_t *image = (fs_image_t *)asset.instance;
 
     strcpy(image->name, "color");
 
@@ -328,13 +329,12 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_IMAGE,
+      .path = "asset/framebuffer/main/attachments/depth.pak",
     };
-
-    strcpy(asset.path, "asset/framebuffer/main/attachments/depth.pak");
 
     fs_asset_create(&asset);
 
-    fs_image_t *image = (fs_image_t *)asset.config;
+    fs_image_t *image = (fs_image_t *)asset.instance;
 
     strcpy(image->name, "depth");
 
@@ -363,13 +363,12 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_IMAGE,
+      .path = "asset/framebuffer/imgui/attachments/color.pak",
     };
-
-    strcpy(asset.path, "asset/framebuffer/imgui/attachments/color.pak");
 
     fs_asset_create(&asset);
 
-    fs_image_t *image = (fs_image_t *)asset.config;
+    fs_image_t *image = (fs_image_t *)asset.instance;
 
     strcpy(image->name, "color");
 
@@ -397,13 +396,12 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_IMAGE,
+      .path = "asset/framebuffer/imgui/attachments/depth.pak",
     };
-
-    strcpy(asset.path, "asset/framebuffer/imgui/attachments/depth.pak");
 
     fs_asset_create(&asset);
 
-    fs_image_t *image = (fs_image_t *)asset.config;
+    fs_image_t *image = (fs_image_t *)asset.instance;
 
     strcpy(image->name, "depth");
 
@@ -432,13 +430,12 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_BUFFER,
+      .path = "asset/renderer/main/debug_line_vertex_buffer.pak",
     };
-
-    strcpy(asset.path, "asset/renderer/main/debug_line_vertex_buffer.pak");
 
     fs_asset_create(&asset);
 
-    fs_buffer_t *buffer = (fs_buffer_t *)asset.config;
+    fs_buffer_t *buffer = (fs_buffer_t *)asset.instance;
 
     strcpy(buffer->name, "main");
 
@@ -458,13 +455,12 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_BUFFER,
+      .path = "asset/renderer/main/debug_line_index_buffer.pak",
     };
-
-    strcpy(asset.path, "asset/renderer/main/debug_line_index_buffer.pak");
 
     fs_asset_create(&asset);
 
-    fs_buffer_t *buffer = (fs_buffer_t *)asset.config;
+    fs_buffer_t *buffer = (fs_buffer_t *)asset.instance;
 
     strcpy(buffer->name, "main");
 
@@ -484,13 +480,12 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_BUFFER,
+      .path = "asset/renderer/main/full_screen_vertex_buffer.pak",
     };
-
-    strcpy(asset.path, "asset/renderer/main/full_screen_vertex_buffer.pak");
 
     fs_asset_create(&asset);
 
-    fs_buffer_t *buffer = (fs_buffer_t *)asset.config;
+    fs_buffer_t *buffer = (fs_buffer_t *)asset.instance;
 
     strcpy(buffer->name, "main");
 
@@ -510,13 +505,12 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_BUFFER,
+      .path = "asset/renderer/main/full_screen_index_buffer.pak",
     };
-
-    strcpy(asset.path, "asset/renderer/main/full_screen_index_buffer.pak");
 
     fs_asset_create(&asset);
 
-    fs_buffer_t *buffer = (fs_buffer_t *)asset.config;
+    fs_buffer_t *buffer = (fs_buffer_t *)asset.instance;
 
     strcpy(buffer->name, "main");
 

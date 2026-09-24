@@ -70,8 +70,18 @@ void im_create(void) {
     0,
   };
 
-  fs_font_t *commit_mono = (fs_font_t *)fs_get("asset/font/commit_mono_latin_400_normal.pak");
-  fs_font_t *material_symbols = (fs_font_t *)fs_get("asset/font/material_symbols_rounded_fill.pak");
+  fs_asset_t commit_mono_asset = {
+    .path = "asset/font/commit_mono_latin_400_normal.pak",
+  };
+  fs_asset_t material_symbol_asset = {
+    .path = "asset/font/material_symbols_rounded_fill.pak",
+  };
+
+  fs_asset_load(&commit_mono_asset);
+  fs_asset_load(&material_symbol_asset);
+
+  fs_font_t *commit_mono = (fs_font_t *)commit_mono_asset.instance;
+  fs_font_t *material_symbols = (fs_font_t *)material_symbol_asset.instance;
 
   if (commit_mono) {
 

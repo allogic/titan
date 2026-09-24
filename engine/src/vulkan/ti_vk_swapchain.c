@@ -1,7 +1,12 @@
 #include <ti_pch.h>
 
 void vk_swapchain_create(vk_swapchain_t *swapchain, char const *asset_path) {
-  swapchain->config = (fs_swapchain_t *)fs_get(asset_path);
+  swapchain->asset.path = asset_path;
+
+  fs_asset_load(&swapchain->asset);
+
+  fs_swapchain_t *config = (fs_swapchain_t *)swapchain->asset.instance;
+
   swapchain->image_count = clampu(TI_SWAPCHAIN_IMAGE_COUNT, g_vk_instance.min_image_count, g_vk_instance.max_image_count);
 
   uint32_t queue_families[2] = {
@@ -34,4 +39,6 @@ void vk_swapchain_create(vk_swapchain_t *swapchain, char const *asset_path) {
 }
 void vk_swapchain_destroy(vk_swapchain_t *swapchain) {
   vkDestroySwapchainKHR(g_vk_instance.device, swapchain->handle, 0);
+
+  fs_asset_destroy(&swapchain->asset);
 }

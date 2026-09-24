@@ -120,12 +120,19 @@ typedef struct fs_input_variable_t {
 typedef struct fs_pipeline_t {
   char name[TI_PATH_SIZE];
   fs_pipeline_type_t pipeline_type;
+  uint8_t enable_blending;
+  uint8_t enable_depth_test;
+  uint8_t enable_depth_write;
   uint64_t input_variable_count;
   uint64_t descriptor_binding_count;
   uint64_t spirv_vertex_word_count;
   uint64_t spirv_fragment_word_count;
   uint32_t *spirv_vertex_words;
   uint32_t *spirv_fragment_words;
+  uint32_t descriptor_set_count;
+  VkPrimitiveTopology primitive_topology;
+  VkPolygonMode polygon_mode;
+  VkCullModeFlags cull_mode_flags;
   fs_input_variable_t *input_variables;
   fs_descriptor_binding_t *descriptor_bindings;
 } fs_pipeline_t;
@@ -155,8 +162,8 @@ typedef struct fs_renderer_t {
 typedef struct fs_asset_t {
   uint64_t magic;
   fs_asset_type_t type;
-  char path[TI_PATH_SIZE];
-  void *config;
+  char const *path;
+  void *instance;
 } fs_asset_t;
 
 #endif // TI_FS_FWD_H
