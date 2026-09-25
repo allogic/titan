@@ -562,8 +562,6 @@ static void create_dflt_assets(void) {
 
       fs_buffer_t *buffer = (fs_buffer_t *)asset.instance;
 
-      strcpy(buffer->name, "main");
-
       buffer->zero_data = 0;
       buffer->size = sizeof(vk_time_info_t);
       buffer->buffer_usage_flags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
@@ -586,8 +584,6 @@ static void create_dflt_assets(void) {
       fs_asset_create(&asset);
 
       fs_buffer_t *buffer = (fs_buffer_t *)asset.instance;
-
-      strcpy(buffer->name, "main");
 
       buffer->zero_data = 0;
       buffer->size = sizeof(vk_screen_info_t);
@@ -612,8 +608,6 @@ static void create_dflt_assets(void) {
 
       fs_buffer_t *buffer = (fs_buffer_t *)asset.instance;
 
-      strcpy(buffer->name, "main");
-
       buffer->zero_data = 0;
       buffer->size = sizeof(vk_mouse_info_t);
       buffer->buffer_usage_flags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
@@ -636,8 +630,6 @@ static void create_dflt_assets(void) {
       fs_asset_create(&asset);
 
       fs_buffer_t *buffer = (fs_buffer_t *)asset.instance;
-
-      strcpy(buffer->name, "main");
 
       buffer->zero_data = 0;
       buffer->size = sizeof(vk_camera_info_t);
@@ -797,8 +789,6 @@ static void create_dflt_assets(void) {
 
       fs_buffer_t *buffer = (fs_buffer_t *)asset.instance;
 
-      strcpy(buffer->name, "main");
-
       buffer->zero_data = 0;
       buffer->size = sizeof(vk_debug_line_vertex_t) * TI_DEBUG_LINE_VERTEX_COUNT;
       buffer->buffer_usage_flags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
@@ -821,8 +811,6 @@ static void create_dflt_assets(void) {
       fs_asset_create(&asset);
 
       fs_buffer_t *buffer = (fs_buffer_t *)asset.instance;
-
-      strcpy(buffer->name, "main");
 
       buffer->zero_data = 0;
       buffer->size = sizeof(vk_debug_line_index_t) * TI_DEBUG_LINE_INDEX_COUNT;
@@ -847,8 +835,6 @@ static void create_dflt_assets(void) {
 
       fs_buffer_t *buffer = (fs_buffer_t *)asset.instance;
 
-      strcpy(buffer->name, "main");
-
       buffer->zero_data = 0;
       buffer->size = sizeof(vk_full_screen_vertex_t) * 4;
       buffer->buffer_usage_flags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
@@ -871,8 +857,6 @@ static void create_dflt_assets(void) {
       fs_asset_create(&asset);
 
       fs_buffer_t *buffer = (fs_buffer_t *)asset.instance;
-
-      strcpy(buffer->name, "main");
 
       buffer->zero_data = 0;
       buffer->size = sizeof(vk_full_screen_index_t) * 6;

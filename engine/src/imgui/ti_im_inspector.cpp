@@ -8,6 +8,10 @@ static void draw_asset(void);
 static void draw_entity_controls(void);
 static void draw_entity(void);
 
+static bool draw_buffer_usage_flags(VkBufferUsageFlags *flags);
+static bool draw_memory_property_flags(VkMemoryPropertyFlags *flags);
+static bool draw_memory_allocate_flags(VkMemoryAllocateFlags *flags);
+
 static im_inspector_type_t s_inspector_type = IM_INSPECTOR_TYPE_NONE;
 static comp_type_t s_selected_comp = COMP_TYPE_TRANSFORM;
 static fs_asset_t s_selected_asset = {0};
@@ -107,6 +111,8 @@ static void draw_asset_controls(void) {
   // TODO
 }
 static void draw_asset(void) {
+  bool dirty = false;
+
   switch (s_selected_asset.type) {
 
     case FS_ASSET_TYPE_MODEL: {
@@ -286,6 +292,28 @@ static void draw_asset(void) {
 
       break;
     }
+    case FS_ASSET_TYPE_BUFFER: {
+
+      fs_buffer_t *buffer = (fs_buffer_t *)s_selected_asset.instance;
+
+      dirty |= ImGui::Checkbox("Zero Data", (bool *)&buffer->zero_data);
+      dirty |= ImGui::InputScalar("Size", ImGuiDataType_U64, &buffer->size, 0, 0, "%llu", ImGuiInputTextFlags_EnterReturnsTrue);
+
+      ImGui::SeparatorText("Buffer Usage Flags");
+      dirty |= draw_buffer_usage_flags(&buffer->buffer_usage_flags);
+
+      ImGui::SeparatorText("Memory Property Flags");
+      dirty |= draw_memory_property_flags(&buffer->memory_property_flags);
+
+      ImGui::SeparatorText("Memory Allocate Flags");
+      dirty |= draw_memory_allocate_flags(&buffer->memory_allocate_flags);
+
+      break;
+    }
+  }
+
+  if (dirty) {
+    fs_asset_store(&s_selected_asset);
   }
 }
 static void draw_entity_controls(void) {
@@ -528,4 +556,69 @@ static void draw_entity(void) {
       ImGui::TreePop();
     }
   }
+}
+
+static bool draw_buffer_usage_flags(VkBufferUsageFlags *flags) {
+  bool dirty = false;
+
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_TRANSFER_SRC_BIT", flags, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_TRANSFER_DST_BIT", flags, VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT", flags, VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT", flags, VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT", flags, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_STORAGE_BUFFER_BIT", flags, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_INDEX_BUFFER_BIT", flags, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_VERTEX_BUFFER_BIT", flags, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT", flags, VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT", flags, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_VIDEO_DECODE_SRC_BIT_KHR", flags, VK_BUFFER_USAGE_VIDEO_DECODE_SRC_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_VIDEO_DECODE_DST_BIT_KHR", flags, VK_BUFFER_USAGE_VIDEO_DECODE_DST_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT", flags, VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT", flags, VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT", flags, VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_DESCRIPTOR_HEAP_BIT_EXT", flags, VK_BUFFER_USAGE_DESCRIPTOR_HEAP_BIT_EXT);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR", flags, VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR", flags, VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR", flags, VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_VIDEO_ENCODE_DST_BIT_KHR", flags, VK_BUFFER_USAGE_VIDEO_ENCODE_DST_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_VIDEO_ENCODE_SRC_BIT_KHR", flags, VK_BUFFER_USAGE_VIDEO_ENCODE_SRC_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT", flags, VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT", flags, VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_PUSH_DESCRIPTORS_DESCRIPTOR_BUFFER_BIT_EXT", flags, VK_BUFFER_USAGE_PUSH_DESCRIPTORS_DESCRIPTOR_BUFFER_BIT_EXT);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_MICROMAP_BUILD_INPUT_READ_ONLY_BIT_EXT", flags, VK_BUFFER_USAGE_MICROMAP_BUILD_INPUT_READ_ONLY_BIT_EXT);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_MICROMAP_STORAGE_BIT_EXT", flags, VK_BUFFER_USAGE_MICROMAP_STORAGE_BIT_EXT);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_TILE_MEMORY_BIT_QCOM", flags, VK_BUFFER_USAGE_TILE_MEMORY_BIT_QCOM);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_RAY_TRACING_BIT_NV", flags, VK_BUFFER_USAGE_RAY_TRACING_BIT_NV);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_EXT", flags, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_EXT);
+  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_KHR", flags, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_KHR);
+
+  return dirty;
+}
+static bool draw_memory_property_flags(VkMemoryPropertyFlags *flags) {
+  bool dirty = false;
+
+  dirty |= ImGui::CheckboxFlags("VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT", flags, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT", flags, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_MEMORY_PROPERTY_HOST_COHERENT_BIT", flags, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_MEMORY_PROPERTY_HOST_CACHED_BIT", flags, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT", flags, VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_MEMORY_PROPERTY_PROTECTED_BIT", flags, VK_MEMORY_PROPERTY_PROTECTED_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD", flags, VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD);
+  dirty |= ImGui::CheckboxFlags("VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD", flags, VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD);
+  dirty |= ImGui::CheckboxFlags("VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV", flags, VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV);
+
+  return dirty;
+}
+static bool draw_memory_allocate_flags(VkMemoryAllocateFlags *flags) {
+  bool dirty = false;
+
+  dirty |= ImGui::CheckboxFlags("VK_MEMORY_ALLOCATE_DEVICE_MASK_BIT", flags, VK_MEMORY_ALLOCATE_DEVICE_MASK_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT", flags, VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT", flags, VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_MEMORY_ALLOCATE_ZERO_INITIALIZE_BIT_EXT", flags, VK_MEMORY_ALLOCATE_ZERO_INITIALIZE_BIT_EXT);
+  dirty |= ImGui::CheckboxFlags("VK_MEMORY_ALLOCATE_DEVICE_MASK_BIT_KHR", flags, VK_MEMORY_ALLOCATE_DEVICE_MASK_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT_KHR", flags, VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT_KHR", flags, VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT_KHR);
+
+  return dirty;
 }

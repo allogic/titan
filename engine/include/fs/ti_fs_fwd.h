@@ -69,7 +69,6 @@ typedef struct fs_model_t {
   fs_skin_t *skins;
 } fs_model_t;
 typedef struct fs_buffer_t {
-  char name[TI_PATH_SIZE];
   uint8_t zero_data;
   uint64_t size;
   VkBufferUsageFlags buffer_usage_flags;
