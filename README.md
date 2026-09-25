@@ -14,5 +14,5 @@ cmake --fresh
   -DLLVM_INCLUDE_TESTS=OFF
   -DLLVM_INCLUDE_BENCHMARKS=OFF
 
-cmake --build ".\llvm-project\build" --config Release --parallel 32
+cmake --build ".\llvm-project\build" --config Release --parallel 8
 ```
