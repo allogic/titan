@@ -14,8 +14,8 @@ void vk_renderpass_create(vk_renderpass_t *renderpass, char const *asset_path) {
     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-    .initialLayout = config->initial_color_attachment_layout,
-    .finalLayout = config->final_color_attachment_layout,
+    .initialLayout = g_vk_image_layout_table[config->initial_color_attachment_layout_index].value,
+    .finalLayout = g_vk_image_layout_table[config->final_color_attachment_layout_index].value,
   };
 
   VkAttachmentDescription depth_attachment_description = {
@@ -25,18 +25,18 @@ void vk_renderpass_create(vk_renderpass_t *renderpass, char const *asset_path) {
     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-    .initialLayout = config->initial_depth_attachment_layout,
-    .finalLayout = config->initial_depth_attachment_layout,
+    .initialLayout = g_vk_image_layout_table[config->initial_depth_attachment_layout_index].value,
+    .finalLayout = g_vk_image_layout_table[config->initial_depth_attachment_layout_index].value,
   };
 
   VkAttachmentReference color_attachment_reference = {
     .attachment = 0,
-    .layout = config->initial_color_attachment_layout, // TODO: verify this..
+    .layout = g_vk_image_layout_table[config->initial_color_attachment_layout_index].value, // TODO: verify this..
   };
 
   VkAttachmentReference depth_attachment_reference = {
     .attachment = 1,
-    .layout = config->initial_depth_attachment_layout, // TODO: verify this..
+    .layout = g_vk_image_layout_table[config->initial_depth_attachment_layout_index].value, // TODO: verify this..
   };
 
   VkSubpassDescription subpass_description = {

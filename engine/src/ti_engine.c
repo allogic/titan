@@ -313,18 +313,18 @@ static void import_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_PIPELINE,
-      .path = "asset/pipeline/standard/brdf.pak",
+      .path = "asset/pipeline/standard_brdf/main.pak",
     };
 
     if (fs_asset_exists(&asset) == 0) {
 
       fs_asset_create(&asset);
 
-      if (fs_import_pipeline(&asset, FS_PIPELINE_TYPE_DFLT, "static/shader/standard/brdf.vert", "static/shader/standard/brdf.frag") == 0) {
+      if (fs_import_pipeline(&asset, FS_PIPELINE_TYPE_DEFAULT, "static/shader/standard_brdf/main.vert", "static/shader/standard_brdf/main.frag") == 0) {
 
         fs_pipeline_t *pipeline = (fs_pipeline_t *)asset.instance;
 
-        pipeline->pipeline_type = FS_PIPELINE_TYPE_DFLT;
+        pipeline->pipeline_type = FS_PIPELINE_TYPE_DEFAULT;
         pipeline->primitive_topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
         pipeline->polygon_mode = VK_POLYGON_MODE_FILL;
         pipeline->cull_mode_flags = VK_CULL_MODE_BACK_BIT;
@@ -343,18 +343,18 @@ static void import_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_PIPELINE,
-      .path = "asset/pipeline/debug/line.pak",
+      .path = "asset/pipeline/debug_line/main.pak",
     };
 
     if (fs_asset_exists(&asset) == 0) {
 
       fs_asset_create(&asset);
 
-      if (fs_import_pipeline(&asset, FS_PIPELINE_TYPE_DFLT, "static/shader/debug/line.vert", "static/shader/debug/line.frag") == 0) {
+      if (fs_import_pipeline(&asset, FS_PIPELINE_TYPE_DEFAULT, "static/shader/debug_line/main.vert", "static/shader/debug_line/main.frag") == 0) {
 
         fs_pipeline_t *pipeline = (fs_pipeline_t *)asset.instance;
 
-        pipeline->pipeline_type = FS_PIPELINE_TYPE_DFLT;
+        pipeline->pipeline_type = FS_PIPELINE_TYPE_DEFAULT;
         pipeline->primitive_topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
         pipeline->polygon_mode = VK_POLYGON_MODE_FILL;
         pipeline->cull_mode_flags = VK_CULL_MODE_BACK_BIT;
@@ -427,7 +427,7 @@ static void create_dflt_assets(void) {
 
       fs_swapchain_t *swapchain = (fs_swapchain_t *)asset.instance;
 
-      strcpy(swapchain->name, "main");
+      swapchain->image_count = 2;
 
       fs_asset_store(&asset);
       fs_asset_destroy(&asset);
@@ -446,11 +446,10 @@ static void create_dflt_assets(void) {
 
       fs_renderer_t *renderer = (fs_renderer_t *)asset.instance;
 
-      strcpy(renderer->name, "main");
-      strcpy(renderer->debug_line_vertex_buffer, "asset/renderer/main/debug_line_vertex_buffer.pak");
-      strcpy(renderer->debug_line_index_buffer, "asset/renderer/main/debug_line_index_buffer.pak");
-      strcpy(renderer->full_screen_vertex_buffer, "asset/renderer/main/full_screen_vertex_buffer.pak");
-      strcpy(renderer->full_screen_index_buffer, "asset/renderer/main/full_screen_index_buffer.pak");
+      strcpy(renderer->debug_line_vertex_buffer.reference_path, "asset/renderer/main/buffer/debug_line_vertex.pak");
+      strcpy(renderer->debug_line_index_buffer.reference_path, "asset/renderer/main/buffer/debug_line_index.pak");
+      strcpy(renderer->full_screen_vertex_buffer.reference_path, "asset/renderer/main/buffer/full_screen_vertex.pak");
+      strcpy(renderer->full_screen_index_buffer.reference_path, "asset/renderer/main/buffer/full_screen_index.pak");
 
       fs_asset_store(&asset);
       fs_asset_destroy(&asset);
@@ -470,12 +469,10 @@ static void create_dflt_assets(void) {
 
       fs_renderpass_t *renderpass = (fs_renderpass_t *)asset.instance;
 
-      strcpy(renderpass->name, "main");
-
-      renderpass->initial_color_attachment_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-      renderpass->initial_depth_attachment_layout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
-      renderpass->final_color_attachment_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-      renderpass->final_depth_attachment_layout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+      renderpass->initial_color_attachment_layout_index = vk_find_image_layout_index(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+      renderpass->initial_depth_attachment_layout_index = vk_find_image_layout_index(VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+      renderpass->final_color_attachment_layout_index = vk_find_image_layout_index(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+      renderpass->final_depth_attachment_layout_index = vk_find_image_layout_index(VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
 
       fs_asset_store(&asset);
       fs_asset_destroy(&asset);
@@ -494,12 +491,10 @@ static void create_dflt_assets(void) {
 
       fs_renderpass_t *renderpass = (fs_renderpass_t *)asset.instance;
 
-      strcpy(renderpass->name, "imgui");
-
-      renderpass->initial_color_attachment_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-      renderpass->initial_depth_attachment_layout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
-      renderpass->final_color_attachment_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-      renderpass->final_depth_attachment_layout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
+      renderpass->initial_color_attachment_layout_index = vk_find_image_layout_index(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+      renderpass->initial_depth_attachment_layout_index = vk_find_image_layout_index(VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL);
+      renderpass->final_color_attachment_layout_index = vk_find_image_layout_index(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+      renderpass->final_depth_attachment_layout_index = vk_find_image_layout_index(VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL);
 
       fs_asset_store(&asset);
       fs_asset_destroy(&asset);
@@ -519,8 +514,11 @@ static void create_dflt_assets(void) {
 
       fs_framebuffer_t *framebuffer = (fs_framebuffer_t *)asset.instance;
 
-      strcpy(framebuffer->color_attachment_image, "asset/framebuffer/main/attachments/color.pak");
-      strcpy(framebuffer->depth_attachment_image, "asset/framebuffer/main/attachments/depth.pak");
+      framebuffer->color_attachment_count = 1;
+      framebuffer->color_attachments = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t), 1, 0);
+
+      strcpy(framebuffer->color_attachments[0].reference_path, "asset/framebuffer/main/attachment/color.pak");
+      strcpy(framebuffer->depth_attachment.reference_path, "asset/framebuffer/main/attachment/depth.pak");
 
       fs_asset_store(&asset);
       fs_asset_destroy(&asset);
@@ -539,8 +537,11 @@ static void create_dflt_assets(void) {
 
       fs_framebuffer_t *framebuffer = (fs_framebuffer_t *)asset.instance;
 
-      strcpy(framebuffer->color_attachment_image, "asset/framebuffer/imgui/attachments/color.pak");
-      strcpy(framebuffer->depth_attachment_image, "asset/framebuffer/imgui/attachments/depth.pak");
+      framebuffer->color_attachment_count = 1;
+      framebuffer->color_attachments = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t), 1, 0);
+
+      strcpy(framebuffer->color_attachments[0].reference_path, "asset/framebuffer/imgui/attachment/color.pak");
+      strcpy(framebuffer->depth_attachment.reference_path, "asset/framebuffer/imgui/attachment/depth.pak");
 
       fs_asset_store(&asset);
       fs_asset_destroy(&asset);
@@ -644,7 +645,7 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_IMAGE,
-      .path = "asset/framebuffer/main/attachments/color.pak",
+      .path = "asset/framebuffer/main/attachment/color.pak",
     };
 
     if (fs_asset_exists(&asset) == 0) {
@@ -675,7 +676,7 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_IMAGE,
-      .path = "asset/framebuffer/main/attachments/depth.pak",
+      .path = "asset/framebuffer/main/attachment/depth.pak",
     };
 
     if (fs_asset_exists(&asset) == 0) {
@@ -707,7 +708,7 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_IMAGE,
-      .path = "asset/framebuffer/imgui/attachments/color.pak",
+      .path = "asset/framebuffer/imgui/attachment/color.pak",
     };
 
     if (fs_asset_exists(&asset) == 0) {
@@ -738,7 +739,7 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_IMAGE,
-      .path = "asset/framebuffer/imgui/attachments/depth.pak",
+      .path = "asset/framebuffer/imgui/attachment/depth.pak",
     };
 
     if (fs_asset_exists(&asset) == 0) {
@@ -770,7 +771,7 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_BUFFER,
-      .path = "asset/renderer/main/debug_line_vertex_buffer.pak",
+      .path = "asset/renderer/main/buffer/debug_line_vertex.pak",
     };
 
     if (fs_asset_exists(&asset) == 0) {
@@ -793,7 +794,7 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_BUFFER,
-      .path = "asset/renderer/main/debug_line_index_buffer.pak",
+      .path = "asset/renderer/main/buffer/debug_line_index.pak",
     };
 
     if (fs_asset_exists(&asset) == 0) {
@@ -816,7 +817,7 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_BUFFER,
-      .path = "asset/renderer/main/full_screen_vertex_buffer.pak",
+      .path = "asset/renderer/main/buffer/full_screen_vertex.pak",
     };
 
     if (fs_asset_exists(&asset) == 0) {
@@ -839,7 +840,7 @@ static void create_dflt_assets(void) {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
       .type = FS_ASSET_TYPE_BUFFER,
-      .path = "asset/renderer/main/full_screen_index_buffer.pak",
+      .path = "asset/renderer/main/buffer/full_screen_index.pak",
     };
 
     if (fs_asset_exists(&asset) == 0) {

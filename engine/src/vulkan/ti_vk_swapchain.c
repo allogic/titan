@@ -7,7 +7,7 @@ void vk_swapchain_create(vk_swapchain_t *swapchain, char const *asset_path) {
 
   fs_swapchain_t *config = (fs_swapchain_t *)swapchain->asset.instance;
 
-  swapchain->image_count = clampu(TI_SWAPCHAIN_IMAGE_COUNT, g_vk_instance.min_image_count, g_vk_instance.max_image_count);
+  swapchain->image_count = clampu(config->image_count, g_vk_instance.min_image_count, g_vk_instance.max_image_count);
 
   uint32_t queue_families[2] = {
     g_vk_instance.primary_queue_index,

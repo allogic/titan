@@ -107,7 +107,7 @@ typedef struct vk_framebuffer_t {
   uint8_t is_dirty;
   uint32_t width;
   uint32_t height;
-  vk_image_t color_attachment[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
+  vk_image_t *color_attachment[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
   vk_image_t depth_attachment[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
   VkFramebuffer handle[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
 } vk_framebuffer_t;

@@ -31,7 +31,7 @@ void vk_pipeline_create(vk_pipeline_t *pipeline, vk_renderpass_t *renderpass, ch
 
   switch (config->pipeline_type) {
 
-    case FS_PIPELINE_TYPE_DFLT: {
+    case FS_PIPELINE_TYPE_DEFAULT: {
 
       create_dflt_pipeline(pipeline, renderpass);
 
@@ -43,7 +43,7 @@ void vk_pipeline_create(vk_pipeline_t *pipeline, vk_renderpass_t *renderpass, ch
 
       break;
     }
-    case FS_PIPELINE_TYPE_RAY: {
+    case FS_PIPELINE_TYPE_RAY_TRACING: {
 
       create_ray_pipeline(pipeline);
 
@@ -51,7 +51,7 @@ void vk_pipeline_create(vk_pipeline_t *pipeline, vk_renderpass_t *renderpass, ch
 
       break;
     }
-    case FS_PIPELINE_TYPE_COMP: {
+    case FS_PIPELINE_TYPE_COMPUTE: {
 
       create_comp_pipeline(pipeline);
 
@@ -64,7 +64,7 @@ void vk_pipeline_destroy(vk_pipeline_t *pipeline) {
 
   switch (config->pipeline_type) {
 
-    case FS_PIPELINE_TYPE_RAY: {
+    case FS_PIPELINE_TYPE_RAY_TRACING: {
 
       destroy_sbt_buffer(pipeline);
 

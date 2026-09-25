@@ -21,6 +21,12 @@ void fs_asset_create(fs_asset_t *asset) {
 
       break;
     }
+    case FS_ASSET_TYPE_INPUT_VARIABLE: {
+
+      asset->instance = TI_ALLOC(sizeof(fs_input_variable_t), 1, 0);
+
+      break;
+    }
     case FS_ASSET_TYPE_DESCRIPTOR_BINDING: {
 
       asset->instance = TI_ALLOC(sizeof(fs_descriptor_binding_t), 1, 0);
@@ -111,6 +117,14 @@ void fs_asset_load(fs_asset_t *asset) {
       asset->instance = TI_ALLOC(sizeof(fs_font_t), 1, 0);
 
       fs_font_load(asset->instance, file);
+
+      break;
+    }
+    case FS_ASSET_TYPE_INPUT_VARIABLE: {
+
+      asset->instance = TI_ALLOC(sizeof(fs_input_variable_t), 1, 0);
+
+      fs_input_variable_load(asset->instance, file);
 
       break;
     }
@@ -208,6 +222,12 @@ void fs_asset_store(fs_asset_t *asset) {
 
       break;
     }
+    case FS_ASSET_TYPE_INPUT_VARIABLE: {
+
+      fs_input_variable_store(asset->instance, file);
+
+      break;
+    }
     case FS_ASSET_TYPE_DESCRIPTOR_BINDING: {
 
       fs_descriptor_binding_store(asset->instance, file);
@@ -272,6 +292,12 @@ void fs_asset_destroy(fs_asset_t *asset) {
     case FS_ASSET_TYPE_FONT: {
 
       fs_font_destroy(asset->instance);
+
+      break;
+    }
+    case FS_ASSET_TYPE_INPUT_VARIABLE: {
+
+      fs_input_variable_destroy(asset->instance);
 
       break;
     }

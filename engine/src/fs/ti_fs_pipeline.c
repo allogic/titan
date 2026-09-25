@@ -14,7 +14,7 @@ void fs_pipeline_load(fs_pipeline_t *pipeline, fs_file *file) {
 
   switch (pipeline->pipeline_type) {
 
-    case FS_PIPELINE_TYPE_DFLT: {
+    case FS_PIPELINE_TYPE_DEFAULT: {
 
       read_input_variables(pipeline, file);
       read_descriptor_bindings(pipeline, file);
@@ -43,13 +43,13 @@ void fs_pipeline_load(fs_pipeline_t *pipeline, fs_file *file) {
 
       break;
     }
-    case FS_PIPELINE_TYPE_RAY: {
+    case FS_PIPELINE_TYPE_RAY_TRACING: {
 
       // TODO
 
       break;
     }
-    case FS_PIPELINE_TYPE_COMP: {
+    case FS_PIPELINE_TYPE_COMPUTE: {
 
       // TODO
 
@@ -65,7 +65,7 @@ void fs_pipeline_store(fs_pipeline_t *pipeline, fs_file *file) {
 
   switch (pipeline->pipeline_type) {
 
-    case FS_PIPELINE_TYPE_DFLT: {
+    case FS_PIPELINE_TYPE_DEFAULT: {
 
       write_input_variables(pipeline, file);
       write_descriptor_bindings(pipeline, file);
@@ -92,13 +92,13 @@ void fs_pipeline_store(fs_pipeline_t *pipeline, fs_file *file) {
 
       break;
     }
-    case FS_PIPELINE_TYPE_RAY: {
+    case FS_PIPELINE_TYPE_RAY_TRACING: {
 
       // TODO
 
       break;
     }
-    case FS_PIPELINE_TYPE_COMP: {
+    case FS_PIPELINE_TYPE_COMPUTE: {
 
       // TODO
 
@@ -109,77 +109,99 @@ void fs_pipeline_store(fs_pipeline_t *pipeline, fs_file *file) {
   fs_file_write(file, &pipeline->descriptor_set_count, sizeof(uint32_t), 0);
 }
 void fs_pipeline_destroy(fs_pipeline_t *pipeline) {
-  // TODO
+  switch (pipeline->pipeline_type) {
+
+    case FS_PIPELINE_TYPE_DEFAULT: {
+
+      TI_FREE(pipeline->input_variables);
+      TI_FREE(pipeline->descriptor_bindings);
+      TI_FREE(pipeline->spirv_vertex_words);
+      TI_FREE(pipeline->spirv_fragment_words);
+
+      break;
+    }
+    case FS_PIPELINE_TYPE_MESH: {
+
+      // TODO
+
+      break;
+    }
+    case FS_PIPELINE_TYPE_RAY_TRACING: {
+
+      // TODO
+
+      break;
+    }
+    case FS_PIPELINE_TYPE_COMPUTE: {
+
+      // TODO
+
+      break;
+    }
+  }
 }
 
-// TODO: assetify input variables as well..
 static void read_input_variables(fs_pipeline_t *pipeline, fs_file *file) {
-  fs_file_read(file, &pipeline->input_variable_count, sizeof(fs_pipeline_type_t), 0);
+  fs_file_read(file, &pipeline->input_variable_count, sizeof(uint64_t), 0);
 
-  pipeline->input_variables = (fs_input_variable_t *)TI_ALLOC(sizeof(fs_input_variable_t) * pipeline->input_variable_count, 0, 0);
+  pipeline->input_variables = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * pipeline->input_variable_count, 0, 0);
 
   uint64_t input_variable_index = 0;
   uint64_t input_variable_count = pipeline->input_variable_count;
 
   while (input_variable_index < input_variable_count) {
 
-    fs_input_variable_t *input_variable = &pipeline->input_variables[input_variable_index];
+    fs_asset_reference_t *input_variable = &pipeline->input_variables[input_variable_index];
 
-    fs_file_read(file, input_variable->name, TI_PATH_SIZE, 0);
-    fs_file_read(file, &input_variable->location, sizeof(int32_t), 0);
-    fs_file_read(file, &input_variable->format, sizeof(int32_t), 0);
-    fs_file_read(file, &input_variable->built_in, sizeof(int32_t), 0);
+    fs_file_read(file, input_variable->reference_path, TI_PATH_SIZE, 0);
 
     input_variable_index++;
   }
 }
 static void read_descriptor_bindings(fs_pipeline_t *pipeline, fs_file *file) {
-  fs_file_read(file, &pipeline->descriptor_binding_count, sizeof(fs_pipeline_type_t), 0);
+  fs_file_read(file, &pipeline->descriptor_binding_count, sizeof(uint64_t), 0);
 
-  pipeline->descriptor_bindings = (fs_descriptor_binding_t *)TI_ALLOC(sizeof(fs_descriptor_binding_t) * pipeline->descriptor_binding_count, 0, 0);
+  pipeline->descriptor_bindings = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * pipeline->descriptor_binding_count, 0, 0);
 
   uint64_t descriptor_binding_index = 0;
   uint64_t descriptor_binding_count = pipeline->descriptor_binding_count;
 
   while (descriptor_binding_index < descriptor_binding_count) {
 
-    fs_descriptor_binding_t *descriptor_binding = &pipeline->descriptor_bindings[descriptor_binding_index];
+    fs_asset_reference_t *descriptor_binding = &pipeline->descriptor_bindings[descriptor_binding_index];
 
-    fs_descriptor_binding_load(descriptor_binding, file);
+    fs_file_read(file, descriptor_binding->reference_path, TI_PATH_SIZE, 0);
 
     descriptor_binding_index++;
   }
 }
 
 static void write_input_variables(fs_pipeline_t *pipeline, fs_file *file) {
-  fs_file_write(file, &pipeline->input_variable_count, sizeof(fs_pipeline_type_t), 0);
+  fs_file_write(file, &pipeline->input_variable_count, sizeof(uint64_t), 0);
 
   uint64_t input_variable_index = 0;
   uint64_t input_variable_count = pipeline->input_variable_count;
 
   while (input_variable_index < input_variable_count) {
 
-    fs_input_variable_t *input_variable = &pipeline->input_variables[input_variable_index];
+    fs_asset_reference_t *input_variable = &pipeline->input_variables[input_variable_index];
 
-    fs_file_write(file, input_variable->name, TI_PATH_SIZE, 0);
-    fs_file_write(file, &input_variable->location, sizeof(int32_t), 0);
-    fs_file_write(file, &input_variable->format, sizeof(int32_t), 0);
-    fs_file_write(file, &input_variable->built_in, sizeof(int32_t), 0);
+    fs_file_write(file, input_variable->reference_path, TI_PATH_SIZE, 0);
 
     input_variable_index++;
   }
 }
 static void write_descriptor_bindings(fs_pipeline_t *pipeline, fs_file *file) {
-  fs_file_write(file, &pipeline->descriptor_binding_count, sizeof(fs_pipeline_type_t), 0);
+  fs_file_write(file, &pipeline->descriptor_binding_count, sizeof(uint64_t), 0);
 
   uint64_t descriptor_binding_index = 0;
   uint64_t descriptor_binding_count = pipeline->descriptor_binding_count;
 
   while (descriptor_binding_index < descriptor_binding_count) {
 
-    fs_descriptor_binding_t *descriptor_binding = &pipeline->descriptor_bindings[descriptor_binding_index];
+    fs_asset_reference_t *descriptor_binding = &pipeline->descriptor_bindings[descriptor_binding_index];
 
-    fs_descriptor_binding_store(descriptor_binding, file);
+    fs_file_write(file, descriptor_binding->reference_path, TI_PATH_SIZE, 0);
 
     descriptor_binding_index++;
   }

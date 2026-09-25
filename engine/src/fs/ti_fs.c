@@ -102,6 +102,30 @@ fs_result fs_remove_recursive(fs *fs, char const *file_path) {
 
   return fs_remove(g_fs, file_path, 0);
 }
+fs_result fs_path_parent(char const *file_path, char *parent_path) {
+  fs_result result = FS_SUCCESS;
+  fs_path_iterator path_it = {0};
+
+  uint64_t path_size = strlen(file_path);
+
+  result = fs_path_last(file_path, path_size, &path_it);
+
+  if (result != FS_SUCCESS) {
+    return result;
+  }
+
+  result = fs_path_prev(&path_it);
+
+  if (result != FS_SUCCESS) {
+    return result;
+  }
+
+  uint64_t end = path_it.segmentOffset + path_it.segmentLength;
+
+  memcpy(parent_path, file_path, end);
+
+  return result;
+}
 void fs_destroy(void) {
   fs_uninit(g_fs);
 }

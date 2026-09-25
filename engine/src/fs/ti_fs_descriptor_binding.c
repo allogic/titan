@@ -6,10 +6,10 @@ void fs_descriptor_binding_load(fs_descriptor_binding_t *descriptor_binding, fs_
   fs_file_read(file, descriptor_binding->name, TI_PATH_SIZE, 0);
   fs_file_read(file, &descriptor_binding->set, sizeof(uint32_t), 0);
   fs_file_read(file, &descriptor_binding->binding, sizeof(uint32_t), 0);
-  fs_file_read(file, &descriptor_binding->descriptor_type, sizeof(int32_t), 0);
+  fs_file_read(file, &descriptor_binding->descriptor_type_index, sizeof(uint64_t), 0);
 
-  if ((descriptor_binding->descriptor_type == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) ||
-      (descriptor_binding->descriptor_type == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)) {
+  if ((g_vk_descriptor_type_table[descriptor_binding->descriptor_type_index].value == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) ||
+      (g_vk_descriptor_type_table[descriptor_binding->descriptor_type_index].value == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)) {
 
     fs_file_read(file, &descriptor_binding->block_size, sizeof(uint32_t), 0);
     fs_file_read(file, &descriptor_binding->block_variable_count, sizeof(uint32_t), 0);
@@ -35,10 +35,10 @@ void fs_descriptor_binding_store(fs_descriptor_binding_t *descriptor_binding, fs
   fs_file_write(file, descriptor_binding->name, TI_PATH_SIZE, 0);
   fs_file_write(file, &descriptor_binding->set, sizeof(uint32_t), 0);
   fs_file_write(file, &descriptor_binding->binding, sizeof(uint32_t), 0);
-  fs_file_write(file, &descriptor_binding->descriptor_type, sizeof(int32_t), 0);
+  fs_file_write(file, &descriptor_binding->descriptor_type_index, sizeof(uint64_t), 0);
 
-  if ((descriptor_binding->descriptor_type == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) ||
-      (descriptor_binding->descriptor_type == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)) {
+  if ((g_vk_descriptor_type_table[descriptor_binding->descriptor_type_index].value == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) ||
+      (g_vk_descriptor_type_table[descriptor_binding->descriptor_type_index].value == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)) {
 
     fs_file_write(file, &descriptor_binding->block_size, sizeof(uint32_t), 0);
     fs_file_write(file, &descriptor_binding->block_variable_count, sizeof(uint32_t), 0);

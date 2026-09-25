@@ -184,7 +184,7 @@ void vk_renderer_draw(vk_renderer_t *renderer) {
       .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
       .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
       .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-      .image = g_vk_imgui_framebuffer.color_attachment[renderer->image_index].handle,
+      .image = g_vk_imgui_framebuffer.color_attachment[renderer->image_index][0].handle,
       .subresourceRange = {
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         .baseMipLevel = 0,
@@ -249,7 +249,7 @@ void vk_renderer_draw(vk_renderer_t *renderer) {
     },
   };
 
-  vkCmdCopyImage(g_vk_instance.command_buffer, g_vk_imgui_framebuffer.color_attachment[renderer->image_index].handle, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, g_vk_swapchain.image[renderer->image_index], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
+  vkCmdCopyImage(g_vk_instance.command_buffer, g_vk_imgui_framebuffer.color_attachment[renderer->image_index][0].handle, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, g_vk_swapchain.image[renderer->image_index], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
 
   {
     VkImageMemoryBarrier image_memory_barrier = {
@@ -260,7 +260,7 @@ void vk_renderer_draw(vk_renderer_t *renderer) {
       .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
       .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
       .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-      .image = g_vk_imgui_framebuffer.color_attachment[renderer->image_index].handle,
+      .image = g_vk_imgui_framebuffer.color_attachment[renderer->image_index][0].handle,
       .subresourceRange = {
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         .baseMipLevel = 0,
@@ -364,8 +364,8 @@ void vk_renderer_draw_debug_line(vk_renderer_t *renderer, fvec3_t from, fvec3_t 
       vertices[vertex_offset + 0].color = color;
       vertices[vertex_offset + 1].color = color;
 
-      indices[index_offset + 0] = (vk_debug_line_index_t)(vertex_offset + 0);
-      indices[index_offset + 1] = (vk_debug_line_index_t)(vertex_offset + 1);
+      indices[index_offset + 0] = (vk_debug_line_index_t){vertex_offset + 0};
+      indices[index_offset + 1] = (vk_debug_line_index_t){vertex_offset + 1};
 
       renderer->debug_line_vertex_offset += 2;
       renderer->debug_line_index_offset += 2;
@@ -402,30 +402,30 @@ void vk_renderer_draw_debug_box(vk_renderer_t *renderer, fvec3_t position, fvec3
       vertices[vertex_offset + 6].color = color;
       vertices[vertex_offset + 7].color = color;
 
-      indices[index_offset + 0] = (vk_debug_line_index_t)(vertex_offset + 0);
-      indices[index_offset + 1] = (vk_debug_line_index_t)(vertex_offset + 1);
-      indices[index_offset + 2] = (vk_debug_line_index_t)(vertex_offset + 1);
-      indices[index_offset + 3] = (vk_debug_line_index_t)(vertex_offset + 3);
-      indices[index_offset + 4] = (vk_debug_line_index_t)(vertex_offset + 3);
-      indices[index_offset + 5] = (vk_debug_line_index_t)(vertex_offset + 2);
-      indices[index_offset + 6] = (vk_debug_line_index_t)(vertex_offset + 2);
-      indices[index_offset + 7] = (vk_debug_line_index_t)(vertex_offset + 0);
-      indices[index_offset + 8] = (vk_debug_line_index_t)(vertex_offset + 4);
-      indices[index_offset + 9] = (vk_debug_line_index_t)(vertex_offset + 5);
-      indices[index_offset + 10] = (vk_debug_line_index_t)(vertex_offset + 5);
-      indices[index_offset + 11] = (vk_debug_line_index_t)(vertex_offset + 7);
-      indices[index_offset + 12] = (vk_debug_line_index_t)(vertex_offset + 7);
-      indices[index_offset + 13] = (vk_debug_line_index_t)(vertex_offset + 6);
-      indices[index_offset + 14] = (vk_debug_line_index_t)(vertex_offset + 6);
-      indices[index_offset + 15] = (vk_debug_line_index_t)(vertex_offset + 4);
-      indices[index_offset + 16] = (vk_debug_line_index_t)(vertex_offset + 0);
-      indices[index_offset + 17] = (vk_debug_line_index_t)(vertex_offset + 4);
-      indices[index_offset + 18] = (vk_debug_line_index_t)(vertex_offset + 1);
-      indices[index_offset + 19] = (vk_debug_line_index_t)(vertex_offset + 5);
-      indices[index_offset + 20] = (vk_debug_line_index_t)(vertex_offset + 2);
-      indices[index_offset + 21] = (vk_debug_line_index_t)(vertex_offset + 6);
-      indices[index_offset + 22] = (vk_debug_line_index_t)(vertex_offset + 3);
-      indices[index_offset + 23] = (vk_debug_line_index_t)(vertex_offset + 7);
+      indices[index_offset + 0] = (vk_debug_line_index_t){vertex_offset + 0};
+      indices[index_offset + 1] = (vk_debug_line_index_t){vertex_offset + 1};
+      indices[index_offset + 2] = (vk_debug_line_index_t){vertex_offset + 1};
+      indices[index_offset + 3] = (vk_debug_line_index_t){vertex_offset + 3};
+      indices[index_offset + 4] = (vk_debug_line_index_t){vertex_offset + 3};
+      indices[index_offset + 5] = (vk_debug_line_index_t){vertex_offset + 2};
+      indices[index_offset + 6] = (vk_debug_line_index_t){vertex_offset + 2};
+      indices[index_offset + 7] = (vk_debug_line_index_t){vertex_offset + 0};
+      indices[index_offset + 8] = (vk_debug_line_index_t){vertex_offset + 4};
+      indices[index_offset + 9] = (vk_debug_line_index_t){vertex_offset + 5};
+      indices[index_offset + 10] = (vk_debug_line_index_t){vertex_offset + 5};
+      indices[index_offset + 11] = (vk_debug_line_index_t){vertex_offset + 7};
+      indices[index_offset + 12] = (vk_debug_line_index_t){vertex_offset + 7};
+      indices[index_offset + 13] = (vk_debug_line_index_t){vertex_offset + 6};
+      indices[index_offset + 14] = (vk_debug_line_index_t){vertex_offset + 6};
+      indices[index_offset + 15] = (vk_debug_line_index_t){vertex_offset + 4};
+      indices[index_offset + 16] = (vk_debug_line_index_t){vertex_offset + 0};
+      indices[index_offset + 17] = (vk_debug_line_index_t){vertex_offset + 4};
+      indices[index_offset + 18] = (vk_debug_line_index_t){vertex_offset + 1};
+      indices[index_offset + 19] = (vk_debug_line_index_t){vertex_offset + 5};
+      indices[index_offset + 20] = (vk_debug_line_index_t){vertex_offset + 2};
+      indices[index_offset + 21] = (vk_debug_line_index_t){vertex_offset + 6};
+      indices[index_offset + 22] = (vk_debug_line_index_t){vertex_offset + 3};
+      indices[index_offset + 23] = (vk_debug_line_index_t){vertex_offset + 7};
 
       renderer->debug_line_vertex_offset += 8;
       renderer->debug_line_index_offset += 24;
@@ -477,8 +477,8 @@ static void create_descriptor_info(vk_renderer_t *renderer) {
 static void create_debug_line_buffer(vk_renderer_t *renderer) {
   fs_renderer_t *config = (fs_renderer_t *)renderer->asset.instance;
 
-  vk_buffer_create(&renderer->debug_line_vertex_buffer, config->debug_line_vertex_buffer);
-  vk_buffer_create(&renderer->debug_line_index_buffer, config->debug_line_index_buffer);
+  vk_buffer_create(&renderer->debug_line_vertex_buffer, config->debug_line_vertex_buffer.reference_path);
+  vk_buffer_create(&renderer->debug_line_index_buffer, config->debug_line_index_buffer.reference_path);
 
   vk_buffer_map(&renderer->debug_line_vertex_buffer);
   vk_buffer_map(&renderer->debug_line_index_buffer);
@@ -486,8 +486,8 @@ static void create_debug_line_buffer(vk_renderer_t *renderer) {
 static void create_full_screen_buffer(vk_renderer_t *renderer) {
   fs_renderer_t *config = (fs_renderer_t *)renderer->asset.instance;
 
-  vk_buffer_create(&renderer->full_screen_vertex_buffer, config->full_screen_vertex_buffer);
-  vk_buffer_create(&renderer->full_screen_index_buffer, config->full_screen_index_buffer);
+  vk_buffer_create(&renderer->full_screen_vertex_buffer, config->full_screen_vertex_buffer.reference_path);
+  vk_buffer_create(&renderer->full_screen_index_buffer, config->full_screen_index_buffer.reference_path);
 }
 
 static void update_debug_line_descriptor_set(vk_renderer_t *renderer) {
@@ -641,7 +641,7 @@ static void record_pre_ray_tracing_pass(vk_renderer_t *renderer) {
       .newLayout = VK_IMAGE_LAYOUT_GENERAL,
       .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
       .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-      .image = g_vk_main_framebuffer.color_attachment[renderer->image_index].handle,
+      .image = g_vk_main_framebuffer.color_attachment[renderer->image_index][0].handle,
       .subresourceRange = {
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         .baseMipLevel = 0,
@@ -689,7 +689,7 @@ static void record_post_ray_tracing_pass(vk_renderer_t *renderer) {
       .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
       .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
       .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-      .image = g_vk_main_framebuffer.color_attachment[renderer->image_index].handle,
+      .image = g_vk_main_framebuffer.color_attachment[renderer->image_index][0].handle,
       .subresourceRange = {
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         .baseMipLevel = 0,
@@ -735,7 +735,7 @@ static void record_pre_imgui_pass(vk_renderer_t *renderer) {
       .newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
       .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
       .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-      .image = g_vk_main_framebuffer.color_attachment[g_vk_renderer.image_index].handle,
+      .image = g_vk_main_framebuffer.color_attachment[g_vk_renderer.image_index][0].handle,
       .subresourceRange = {
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         .baseMipLevel = 0,
@@ -846,7 +846,7 @@ static void record_post_imgui_pass(vk_renderer_t *renderer) {
       .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
       .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
       .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-      .image = g_vk_main_framebuffer.color_attachment[g_vk_renderer.image_index].handle,
+      .image = g_vk_main_framebuffer.color_attachment[g_vk_renderer.image_index][0].handle,
       .subresourceRange = {
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         .baseMipLevel = 0,

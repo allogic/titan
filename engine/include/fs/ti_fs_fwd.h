@@ -5,23 +5,28 @@ typedef enum fs_asset_type_t {
   FS_ASSET_TYPE_NONE = 0,
   FS_ASSET_TYPE_MODEL,
   FS_ASSET_TYPE_PIPELINE,
-  FS_ASSET_TYPE_FONT,
-  FS_ASSET_TYPE_DESCRIPTOR_BINDING,
-  FS_ASSET_TYPE_BUFFER, // OK
-  FS_ASSET_TYPE_IMAGE,  // OK
-  FS_ASSET_TYPE_FRAMEBUFFER,
-  FS_ASSET_TYPE_SWAPCHAIN,
-  FS_ASSET_TYPE_RENDERPASS,
-  FS_ASSET_TYPE_RENDERER,
+  FS_ASSET_TYPE_FONT,               // OK
+  FS_ASSET_TYPE_INPUT_VARIABLE,     // OK
+  FS_ASSET_TYPE_DESCRIPTOR_BINDING, // OK
+  FS_ASSET_TYPE_BUFFER,             // OK
+  FS_ASSET_TYPE_IMAGE,              // OK
+  FS_ASSET_TYPE_FRAMEBUFFER,        // OK
+  FS_ASSET_TYPE_SWAPCHAIN,          // OK
+  FS_ASSET_TYPE_RENDERPASS,         // OK
+  FS_ASSET_TYPE_RENDERER,           // OK
   FS_ASSET_TYPE_COUNT,
 } fs_asset_type_t;
 
 typedef enum fs_pipeline_type_t {
-  FS_PIPELINE_TYPE_DFLT = 0,
+  FS_PIPELINE_TYPE_DEFAULT = 0,
   FS_PIPELINE_TYPE_MESH,
-  FS_PIPELINE_TYPE_RAY,
-  FS_PIPELINE_TYPE_COMP,
+  FS_PIPELINE_TYPE_RAY_TRACING,
+  FS_PIPELINE_TYPE_COMPUTE,
 } fs_pipeline_type_t;
+
+typedef struct fs_asset_reference_t {
+  char reference_path[TI_PATH_SIZE];
+} fs_asset_reference_t;
 
 typedef struct fs_primitive_t {
   char name[TI_PATH_SIZE];
@@ -90,13 +95,10 @@ typedef struct fs_image_t {
   VkMemoryPropertyFlags memory_property_flags;
   VkMemoryAllocateFlags memory_allocate_flags;
 } fs_image_t;
-typedef struct fs_framebuffer_attachment_t {
-  char attachment_image[TI_PATH_SIZE];
-} fs_framebuffer_attachment_t;
-// TODO
 typedef struct fs_framebuffer_t {
-  char color_attachment_image[TI_PATH_SIZE];
-  char depth_attachment_image[TI_PATH_SIZE];
+  uint64_t color_attachment_count;
+  fs_asset_reference_t *color_attachments;
+  fs_asset_reference_t depth_attachment;
 } fs_framebuffer_t;
 typedef struct fs_block_variable_t {
   char name[TI_PATH_SIZE];
@@ -105,9 +107,9 @@ typedef struct fs_block_variable_t {
 } fs_block_variable_t;
 typedef struct fs_descriptor_binding_t {
   char name[TI_PATH_SIZE];
+  uint64_t descriptor_type_index;
   uint32_t set;
   uint32_t binding;
-  int32_t descriptor_type;
   int32_t block_size;
   int32_t block_variable_count;
   fs_block_variable_t *block_variables;
@@ -115,8 +117,8 @@ typedef struct fs_descriptor_binding_t {
 typedef struct fs_input_variable_t {
   char name[TI_PATH_SIZE];
   uint32_t location;
-  uint32_t format;
-  uint32_t built_in;
+  uint8_t is_built_in;
+  uint64_t format_index;
 } fs_input_variable_t;
 typedef struct fs_pipeline_t {
   char name[TI_PATH_SIZE];
@@ -134,30 +136,27 @@ typedef struct fs_pipeline_t {
   VkPrimitiveTopology primitive_topology;
   VkPolygonMode polygon_mode;
   VkCullModeFlags cull_mode_flags;
-  fs_input_variable_t *input_variables;
-  fs_descriptor_binding_t *descriptor_bindings;
+  fs_asset_reference_t *input_variables;
+  fs_asset_reference_t *descriptor_bindings;
 } fs_pipeline_t;
 typedef struct fs_font_t {
-  char name[TI_PATH_SIZE];
   void *buffer;
   uint64_t buffer_size;
 } fs_font_t;
 typedef struct fs_swapchain_t {
-  char name[TI_PATH_SIZE];
+  uint32_t image_count;
 } fs_swapchain_t;
 typedef struct fs_renderpass_t {
-  char name[TI_PATH_SIZE];
-  VkImageLayout initial_color_attachment_layout;
-  VkImageLayout initial_depth_attachment_layout;
-  VkImageLayout final_color_attachment_layout;
-  VkImageLayout final_depth_attachment_layout;
+  uint64_t initial_color_attachment_layout_index;
+  uint64_t initial_depth_attachment_layout_index;
+  uint64_t final_color_attachment_layout_index;
+  uint64_t final_depth_attachment_layout_index;
 } fs_renderpass_t;
 typedef struct fs_renderer_t {
-  char name[TI_PATH_SIZE];
-  char debug_line_vertex_buffer[TI_PATH_SIZE];
-  char debug_line_index_buffer[TI_PATH_SIZE];
-  char full_screen_vertex_buffer[TI_PATH_SIZE];
-  char full_screen_index_buffer[TI_PATH_SIZE];
+  fs_asset_reference_t debug_line_vertex_buffer;
+  fs_asset_reference_t debug_line_index_buffer;
+  fs_asset_reference_t full_screen_vertex_buffer;
+  fs_asset_reference_t full_screen_index_buffer;
 } fs_renderer_t;
 
 typedef struct fs_asset_t {

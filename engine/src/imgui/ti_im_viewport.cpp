@@ -49,7 +49,7 @@ void im_viewport_update(void) {
 
     while (image_index < image_count) {
 
-      s_color_attachments[image_index] = ImGui_ImplVulkan_AddTexture(g_vk_main_framebuffer.color_attachment[image_index].image_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+      s_color_attachments[image_index] = ImGui_ImplVulkan_AddTexture(g_vk_main_framebuffer.color_attachment[image_index][0].image_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL); // TODO
       s_depth_attachments[image_index] = ImGui_ImplVulkan_AddTexture(g_vk_main_framebuffer.depth_attachment[image_index].image_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
       image_index++;

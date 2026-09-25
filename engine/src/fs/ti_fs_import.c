@@ -24,8 +24,11 @@ static void convert_ttf_font(fs_font_t *font, void *buffer, uint64_t buffer_size
 
 static uint8_t compile_glsl_shader(char const *file_path, glslang_stage_t stage, uint32_t **words, uint64_t *word_count);
 
-static uint8_t convert_spirv_input_variables(fs_pipeline_t *pipeline, SpvReflectShaderModule *module);
-static uint8_t convert_spirv_descriptor_bindings(fs_pipeline_t *pipeline, SpvReflectShaderModule *module);
+static uint64_t count_spirv_input_variables(SpvReflectShaderModule *module);
+static uint64_t count_spirv_descriptor_bindings(SpvReflectShaderModule *module);
+
+static uint8_t convert_spirv_input_variables(fs_asset_t *asset, fs_pipeline_t *pipeline, uint64_t *input_variable_offset, SpvReflectShaderModule *module);
+static uint8_t convert_spirv_descriptor_bindings(fs_asset_t *asset, fs_pipeline_t *pipeline, uint64_t *descriptor_binding_offset, SpvReflectShaderModule *module);
 
 uint8_t fs_import_model(fs_asset_t *asset, char const *model_file) {
   uint8_t status = 0;
@@ -198,10 +201,28 @@ uint8_t fs_import_pipeline(fs_asset_t *asset, fs_pipeline_type_t pipeline_type, 
 
   switch (pipeline_type) {
 
-    case FS_PIPELINE_TYPE_DFLT: {
+    case FS_PIPELINE_TYPE_DEFAULT: {
 
-      convert_spirv_input_variables(pipeline, &vertex_module);
-      convert_spirv_descriptor_bindings(pipeline, &vertex_module);
+      uint64_t input_variable_offset = 0;
+      uint64_t input_variable_count = 0;
+
+      uint64_t descriptor_binding_offset = 0;
+      uint64_t descriptor_binding_count = 0;
+
+      input_variable_count += count_spirv_input_variables(&vertex_module);
+
+      descriptor_binding_count += count_spirv_descriptor_bindings(&vertex_module);
+      descriptor_binding_count += count_spirv_descriptor_bindings(&fragment_module);
+
+      pipeline->input_variable_count = input_variable_count;
+      pipeline->descriptor_binding_count = descriptor_binding_count;
+      pipeline->input_variables = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * input_variable_count, 0, 0);
+      pipeline->descriptor_bindings = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * descriptor_binding_count, 0, 0);
+
+      convert_spirv_input_variables(asset, pipeline, &input_variable_offset, &vertex_module);
+
+      convert_spirv_descriptor_bindings(asset, pipeline, &descriptor_binding_offset, &vertex_module);
+      convert_spirv_descriptor_bindings(asset, pipeline, &descriptor_binding_offset, &fragment_module);
 
       pipeline->spirv_vertex_word_count = spirv_vertex_word_count;
       pipeline->spirv_fragment_word_count = spirv_fragment_word_count;
@@ -217,13 +238,13 @@ uint8_t fs_import_pipeline(fs_asset_t *asset, fs_pipeline_type_t pipeline_type, 
 
       break;
     }
-    case FS_PIPELINE_TYPE_RAY: {
+    case FS_PIPELINE_TYPE_RAY_TRACING: {
 
       // TODO
 
       break;
     }
-    case FS_PIPELINE_TYPE_COMP: {
+    case FS_PIPELINE_TYPE_COMPUTE: {
 
       // TODO
 
@@ -291,12 +312,6 @@ uint8_t fs_import_font(fs_asset_t *asset, char const *font_file) {
   }
 
   QueryPerformanceCounter(&t1);
-
-  if (file_name && file_ext) {
-    memcpy(font->name, file_name, file_ext - file_name - 1);
-  } else {
-    snprintf(font->name, TI_PATH_SIZE, "<unnamed>");
-  }
 
   convert_ttf_font(font, buffer, buffer_size);
 
@@ -803,13 +818,28 @@ error:
   return status;
 }
 
-static uint8_t convert_spirv_input_variables(fs_pipeline_t *pipeline, SpvReflectShaderModule *module) {
+static uint64_t count_spirv_input_variables(SpvReflectShaderModule *module) {
+  uint32_t input_variable_count = 0;
+
+  spvReflectEnumerateInputVariables(module, &input_variable_count, 0);
+
+  return input_variable_count;
+}
+static uint64_t count_spirv_descriptor_bindings(SpvReflectShaderModule *module) {
+  uint32_t descriptor_binding_count = 0;
+
+  spvReflectEnumerateDescriptorBindings(module, &descriptor_binding_count, 0);
+
+  return descriptor_binding_count;
+}
+
+static uint8_t convert_spirv_input_variables(fs_asset_t *asset, fs_pipeline_t *pipeline, uint64_t *input_variable_offset, SpvReflectShaderModule *module) {
   uint8_t status = 0;
 
   uint32_t input_variable_index = 0;
   uint32_t input_variable_count = 0;
 
-  SpvReflectInterfaceVariable **input_variables = 0;
+  SpvReflectInterfaceVariable **spirv_input_variables = 0;
 
   if (spvReflectEnumerateInputVariables(module, &input_variable_count, 0) != SPV_REFLECT_RESULT_SUCCESS) {
 
@@ -818,51 +848,73 @@ static uint8_t convert_spirv_input_variables(fs_pipeline_t *pipeline, SpvReflect
     goto error;
   }
 
-  input_variables = (SpvReflectInterfaceVariable **)TI_ALLOC(sizeof(SpvReflectInterfaceVariable *) * input_variable_count, 0, 0);
+  spirv_input_variables = (SpvReflectInterfaceVariable **)TI_ALLOC(sizeof(SpvReflectInterfaceVariable *) * input_variable_count, 0, 0);
 
-  if (spvReflectEnumerateInputVariables(module, &input_variable_count, input_variables) != SPV_REFLECT_RESULT_SUCCESS) {
+  if (spvReflectEnumerateInputVariables(module, &input_variable_count, spirv_input_variables) != SPV_REFLECT_RESULT_SUCCESS) {
 
     status = 1;
 
     goto error;
   }
 
-  pipeline->input_variable_count = input_variable_count;
-  pipeline->input_variables = (fs_input_variable_t *)TI_ALLOC(sizeof(fs_input_variable_t) * input_variable_count, 0, 0);
-
   while (input_variable_index < input_variable_count) {
 
-    fs_input_variable_t *input_variable = &pipeline->input_variables[input_variable_index];
-    SpvReflectInterfaceVariable *spirv_input_variable = input_variables[input_variable_index];
+    SpvReflectInterfaceVariable *spirv_input_variable = spirv_input_variables[input_variable_index];
 
-    if (spirv_input_variable->name) {
-      snprintf(input_variable->name, TI_PATH_SIZE, "%s", spirv_input_variable->name);
-    } else {
-      snprintf(input_variable->name, TI_PATH_SIZE, "<unnamed>");
+    char input_variable_file_path[TI_PATH_SIZE] = {0};
+
+    fs_path_parent(asset->path, input_variable_file_path);
+
+    snprintf(input_variable_file_path, TI_PATH_SIZE, "%s/input_variable/%s.pak", input_variable_file_path, spirv_input_variable->name);
+
+    strcpy(pipeline->input_variables[(*input_variable_offset) + input_variable_index].reference_path, input_variable_file_path);
+
+    fs_asset_t input_variable_asset = {
+      .magic = TI_FS_ASSET_MAGIC,
+      .type = FS_ASSET_TYPE_INPUT_VARIABLE,
+      .path = input_variable_file_path,
+    };
+
+    if (fs_asset_exists(&input_variable_asset) == 0) {
+
+      fs_asset_create(&input_variable_asset);
+
+      fs_input_variable_t *input_variable = (fs_input_variable_t *)input_variable_asset.instance;
+
+      if (spirv_input_variable->name) {
+        snprintf(input_variable->name, TI_PATH_SIZE, "%s", spirv_input_variable->name);
+      } else {
+        snprintf(input_variable->name, TI_PATH_SIZE, "<unnamed>");
+      }
+
+      input_variable->location = spirv_input_variable->location;
+      input_variable->is_built_in = spirv_input_variable->built_in != -1;
+      input_variable->format_index = vk_find_format_index(spirv_input_variable->format);
+
+      fs_asset_store(&input_variable_asset);
+      fs_asset_destroy(&input_variable_asset);
     }
-
-    input_variable->location = spirv_input_variable->location;
-    input_variable->format = spirv_input_variable->format;
-    input_variable->built_in = spirv_input_variable->built_in;
 
     input_variable_index++;
   }
 
+  *input_variable_offset += input_variable_count;
+
 error:
 
-  if (input_variables) {
-    TI_FREE(input_variables);
+  if (spirv_input_variables) {
+    TI_FREE(spirv_input_variables);
   }
 
   return status;
 }
-static uint8_t convert_spirv_descriptor_bindings(fs_pipeline_t *pipeline, SpvReflectShaderModule *module) {
+static uint8_t convert_spirv_descriptor_bindings(fs_asset_t *asset, fs_pipeline_t *pipeline, uint64_t *descriptor_binding_offset, SpvReflectShaderModule *module) {
   uint8_t status = 0;
 
   uint32_t descriptor_binding_index = 0;
   uint32_t descriptor_binding_count = 0;
 
-  SpvReflectDescriptorBinding **descriptor_bindings = 0;
+  SpvReflectDescriptorBinding **spirv_descriptor_bindings = 0;
 
   if (spvReflectEnumerateDescriptorBindings(module, &descriptor_binding_count, 0) != SPV_REFLECT_RESULT_SUCCESS) {
 
@@ -871,68 +923,90 @@ static uint8_t convert_spirv_descriptor_bindings(fs_pipeline_t *pipeline, SpvRef
     goto error;
   }
 
-  descriptor_bindings = (SpvReflectDescriptorBinding **)TI_ALLOC(sizeof(SpvReflectDescriptorBinding *) * descriptor_binding_count, 0, 0);
+  spirv_descriptor_bindings = (SpvReflectDescriptorBinding **)TI_ALLOC(sizeof(SpvReflectDescriptorBinding *) * descriptor_binding_count, 0, 0);
 
-  if (spvReflectEnumerateDescriptorBindings(module, &descriptor_binding_count, descriptor_bindings) != SPV_REFLECT_RESULT_SUCCESS) {
+  if (spvReflectEnumerateDescriptorBindings(module, &descriptor_binding_count, spirv_descriptor_bindings) != SPV_REFLECT_RESULT_SUCCESS) {
 
     status = 1;
 
     goto error;
   }
 
-  pipeline->descriptor_binding_count = descriptor_binding_count;
-  pipeline->descriptor_bindings = TI_ALLOC(sizeof(fs_descriptor_binding_t) * descriptor_binding_count, 0, 0);
-
   while (descriptor_binding_index < descriptor_binding_count) {
 
-    fs_descriptor_binding_t *descriptor_binding = &pipeline->descriptor_bindings[descriptor_binding_index];
-    SpvReflectDescriptorBinding *spriv_descriptor_binding = descriptor_bindings[descriptor_binding_index];
+    SpvReflectDescriptorBinding *spriv_descriptor_binding = spirv_descriptor_bindings[descriptor_binding_index];
 
-    if (spriv_descriptor_binding->name) {
-      snprintf(descriptor_binding->name, TI_PATH_SIZE, "%s", spriv_descriptor_binding->name);
-    } else {
-      snprintf(descriptor_binding->name, TI_PATH_SIZE, "<unnamed>");
-    }
+    char descriptor_binding_file_path[TI_PATH_SIZE] = {0};
 
-    descriptor_binding->set = spriv_descriptor_binding->set;
-    descriptor_binding->binding = spriv_descriptor_binding->binding;
-    descriptor_binding->descriptor_type = spriv_descriptor_binding->descriptor_type;
+    fs_path_parent(asset->path, descriptor_binding_file_path);
 
-    if ((spriv_descriptor_binding->descriptor_type == SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER) ||
-        (spriv_descriptor_binding->descriptor_type == SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER)) {
+    snprintf(descriptor_binding_file_path, TI_PATH_SIZE, "%s/descriptor_binding/%s.pak", descriptor_binding_file_path, spriv_descriptor_binding->name);
 
-      descriptor_binding->block_size = spriv_descriptor_binding->block.size;
-      descriptor_binding->block_variable_count = spriv_descriptor_binding->block.member_count;
-      descriptor_binding->block_variables = TI_ALLOC(sizeof(fs_block_variable_t) * spriv_descriptor_binding->block.member_count, 0, 0);
+    strcpy(pipeline->descriptor_bindings[(*descriptor_binding_offset) + descriptor_binding_index].reference_path, descriptor_binding_file_path);
 
-      uint32_t block_variable_index = 0;
-      uint32_t block_variable_count = spriv_descriptor_binding->block.member_count;
+    fs_asset_t descriptor_binding_asset = {
+      .magic = TI_FS_ASSET_MAGIC,
+      .type = FS_ASSET_TYPE_DESCRIPTOR_BINDING,
+      .path = descriptor_binding_file_path,
+    };
 
-      while (block_variable_index < block_variable_count) {
+    if (fs_asset_exists(&descriptor_binding_asset) == 0) {
 
-        fs_block_variable_t *block_variable = &descriptor_binding->block_variables[block_variable_index];
-        SpvReflectBlockVariable *spriv_block_variable = &spriv_descriptor_binding->block.members[block_variable_index];
+      fs_asset_create(&descriptor_binding_asset);
 
-        if (spriv_block_variable->name) {
-          snprintf(block_variable->name, TI_PATH_SIZE, "%s", spriv_block_variable->name);
-        } else {
-          snprintf(block_variable->name, TI_PATH_SIZE, "<unnamed>");
-        }
+      fs_descriptor_binding_t *descriptor_binding = (fs_descriptor_binding_t *)descriptor_binding_asset.instance;
 
-        block_variable->offset = spriv_block_variable->offset;
-        block_variable->size = spriv_block_variable->size;
-
-        block_variable_index++;
+      if (spriv_descriptor_binding->name) {
+        snprintf(descriptor_binding->name, TI_PATH_SIZE, "%s", spriv_descriptor_binding->name);
+      } else {
+        snprintf(descriptor_binding->name, TI_PATH_SIZE, "<unnamed>");
       }
+
+      descriptor_binding->set = spriv_descriptor_binding->set;
+      descriptor_binding->binding = spriv_descriptor_binding->binding;
+      descriptor_binding->descriptor_type_index = vk_find_descriptor_type_index(spriv_descriptor_binding->descriptor_type);
+
+      if ((spriv_descriptor_binding->descriptor_type == SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER) ||
+          (spriv_descriptor_binding->descriptor_type == SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER)) {
+
+        descriptor_binding->block_size = spriv_descriptor_binding->block.size;
+        descriptor_binding->block_variable_count = spriv_descriptor_binding->block.member_count;
+        descriptor_binding->block_variables = TI_ALLOC(sizeof(fs_block_variable_t) * spriv_descriptor_binding->block.member_count, 0, 0);
+
+        uint32_t block_variable_index = 0;
+        uint32_t block_variable_count = spriv_descriptor_binding->block.member_count;
+
+        while (block_variable_index < block_variable_count) {
+
+          fs_block_variable_t *block_variable = &descriptor_binding->block_variables[block_variable_index];
+          SpvReflectBlockVariable *spriv_block_variable = &spriv_descriptor_binding->block.members[block_variable_index];
+
+          if (spriv_block_variable->name) {
+            snprintf(block_variable->name, TI_PATH_SIZE, "%s", spriv_block_variable->name);
+          } else {
+            snprintf(block_variable->name, TI_PATH_SIZE, "<unnamed>");
+          }
+
+          block_variable->offset = spriv_block_variable->offset;
+          block_variable->size = spriv_block_variable->size;
+
+          block_variable_index++;
+        }
+      }
+
+      fs_asset_store(&descriptor_binding_asset);
+      fs_asset_destroy(&descriptor_binding_asset);
     }
 
     descriptor_binding_index++;
   }
 
+  *descriptor_binding_offset += descriptor_binding_count;
+
 error:
 
-  if (descriptor_bindings) {
-    TI_FREE(descriptor_bindings);
+  if (spirv_descriptor_bindings) {
+    TI_FREE(spirv_descriptor_bindings);
   }
 
   return status;
