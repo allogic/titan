@@ -296,7 +296,7 @@ static void create_dflt_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *rende
 
   VkPipelineInputAssemblyStateCreateInfo pipeline_input_assembly_state_create_info = {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-    .topology = config->primitive_topology,
+    .topology = g_vk_primitive_topology_table[config->primitive_topology_index].value,
     .primitiveRestartEnable = 0,
   };
 
@@ -330,7 +330,7 @@ static void create_dflt_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *rende
     .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
     .depthClampEnable = 0,
     .rasterizerDiscardEnable = 0,
-    .polygonMode = config->polygon_mode,
+    .polygonMode = g_vk_polygon_mode_table[config->polygon_mode_index].value,
     .lineWidth = 1.0F,
     .cullMode = config->cull_mode_flags,
     .frontFace = VK_FRONT_FACE_CLOCKWISE,
@@ -530,7 +530,7 @@ static void create_mesh_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *rende
     .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
     .depthClampEnable = 0,
     .rasterizerDiscardEnable = 0,
-    .polygonMode = config->polygon_mode,
+    .polygonMode = g_vk_polygon_mode_table[config->polygon_mode_index].value,
     .lineWidth = 1.0F,
     .cullMode = config->cull_mode_flags,
     .frontFace = VK_FRONT_FACE_CLOCKWISE,

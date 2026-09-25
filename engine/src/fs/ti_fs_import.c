@@ -193,12 +193,6 @@ uint8_t fs_import_pipeline(fs_asset_t *asset, fs_pipeline_type_t pipeline_type, 
 
   QueryPerformanceCounter(&t3);
 
-  if (file_name && file_ext) {
-    memcpy(pipeline->name, file_name, file_ext - file_name - 1);
-  } else {
-    snprintf(pipeline->name, TI_PATH_SIZE, "<unnamed>");
-  }
-
   switch (pipeline_type) {
 
     case FS_PIPELINE_TYPE_DEFAULT: {

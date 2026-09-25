@@ -325,13 +325,13 @@ static void import_dflt_assets(void) {
         fs_pipeline_t *pipeline = (fs_pipeline_t *)asset.instance;
 
         pipeline->pipeline_type = FS_PIPELINE_TYPE_DEFAULT;
-        pipeline->primitive_topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
-        pipeline->polygon_mode = VK_POLYGON_MODE_FILL;
+        pipeline->primitive_topology_index = vk_find_primitive_topology_index(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
+        pipeline->polygon_mode_index = vk_find_polygon_mode_index(VK_POLYGON_MODE_FILL);
         pipeline->cull_mode_flags = VK_CULL_MODE_BACK_BIT;
         pipeline->enable_blending = 1;
         pipeline->enable_depth_test = 1;
         pipeline->enable_depth_write = 1;
-        pipeline->descriptor_set_count = 1; // TODO
+        pipeline->descriptor_set_count = 1;
 
         fs_asset_store(&asset);
       }
@@ -355,13 +355,13 @@ static void import_dflt_assets(void) {
         fs_pipeline_t *pipeline = (fs_pipeline_t *)asset.instance;
 
         pipeline->pipeline_type = FS_PIPELINE_TYPE_DEFAULT;
-        pipeline->primitive_topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
-        pipeline->polygon_mode = VK_POLYGON_MODE_FILL;
+        pipeline->primitive_topology_index = vk_find_primitive_topology_index(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
+        pipeline->polygon_mode_index = vk_find_polygon_mode_index(VK_POLYGON_MODE_FILL);
         pipeline->cull_mode_flags = VK_CULL_MODE_BACK_BIT;
         pipeline->enable_blending = 1;
         pipeline->enable_depth_test = 1;
         pipeline->enable_depth_write = 1;
-        pipeline->descriptor_set_count = 1; // TODO
+        pipeline->descriptor_set_count = 1;
 
         fs_asset_store(&asset);
       }

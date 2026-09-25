@@ -13,6 +13,7 @@ static bool draw_memory_property_flags(VkMemoryPropertyFlags *flags);
 static bool draw_memory_allocate_flags(VkMemoryAllocateFlags *flags);
 static bool draw_image_usage_flags(VkImageUsageFlags *flags);
 static bool draw_image_aspect_flags(VkImageAspectFlags *flags);
+static bool draw_cull_mode_flags(VkCullModeFlags *flags);
 
 static bool draw_vulkan_enum_dropdown(char const *label, uint64_t *selected_index, vk_enum_record_t *table, uint64_t table_count);
 
@@ -363,7 +364,14 @@ static void draw_asset(void) {
 
       fs_pipeline_t *pipeline = (fs_pipeline_t *)s_selected_asset.instance;
 
-      ImGui::Text("%s", pipeline->name);
+      dirty |= ImGui::Checkbox("Enable Blending", (bool *)&pipeline->enable_blending);
+      dirty |= ImGui::Checkbox("Enable Depth Test", (bool *)&pipeline->enable_depth_test);
+      dirty |= ImGui::Checkbox("Enable Depth Write", (bool *)&pipeline->enable_depth_write);
+
+      dirty |= ImGui::InputScalar("Descriptor Set Count", ImGuiDataType_U32, &pipeline->descriptor_set_count, 0, 0, "%lu", ImGuiInputTextFlags_EnterReturnsTrue);
+
+      ImGui::SeparatorText("Cull Mode Flags");
+      dirty |= draw_cull_mode_flags(&pipeline->cull_mode_flags);
 
       ImGui::SeparatorText("Input Variables");
 
@@ -496,8 +504,6 @@ static void draw_asset(void) {
 
         ImGui::PushID(color_attachment_reference);
 
-        dirty |= ImGui::InputText("Color Attachment", color_attachment_reference->reference_path, TI_PATH_SIZE, ImGuiInputTextFlags_EnterReturnsTrue);
-
         ImGui::SameLine();
         ImGui::PushFont((ImFont *)g_im_font_symbols_18);
 
@@ -507,6 +513,9 @@ static void draw_asset(void) {
         }
 
         ImGui::PopFont();
+
+        dirty |= ImGui::InputText("Color Attachment", color_attachment_reference->reference_path, TI_PATH_SIZE, ImGuiInputTextFlags_EnterReturnsTrue);
+
         ImGui::PopID();
 
         attachment_index++;
@@ -977,6 +986,15 @@ static bool draw_image_aspect_flags(VkImageAspectFlags *flags) {
   dirty |= ImGui::CheckboxFlags("VK_IMAGE_ASPECT_MEMORY_PLANE_1_BIT_EXT", flags, VK_IMAGE_ASPECT_MEMORY_PLANE_1_BIT_EXT);
   dirty |= ImGui::CheckboxFlags("VK_IMAGE_ASPECT_MEMORY_PLANE_2_BIT_EXT", flags, VK_IMAGE_ASPECT_MEMORY_PLANE_2_BIT_EXT);
   dirty |= ImGui::CheckboxFlags("VK_IMAGE_ASPECT_MEMORY_PLANE_3_BIT_EXT", flags, VK_IMAGE_ASPECT_MEMORY_PLANE_3_BIT_EXT);
+
+  return dirty;
+}
+static bool draw_cull_mode_flags(VkCullModeFlags *flags) {
+  bool dirty = false;
+
+  dirty |= ImGui::CheckboxFlags("VK_CULL_MODE_FRONT_BIT", flags, VK_CULL_MODE_FRONT_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_CULL_MODE_BACK_BIT", flags, VK_CULL_MODE_BACK_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_CULL_MODE_FRONT_AND_BACK", flags, VK_CULL_MODE_FRONT_AND_BACK);
 
   return dirty;
 }
