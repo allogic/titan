@@ -519,7 +519,6 @@ static void create_dflt_assets(void) {
 
       fs_framebuffer_t *framebuffer = (fs_framebuffer_t *)asset.instance;
 
-      strcpy(framebuffer->name, "main");
       strcpy(framebuffer->color_attachment_image, "asset/framebuffer/main/attachments/color.pak");
       strcpy(framebuffer->depth_attachment_image, "asset/framebuffer/main/attachments/depth.pak");
 
@@ -540,7 +539,6 @@ static void create_dflt_assets(void) {
 
       fs_framebuffer_t *framebuffer = (fs_framebuffer_t *)asset.instance;
 
-      strcpy(framebuffer->name, "main");
       strcpy(framebuffer->color_attachment_image, "asset/framebuffer/imgui/attachments/color.pak");
       strcpy(framebuffer->depth_attachment_image, "asset/framebuffer/imgui/attachments/depth.pak");
 
@@ -655,17 +653,15 @@ static void create_dflt_assets(void) {
 
       fs_image_t *image = (fs_image_t *)asset.instance;
 
-      strcpy(image->name, "color");
-
       image->width = 0;  // TODO
       image->height = 0; // TODO
       image->depth = 1;  // TODO
       image->mip_levels = 1;
-      image->format = VK_FORMAT_R8G8B8A8_UNORM;
-      image->image_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-      image->image_type = VK_IMAGE_TYPE_2D;
-      image->image_tiling = VK_IMAGE_TILING_OPTIMAL;
-      image->image_view_type = VK_IMAGE_VIEW_TYPE_2D;
+      image->format_index = vk_find_format_index(VK_FORMAT_R8G8B8A8_UNORM);
+      image->image_layout_index = vk_find_image_layout_index(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+      image->image_type_index = vk_find_image_type_index(VK_IMAGE_TYPE_2D);
+      image->image_tiling_index = vk_find_image_tiling_index(VK_IMAGE_TILING_OPTIMAL);
+      image->image_view_type_index = vk_find_image_view_type_index(VK_IMAGE_VIEW_TYPE_2D);
       image->image_usage_flags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
       image->image_aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT;
       image->memory_property_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
@@ -688,17 +684,15 @@ static void create_dflt_assets(void) {
 
       fs_image_t *image = (fs_image_t *)asset.instance;
 
-      strcpy(image->name, "depth");
-
       image->width = 0;  // TODO
       image->height = 0; // TODO
       image->depth = 1;  // TODO
       image->mip_levels = 1;
-      image->format = VK_FORMAT_D32_SFLOAT;
-      image->image_layout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
-      image->image_type = VK_IMAGE_TYPE_2D;
-      image->image_tiling = VK_IMAGE_TILING_OPTIMAL;
-      image->image_view_type = VK_IMAGE_VIEW_TYPE_2D;
+      image->format_index = vk_find_format_index(VK_FORMAT_D32_SFLOAT);
+      image->image_layout_index = vk_find_image_layout_index(VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+      image->image_type_index = vk_find_image_type_index(VK_IMAGE_TYPE_2D);
+      image->image_tiling_index = vk_find_image_tiling_index(VK_IMAGE_TILING_OPTIMAL);
+      image->image_view_type_index = vk_find_image_view_type_index(VK_IMAGE_VIEW_TYPE_2D);
       image->image_usage_flags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
       image->image_aspect_flags = VK_IMAGE_ASPECT_DEPTH_BIT;
       image->memory_property_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
@@ -722,17 +716,15 @@ static void create_dflt_assets(void) {
 
       fs_image_t *image = (fs_image_t *)asset.instance;
 
-      strcpy(image->name, "color");
-
       image->width = 0;  // TODO
       image->height = 0; // TODO
       image->depth = 1;  // TODO
       image->mip_levels = 1;
-      image->format = VK_FORMAT_R8G8B8A8_UNORM;
-      image->image_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-      image->image_type = VK_IMAGE_TYPE_2D;
-      image->image_tiling = VK_IMAGE_TILING_OPTIMAL;
-      image->image_view_type = VK_IMAGE_VIEW_TYPE_2D;
+      image->format_index = vk_find_format_index(VK_FORMAT_R8G8B8A8_UNORM);
+      image->image_layout_index = vk_find_image_layout_index(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+      image->image_type_index = vk_find_image_type_index(VK_IMAGE_TYPE_2D);
+      image->image_tiling_index = vk_find_image_tiling_index(VK_IMAGE_TILING_OPTIMAL);
+      image->image_view_type_index = vk_find_image_view_type_index(VK_IMAGE_VIEW_TYPE_2D);
       image->image_usage_flags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
       image->image_aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT;
       image->memory_property_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
@@ -755,17 +747,15 @@ static void create_dflt_assets(void) {
 
       fs_image_t *image = (fs_image_t *)asset.instance;
 
-      strcpy(image->name, "depth");
-
       image->width = 0;  // TODO
       image->height = 0; // TODO
       image->depth = 1;  // TODO
       image->mip_levels = 1;
-      image->format = VK_FORMAT_D32_SFLOAT;
-      image->image_layout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
-      image->image_type = VK_IMAGE_TYPE_2D;
-      image->image_tiling = VK_IMAGE_TILING_OPTIMAL;
-      image->image_view_type = VK_IMAGE_VIEW_TYPE_2D;
+      image->format_index = vk_find_format_index(VK_FORMAT_D32_SFLOAT);
+      image->image_layout_index = vk_find_image_layout_index(VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL);
+      image->image_type_index = vk_find_image_type_index(VK_IMAGE_TYPE_2D);
+      image->image_tiling_index = vk_find_image_tiling_index(VK_IMAGE_TILING_OPTIMAL);
+      image->image_view_type_index = vk_find_image_view_type_index(VK_IMAGE_VIEW_TYPE_2D);
       image->image_usage_flags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
       image->image_aspect_flags = VK_IMAGE_ASPECT_DEPTH_BIT;
       image->memory_property_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;

@@ -7,8 +7,8 @@ typedef enum fs_asset_type_t {
   FS_ASSET_TYPE_PIPELINE,
   FS_ASSET_TYPE_FONT,
   FS_ASSET_TYPE_DESCRIPTOR_BINDING,
-  FS_ASSET_TYPE_BUFFER,
-  FS_ASSET_TYPE_IMAGE,
+  FS_ASSET_TYPE_BUFFER, // OK
+  FS_ASSET_TYPE_IMAGE,  // OK
   FS_ASSET_TYPE_FRAMEBUFFER,
   FS_ASSET_TYPE_SWAPCHAIN,
   FS_ASSET_TYPE_RENDERPASS,
@@ -76,23 +76,25 @@ typedef struct fs_buffer_t {
   VkMemoryAllocateFlags memory_allocate_flags;
 } fs_buffer_t;
 typedef struct fs_image_t {
-  char name[TI_PATH_SIZE];
   uint32_t width;
   uint32_t height;
   uint32_t depth;
   uint32_t mip_levels;
-  VkFormat format;
-  VkImageLayout image_layout;
-  VkImageType image_type;
-  VkImageTiling image_tiling;
-  VkImageViewType image_view_type;
+  uint64_t format_index;
+  uint64_t image_layout_index;
+  uint64_t image_type_index;
+  uint64_t image_tiling_index;
+  uint64_t image_view_type_index;
   VkImageUsageFlags image_usage_flags;
   VkImageAspectFlags image_aspect_flags;
   VkMemoryPropertyFlags memory_property_flags;
   VkMemoryAllocateFlags memory_allocate_flags;
 } fs_image_t;
+typedef struct fs_framebuffer_attachment_t {
+  char attachment_image[TI_PATH_SIZE];
+} fs_framebuffer_attachment_t;
+// TODO
 typedef struct fs_framebuffer_t {
-  char name[TI_PATH_SIZE];
   char color_attachment_image[TI_PATH_SIZE];
   char depth_attachment_image[TI_PATH_SIZE];
 } fs_framebuffer_t;

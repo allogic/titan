@@ -9,7 +9,7 @@ void vk_image_create(vk_image_t *image, uint32_t width, uint32_t height, uint32_
 
   VkImageCreateInfo image_create_info = {
     .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-    .imageType = config->image_type,
+    .imageType = g_vk_image_type_table[config->image_type_index].value,
     .extent = {
       .width = config->width ? config->width : width,     // TODO
       .height = config->height ? config->height : height, // TODO
@@ -17,8 +17,8 @@ void vk_image_create(vk_image_t *image, uint32_t width, uint32_t height, uint32_
     },
     .mipLevels = config->mip_levels,
     .arrayLayers = 1,
-    .format = config->format,
-    .tiling = config->image_tiling,
+    .format = g_vk_format_table[config->format_index].value,
+    .tiling = g_vk_image_tiling_table[config->image_tiling_index].value,
     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     .usage = config->image_usage_flags,
     .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -51,8 +51,8 @@ void vk_image_create(vk_image_t *image, uint32_t width, uint32_t height, uint32_
   VkImageViewCreateInfo image_view_create_info = {
     .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
     .image = image->handle,
-    .viewType = config->image_view_type,
-    .format = config->format,
+    .viewType = g_vk_image_view_type_table[config->image_view_type_index].value,
+    .format = g_vk_format_table[config->format_index].value,
     .subresourceRange = {
       .aspectMask = config->image_aspect_flags,
       .baseMipLevel = 0,
@@ -92,7 +92,7 @@ void vk_image_create(vk_image_t *image, uint32_t width, uint32_t height, uint32_
     .srcAccessMask = VK_ACCESS_NONE,
     .dstAccessMask = VK_ACCESS_NONE,
     .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-    .newLayout = config->image_layout,
+    .newLayout = g_vk_image_layout_table[config->image_layout_index].value,
     .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
     .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
     .image = image->handle,

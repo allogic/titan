@@ -720,6 +720,9 @@ static uint8_t compile_glsl_shader(char const *file_path, glslang_stage_t stage,
   void *buffer = 0;
   uint64_t buffer_size = 0;
 
+  glslang_program_t *program = 0;
+  glslang_shader_t *shader = 0;
+
   if (fs_file_open_and_read(g_fs, file_path, FS_FORMAT_TEXT, &buffer, &buffer_size) != FS_SUCCESS) {
 
     status = 1;
@@ -745,7 +748,7 @@ static uint8_t compile_glsl_shader(char const *file_path, glslang_stage_t stage,
     .resource = glslang_default_resource(),
   };
 
-  glslang_shader_t *shader = glslang_shader_create(&stage_input);
+  shader = glslang_shader_create(&stage_input);
 
   if ((glslang_shader_preprocess(shader, &stage_input) == 0) ||
       (glslang_shader_parse(shader, &stage_input) == 0)) {
@@ -759,7 +762,7 @@ static uint8_t compile_glsl_shader(char const *file_path, glslang_stage_t stage,
     goto error;
   }
 
-  glslang_program_t *program = glslang_program_create();
+  program = glslang_program_create();
 
   glslang_program_add_shader(program, shader);
 

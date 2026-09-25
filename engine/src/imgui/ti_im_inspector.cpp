@@ -11,6 +11,10 @@ static void draw_entity(void);
 static bool draw_buffer_usage_flags(VkBufferUsageFlags *flags);
 static bool draw_memory_property_flags(VkMemoryPropertyFlags *flags);
 static bool draw_memory_allocate_flags(VkMemoryAllocateFlags *flags);
+static bool draw_image_usage_flags(VkImageUsageFlags *flags);
+static bool draw_image_aspect_flags(VkImageAspectFlags *flags);
+
+static bool draw_vulkan_enum_dropdown(char const *label, uint64_t *selected_index, vk_enum_record_t *table, uint64_t table_count);
 
 static im_inspector_type_t s_inspector_type = IM_INSPECTOR_TYPE_NONE;
 static comp_type_t s_selected_comp = COMP_TYPE_TRANSFORM;
@@ -18,12 +22,199 @@ static fs_asset_t s_selected_asset = {0};
 
 static void *s_selected_data = 0;
 
-static const char *s_component_names[] = {
+static const char *s_component_name[] = {
   "Transform",
   "Camera",
   "Material",
   "Mesh",
   "Skeleton",
+};
+static const char *s_vk_format_name[] = {
+  "VK_FORMAT_UNDEFINED",
+  "VK_FORMAT_R4G4_UNORM_PACK8",
+  "VK_FORMAT_R4G4B4A4_UNORM_PACK16",
+  "VK_FORMAT_B4G4R4A4_UNORM_PACK16",
+  "VK_FORMAT_R5G6B5_UNORM_PACK16",
+  "VK_FORMAT_B5G6R5_UNORM_PACK16",
+  "VK_FORMAT_R5G5B5A1_UNORM_PACK16",
+  "VK_FORMAT_B5G5R5A1_UNORM_PACK16",
+  "VK_FORMAT_A1R5G5B5_UNORM_PACK16",
+  "VK_FORMAT_R8_UNORM",
+  "VK_FORMAT_R8_SNORM",
+  "VK_FORMAT_R8_USCALED",
+  "VK_FORMAT_R8_SSCALED",
+  "VK_FORMAT_R8_UINT",
+  "VK_FORMAT_R8_SINT",
+  "VK_FORMAT_R8_SRGB",
+  "VK_FORMAT_R8G8_UNORM",
+  "VK_FORMAT_R8G8_SNORM",
+  "VK_FORMAT_R8G8_USCALED",
+  "VK_FORMAT_R8G8_SSCALED",
+  "VK_FORMAT_R8G8_UINT",
+  "VK_FORMAT_R8G8_SINT",
+  "VK_FORMAT_R8G8_SRGB",
+  "VK_FORMAT_R8G8B8_UNORM",
+  "VK_FORMAT_R8G8B8_SNORM",
+  "VK_FORMAT_R8G8B8_USCALED",
+  "VK_FORMAT_R8G8B8_SSCALED",
+  "VK_FORMAT_R8G8B8_UINT",
+  "VK_FORMAT_R8G8B8_SINT",
+  "VK_FORMAT_R8G8B8_SRGB",
+  "VK_FORMAT_B8G8R8_UNORM",
+  "VK_FORMAT_B8G8R8_SNORM",
+  "VK_FORMAT_B8G8R8_USCALED",
+  "VK_FORMAT_B8G8R8_SSCALED",
+  "VK_FORMAT_B8G8R8_UINT",
+  "VK_FORMAT_B8G8R8_SINT",
+  "VK_FORMAT_B8G8R8_SRGB",
+  "VK_FORMAT_R8G8B8A8_UNORM",
+  "VK_FORMAT_R8G8B8A8_SNORM",
+  "VK_FORMAT_R8G8B8A8_USCALED",
+  "VK_FORMAT_R8G8B8A8_SSCALED",
+  "VK_FORMAT_R8G8B8A8_UINT",
+  "VK_FORMAT_R8G8B8A8_SINT",
+  "VK_FORMAT_R8G8B8A8_SRGB",
+  "VK_FORMAT_B8G8R8A8_UNORM",
+  "VK_FORMAT_B8G8R8A8_SNORM",
+  "VK_FORMAT_B8G8R8A8_USCALED",
+  "VK_FORMAT_B8G8R8A8_SSCALED",
+  "VK_FORMAT_B8G8R8A8_UINT",
+  "VK_FORMAT_B8G8R8A8_SINT",
+  "VK_FORMAT_B8G8R8A8_SRGB",
+  "VK_FORMAT_A8B8G8R8_UNORM_PACK32",
+  "VK_FORMAT_A8B8G8R8_SNORM_PACK32",
+  "VK_FORMAT_A8B8G8R8_USCALED_PACK32",
+  "VK_FORMAT_A8B8G8R8_SSCALED_PACK32",
+  "VK_FORMAT_A8B8G8R8_UINT_PACK32",
+  "VK_FORMAT_A8B8G8R8_SINT_PACK32",
+  "VK_FORMAT_A8B8G8R8_SRGB_PACK32",
+  "VK_FORMAT_A2R10G10B10_UNORM_PACK32",
+  "VK_FORMAT_A2R10G10B10_SNORM_PACK32",
+  "VK_FORMAT_A2R10G10B10_USCALED_PACK32",
+  "VK_FORMAT_A2R10G10B10_SSCALED_PACK32",
+  "VK_FORMAT_A2R10G10B10_UINT_PACK32",
+  "VK_FORMAT_A2R10G10B10_SINT_PACK32",
+  "VK_FORMAT_A2B10G10R10_UNORM_PACK32",
+  "VK_FORMAT_A2B10G10R10_SNORM_PACK32",
+  "VK_FORMAT_A2B10G10R10_USCALED_PACK32",
+  "VK_FORMAT_A2B10G10R10_SSCALED_PACK32",
+  "VK_FORMAT_A2B10G10R10_UINT_PACK32",
+  "VK_FORMAT_A2B10G10R10_SINT_PACK32",
+  "VK_FORMAT_R16_UNORM",
+  "VK_FORMAT_R16_SNORM",
+  "VK_FORMAT_R16_USCALED",
+  "VK_FORMAT_R16_SSCALED",
+  "VK_FORMAT_R16_UINT",
+  "VK_FORMAT_R16_SINT",
+  "VK_FORMAT_R16_SFLOAT",
+  "VK_FORMAT_R16G16_UNORM",
+  "VK_FORMAT_R16G16_SNORM",
+  "VK_FORMAT_R16G16_USCALED",
+  "VK_FORMAT_R16G16_SSCALED",
+  "VK_FORMAT_R16G16_UINT",
+  "VK_FORMAT_R16G16_SINT",
+  "VK_FORMAT_R16G16_SFLOAT",
+  "VK_FORMAT_R16G16B16_UNORM",
+  "VK_FORMAT_R16G16B16_SNORM",
+  "VK_FORMAT_R16G16B16_USCALED",
+  "VK_FORMAT_R16G16B16_SSCALED",
+  "VK_FORMAT_R16G16B16_UINT",
+  "VK_FORMAT_R16G16B16_SINT",
+  "VK_FORMAT_R16G16B16_SFLOAT",
+  "VK_FORMAT_R16G16B16A16_UNORM",
+  "VK_FORMAT_R16G16B16A16_SNORM",
+  "VK_FORMAT_R16G16B16A16_USCALED",
+  "VK_FORMAT_R16G16B16A16_SSCALED",
+  "VK_FORMAT_R16G16B16A16_UINT",
+  "VK_FORMAT_R16G16B16A16_SINT",
+  "VK_FORMAT_R16G16B16A16_SFLOAT",
+  "VK_FORMAT_R32_UINT",
+  "VK_FORMAT_R32_SINT",
+  "VK_FORMAT_R32_SFLOAT",
+  "VK_FORMAT_R32G32_UINT",
+  "VK_FORMAT_R32G32_SINT",
+  "VK_FORMAT_R32G32_SFLOAT",
+  "VK_FORMAT_R32G32B32_UINT",
+  "VK_FORMAT_R32G32B32_SINT",
+  "VK_FORMAT_R32G32B32_SFLOAT",
+  "VK_FORMAT_R32G32B32A32_UINT",
+  "VK_FORMAT_R32G32B32A32_SINT",
+  "VK_FORMAT_R32G32B32A32_SFLOAT",
+  "VK_FORMAT_R64_UINT",
+  "VK_FORMAT_R64_SINT",
+  "VK_FORMAT_R64_SFLOAT",
+  "VK_FORMAT_R64G64_UINT",
+  "VK_FORMAT_R64G64_SINT",
+  "VK_FORMAT_R64G64_SFLOAT",
+  "VK_FORMAT_R64G64B64_UINT",
+  "VK_FORMAT_R64G64B64_SINT",
+  "VK_FORMAT_R64G64B64_SFLOAT",
+  "VK_FORMAT_R64G64B64A64_UINT",
+  "VK_FORMAT_R64G64B64A64_SINT",
+  "VK_FORMAT_R64G64B64A64_SFLOAT",
+  "VK_FORMAT_B10G11R11_UFLOAT_PACK32",
+  "VK_FORMAT_E5B9G9R9_UFLOAT_PACK32",
+  "VK_FORMAT_D16_UNORM",
+  "VK_FORMAT_X8_D24_UNORM_PACK32",
+  "VK_FORMAT_D32_SFLOAT",
+  "VK_FORMAT_S8_UINT",
+  "VK_FORMAT_D16_UNORM_S8_UINT",
+  "VK_FORMAT_D24_UNORM_S8_UINT",
+  "VK_FORMAT_D32_SFLOAT_S8_UINT",
+  "VK_FORMAT_BC1_RGB_UNORM_BLOCK",
+  "VK_FORMAT_BC1_RGB_SRGB_BLOCK",
+  "VK_FORMAT_BC1_RGBA_UNORM_BLOCK",
+  "VK_FORMAT_BC1_RGBA_SRGB_BLOCK",
+  "VK_FORMAT_BC2_UNORM_BLOCK",
+  "VK_FORMAT_BC2_SRGB_BLOCK",
+  "VK_FORMAT_BC3_UNORM_BLOCK",
+  "VK_FORMAT_BC3_SRGB_BLOCK",
+  "VK_FORMAT_BC4_UNORM_BLOCK",
+  "VK_FORMAT_BC4_SNORM_BLOCK",
+  "VK_FORMAT_BC5_UNORM_BLOCK",
+  "VK_FORMAT_BC5_SNORM_BLOCK",
+  "VK_FORMAT_BC6H_UFLOAT_BLOCK",
+  "VK_FORMAT_BC6H_SFLOAT_BLOCK",
+  "VK_FORMAT_BC7_UNORM_BLOCK",
+  "VK_FORMAT_BC7_SRGB_BLOCK",
+  "VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK",
+  "VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK",
+  "VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK",
+  "VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK",
+  "VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK",
+  "VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK",
+  "VK_FORMAT_EAC_R11_UNORM_BLOCK",
+  "VK_FORMAT_EAC_R11_SNORM_BLOCK",
+  "VK_FORMAT_EAC_R11G11_UNORM_BLOCK",
+  "VK_FORMAT_EAC_R11G11_SNORM_BLOCK",
+  "VK_FORMAT_ASTC_4x4_UNORM_BLOCK",
+  "VK_FORMAT_ASTC_4x4_SRGB_BLOCK",
+  "VK_FORMAT_ASTC_5x4_UNORM_BLOCK",
+  "VK_FORMAT_ASTC_5x4_SRGB_BLOCK",
+  "VK_FORMAT_ASTC_5x5_UNORM_BLOCK",
+  "VK_FORMAT_ASTC_5x5_SRGB_BLOCK",
+  "VK_FORMAT_ASTC_6x5_UNORM_BLOCK",
+  "VK_FORMAT_ASTC_6x5_SRGB_BLOCK",
+  "VK_FORMAT_ASTC_6x6_UNORM_BLOCK",
+  "VK_FORMAT_ASTC_6x6_SRGB_BLOCK",
+  "VK_FORMAT_ASTC_8x5_UNORM_BLOCK",
+  "VK_FORMAT_ASTC_8x5_SRGB_BLOCK",
+  "VK_FORMAT_ASTC_8x6_UNORM_BLOCK",
+  "VK_FORMAT_ASTC_8x6_SRGB_BLOCK",
+  "VK_FORMAT_ASTC_8x8_UNORM_BLOCK",
+  "VK_FORMAT_ASTC_8x8_SRGB_BLOCK",
+  "VK_FORMAT_ASTC_10x5_UNORM_BLOCK",
+  "VK_FORMAT_ASTC_10x5_SRGB_BLOCK",
+  "VK_FORMAT_ASTC_10x6_UNORM_BLOCK",
+  "VK_FORMAT_ASTC_10x6_SRGB_BLOCK",
+  "VK_FORMAT_ASTC_10x8_UNORM_BLOCK",
+  "VK_FORMAT_ASTC_10x8_SRGB_BLOCK",
+  "VK_FORMAT_ASTC_10x10_UNORM_BLOCK",
+  "VK_FORMAT_ASTC_10x10_SRGB_BLOCK",
+  "VK_FORMAT_ASTC_12x10_UNORM_BLOCK",
+  "VK_FORMAT_ASTC_12x10_SRGB_BLOCK",
+  "VK_FORMAT_ASTC_12x12_UNORM_BLOCK",
+  "VK_FORMAT_ASTC_12x12_SRGB_BLOCK",
 };
 
 void im_inspector_draw(void) {
@@ -284,7 +475,7 @@ static void draw_asset(void) {
 
       fs_framebuffer_t *framebuffer = (fs_framebuffer_t *)s_selected_asset.instance;
 
-      ImGui::Text("%s", framebuffer->name);
+      dirty |= ImGui::InputText("Depth Attachment", framebuffer->depth_attachment_image, TI_PATH_SIZE, ImGuiInputTextFlags_EnterReturnsTrue);
 
       if (ImGui::Button("Add Color Attachment")) {
         // TODO
@@ -310,6 +501,35 @@ static void draw_asset(void) {
 
       break;
     }
+    case FS_ASSET_TYPE_IMAGE: {
+
+      fs_image_t *image = (fs_image_t *)s_selected_asset.instance;
+
+      dirty |= ImGui::InputScalar("Width", ImGuiDataType_U32, &image->width, 0, 0, "%llu", ImGuiInputTextFlags_EnterReturnsTrue);
+      dirty |= ImGui::InputScalar("Height", ImGuiDataType_U32, &image->height, 0, 0, "%llu", ImGuiInputTextFlags_EnterReturnsTrue);
+      dirty |= ImGui::InputScalar("Depth", ImGuiDataType_U32, &image->depth, 0, 0, "%llu", ImGuiInputTextFlags_EnterReturnsTrue);
+      dirty |= ImGui::InputScalar("Mip Levels", ImGuiDataType_U32, &image->mip_levels, 0, 0, "%llu", ImGuiInputTextFlags_EnterReturnsTrue);
+
+      dirty |= draw_vulkan_enum_dropdown("Format", &image->format_index, g_vk_format_table, TI_ARRAY_COUNT(g_vk_format_table));
+      dirty |= draw_vulkan_enum_dropdown("Image Layout", &image->image_layout_index, g_vk_image_layout_table, TI_ARRAY_COUNT(g_vk_image_layout_table));
+      dirty |= draw_vulkan_enum_dropdown("Image Type", &image->image_type_index, g_vk_image_type_table, TI_ARRAY_COUNT(g_vk_image_type_table));
+      dirty |= draw_vulkan_enum_dropdown("Image Tiling", &image->image_tiling_index, g_vk_image_tiling_table, TI_ARRAY_COUNT(g_vk_image_tiling_table));
+      dirty |= draw_vulkan_enum_dropdown("Image View Type", &image->image_view_type_index, g_vk_image_view_type_table, TI_ARRAY_COUNT(g_vk_image_view_type_table));
+
+      ImGui::SeparatorText("Image Usage Flags");
+      dirty |= draw_image_usage_flags(&image->image_usage_flags);
+
+      ImGui::SeparatorText("Image Aspect Flags");
+      dirty |= draw_image_aspect_flags(&image->image_aspect_flags);
+
+      ImGui::SeparatorText("Memory Property Flags");
+      dirty |= draw_memory_property_flags(&image->memory_property_flags);
+
+      ImGui::SeparatorText("Memory Allocate Flags");
+      dirty |= draw_memory_allocate_flags(&image->memory_allocate_flags);
+
+      break;
+    }
   }
 
   if (dirty) {
@@ -317,16 +537,16 @@ static void draw_asset(void) {
   }
 }
 static void draw_entity_controls(void) {
-  if (ImGui::BeginCombo("##Component", s_component_names[s_selected_comp])) {
+  if (ImGui::BeginCombo("##Component", s_component_name[s_selected_comp])) {
 
     uint64_t comp_index = 0;
-    uint64_t comp_count = TI_ARRAY_COUNT(s_component_names);
+    uint64_t comp_count = TI_ARRAY_COUNT(s_component_name);
 
     while (comp_index < comp_count) {
 
       bool selected = (comp_index == s_selected_comp);
 
-      if (ImGui::Selectable(s_component_names[comp_index], selected)) {
+      if (ImGui::Selectable(s_component_name[comp_index], selected)) {
         s_selected_comp = (comp_type_t)comp_index;
       }
 
@@ -588,9 +808,6 @@ static bool draw_buffer_usage_flags(VkBufferUsageFlags *flags) {
   dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_MICROMAP_BUILD_INPUT_READ_ONLY_BIT_EXT", flags, VK_BUFFER_USAGE_MICROMAP_BUILD_INPUT_READ_ONLY_BIT_EXT);
   dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_MICROMAP_STORAGE_BIT_EXT", flags, VK_BUFFER_USAGE_MICROMAP_STORAGE_BIT_EXT);
   dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_TILE_MEMORY_BIT_QCOM", flags, VK_BUFFER_USAGE_TILE_MEMORY_BIT_QCOM);
-  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_RAY_TRACING_BIT_NV", flags, VK_BUFFER_USAGE_RAY_TRACING_BIT_NV);
-  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_EXT", flags, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_EXT);
-  dirty |= ImGui::CheckboxFlags("VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_KHR", flags, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_KHR);
 
   return dirty;
 }
@@ -616,9 +833,89 @@ static bool draw_memory_allocate_flags(VkMemoryAllocateFlags *flags) {
   dirty |= ImGui::CheckboxFlags("VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT", flags, VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT);
   dirty |= ImGui::CheckboxFlags("VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT", flags, VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT);
   dirty |= ImGui::CheckboxFlags("VK_MEMORY_ALLOCATE_ZERO_INITIALIZE_BIT_EXT", flags, VK_MEMORY_ALLOCATE_ZERO_INITIALIZE_BIT_EXT);
-  dirty |= ImGui::CheckboxFlags("VK_MEMORY_ALLOCATE_DEVICE_MASK_BIT_KHR", flags, VK_MEMORY_ALLOCATE_DEVICE_MASK_BIT_KHR);
-  dirty |= ImGui::CheckboxFlags("VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT_KHR", flags, VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT_KHR);
-  dirty |= ImGui::CheckboxFlags("VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT_KHR", flags, VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT_KHR);
+
+  return dirty;
+}
+static bool draw_image_usage_flags(VkImageUsageFlags *flags) {
+  bool dirty = false;
+
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_TRANSFER_SRC_BIT", flags, VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_TRANSFER_DST_BIT", flags, VK_IMAGE_USAGE_TRANSFER_DST_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_SAMPLED_BIT", flags, VK_IMAGE_USAGE_SAMPLED_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_STORAGE_BIT", flags, VK_IMAGE_USAGE_STORAGE_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT", flags, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT", flags, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT", flags, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT", flags, VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_HOST_TRANSFER_BIT", flags, VK_IMAGE_USAGE_HOST_TRANSFER_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR", flags, VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_VIDEO_DECODE_SRC_BIT_KHR", flags, VK_IMAGE_USAGE_VIDEO_DECODE_SRC_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR", flags, VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT", flags, VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR", flags, VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_VIDEO_ENCODE_DST_BIT_KHR", flags, VK_IMAGE_USAGE_VIDEO_ENCODE_DST_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR", flags, VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR", flags, VK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT", flags, VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_INVOCATION_MASK_BIT_HUAWEI", flags, VK_IMAGE_USAGE_INVOCATION_MASK_BIT_HUAWEI);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM", flags, VK_IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_SAMPLE_BLOCK_MATCH_BIT_QCOM", flags, VK_IMAGE_USAGE_SAMPLE_BLOCK_MATCH_BIT_QCOM);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_TENSOR_ALIASING_BIT_ARM", flags, VK_IMAGE_USAGE_TENSOR_ALIASING_BIT_ARM);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_TILE_MEMORY_BIT_QCOM", flags, VK_IMAGE_USAGE_TILE_MEMORY_BIT_QCOM);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_VIDEO_ENCODE_QUANTIZATION_DELTA_MAP_BIT_KHR", flags, VK_IMAGE_USAGE_VIDEO_ENCODE_QUANTIZATION_DELTA_MAP_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_USAGE_VIDEO_ENCODE_EMPHASIS_MAP_BIT_KHR", flags, VK_IMAGE_USAGE_VIDEO_ENCODE_EMPHASIS_MAP_BIT_KHR);
+
+  return dirty;
+}
+static bool draw_image_aspect_flags(VkImageAspectFlags *flags) {
+  bool dirty = false;
+
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_ASPECT_COLOR_BIT", flags, VK_IMAGE_ASPECT_COLOR_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_ASPECT_DEPTH_BIT", flags, VK_IMAGE_ASPECT_DEPTH_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_ASPECT_STENCIL_BIT", flags, VK_IMAGE_ASPECT_STENCIL_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_ASPECT_METADATA_BIT", flags, VK_IMAGE_ASPECT_METADATA_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_ASPECT_PLANE_0_BIT", flags, VK_IMAGE_ASPECT_PLANE_0_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_ASPECT_PLANE_1_BIT", flags, VK_IMAGE_ASPECT_PLANE_1_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_ASPECT_PLANE_2_BIT", flags, VK_IMAGE_ASPECT_PLANE_2_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_ASPECT_MEMORY_PLANE_0_BIT_EXT", flags, VK_IMAGE_ASPECT_MEMORY_PLANE_0_BIT_EXT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_ASPECT_MEMORY_PLANE_1_BIT_EXT", flags, VK_IMAGE_ASPECT_MEMORY_PLANE_1_BIT_EXT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_ASPECT_MEMORY_PLANE_2_BIT_EXT", flags, VK_IMAGE_ASPECT_MEMORY_PLANE_2_BIT_EXT);
+  dirty |= ImGui::CheckboxFlags("VK_IMAGE_ASPECT_MEMORY_PLANE_3_BIT_EXT", flags, VK_IMAGE_ASPECT_MEMORY_PLANE_3_BIT_EXT);
+
+  return dirty;
+}
+
+static bool draw_vulkan_enum_dropdown(char const *label, uint64_t *selected_index, vk_enum_record_t *table, uint64_t table_count) {
+  bool dirty = false;
+
+  if (ImGui::BeginCombo(label, table[*selected_index].name)) {
+
+    uint64_t index = 0;
+    uint64_t count = table_count;
+
+    while (index < count) {
+
+      bool selected = (index == *selected_index);
+
+      if (ImGui::Selectable(table[index].name, selected)) {
+
+        if (*selected_index != index) {
+
+          *selected_index = index;
+
+          dirty = true;
+        }
+      }
+
+      if (selected) {
+        ImGui::SetItemDefaultFocus();
+      }
+
+      index++;
+    }
+
+    ImGui::EndCombo();
+  }
 
   return dirty;
 }

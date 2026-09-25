@@ -1,6 +1,7 @@
 #ifndef TI_VK_H
 #define TI_VK_H
 
+#include <vulkan/ti_vk_enum.h>
 #include <vulkan/ti_vk_buffer.h>
 #include <vulkan/ti_vk_image.h>
 #include <vulkan/ti_vk_swapchain.h>

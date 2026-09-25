@@ -1,6 +1,11 @@
 #ifndef TI_VK_FWD_H
 #define TI_VK_FWD_H
 
+typedef struct vk_enum_record_t {
+  int32_t value;
+  char const *name;
+} vk_enum_record_t;
+
 // TODO: assetify this as well..
 typedef struct vk_instance_t {
   uint32_t min_image_count;

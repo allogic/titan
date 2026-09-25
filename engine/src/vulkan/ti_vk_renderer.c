@@ -131,10 +131,22 @@ void vk_renderer_create(vk_renderer_t *renderer, char const *asset_path) {
   update_debug_line_descriptor_set(renderer);
 }
 void vk_renderer_draw(vk_renderer_t *renderer) {
-  TI_VK_CHECK(vkWaitForFences(g_vk_instance.device, 1, &renderer->frame_fence, 1, UINT64_MAX));
-  TI_VK_CHECK(vkResetFences(g_vk_instance.device, 1, &renderer->frame_fence));
+  VkResult result = VK_SUCCESS;
 
-  TI_VK_CHECK(vkAcquireNextImageKHR(g_vk_instance.device, g_vk_swapchain.handle, UINT64_MAX, renderer->image_available_semaphore, 0, &renderer->image_index));
+  TI_VK_CHECK(vkWaitForFences(g_vk_instance.device, 1, &renderer->frame_fence, 1, UINT64_MAX));
+
+  result = vkAcquireNextImageKHR(g_vk_instance.device, g_vk_swapchain.handle, UINT64_MAX, renderer->image_available_semaphore, 0, &renderer->image_index);
+
+  switch (result) {
+
+    case VK_SUBOPTIMAL_KHR:
+    case VK_ERROR_OUT_OF_DATE_KHR: {
+
+      g_vk_swapchain.is_dirty = 1;
+
+      return;
+    }
+  }
 
   update_coherent_buffer(renderer);
 
@@ -204,7 +216,7 @@ void vk_renderer_draw(vk_renderer_t *renderer) {
       },
     };
 
-    vkCmdPipelineBarrier(g_vk_instance.command_buffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, 0, 0, 0, 1, &image_memory_barrier);
+    vkCmdPipelineBarrier(g_vk_instance.command_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, 0, 0, 0, 1, &image_memory_barrier);
   }
 
   VkImageCopy image_copy = {
@@ -286,9 +298,6 @@ void vk_renderer_draw(vk_renderer_t *renderer) {
   TI_VK_CHECK(vkEndCommandBuffer(g_vk_instance.command_buffer));
 
   VkPipelineStageFlags primary_wait_stages[] = {
-    VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-    VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
     VK_PIPELINE_STAGE_TRANSFER_BIT,
   };
 
@@ -303,6 +312,7 @@ void vk_renderer_draw(vk_renderer_t *renderer) {
     .pWaitDstStageMask = primary_wait_stages,
   };
 
+  TI_VK_CHECK(vkResetFences(g_vk_instance.device, 1, &renderer->frame_fence));
   TI_VK_CHECK(vkQueueSubmit(g_vk_instance.primary_queue, 1, &primary_submit_info, renderer->frame_fence));
 
   VkPresentInfoKHR present_info = {
@@ -314,7 +324,7 @@ void vk_renderer_draw(vk_renderer_t *renderer) {
     .pImageIndices = &renderer->image_index,
   };
 
-  VkResult result = vkQueuePresentKHR(g_vk_instance.present_queue, &present_info);
+  result = vkQueuePresentKHR(g_vk_instance.present_queue, &present_info);
 
   switch (result) {
 
