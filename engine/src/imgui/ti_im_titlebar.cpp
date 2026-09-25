@@ -89,13 +89,13 @@ static void draw_panel_controls(void) {
   ImGui::SetCursorPos(ImVec2((float)g_pl_window.window_width - 200.0F, 5.0F));
 
   if (ImGui::Button(ICON_MS_DOCK_TO_RIGHT)) {
-    // TODO: split viewport..
+    g_im_show_left_panel = !g_im_show_left_panel;
   }
 
   ImGui::SameLine();
 
   if (ImGui::Button(ICON_MS_DOCK_TO_LEFT)) {
-    g_im_show_inspector = !g_im_show_inspector;
+    g_im_show_right_panel = !g_im_show_right_panel;
   }
 
   ImGui::PopFont();

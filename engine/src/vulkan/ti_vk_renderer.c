@@ -126,7 +126,7 @@ void vk_renderer_create(vk_renderer_t *renderer, char const *asset_path) {
   create_debug_line_buffer(renderer);
   create_full_screen_buffer(renderer);
 
-  vk_pipeline_create(&renderer->debug_line_pipeline, &g_vk_main_renderpass, "asset/pipeline/debug/line.pak");
+  // vk_pipeline_create(&renderer->debug_line_pipeline, &g_vk_main_renderpass, "asset/pipeline/debug/line.pak");
 
   update_debug_line_descriptor_set(renderer);
 }
@@ -328,7 +328,7 @@ void vk_renderer_draw(vk_renderer_t *renderer) {
   }
 }
 void vk_renderer_destroy(vk_renderer_t *renderer) {
-  vk_pipeline_destroy(&renderer->debug_line_pipeline);
+  // vk_pipeline_destroy(&renderer->debug_line_pipeline);
 
   destroy_buffer(renderer);
   destroy_sync_object(renderer);

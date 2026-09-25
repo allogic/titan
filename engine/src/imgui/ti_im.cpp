@@ -29,7 +29,8 @@ static VkDescriptorPoolSize s_descriptor_pool_sizes[] = {
 
 static uint8_t s_layout_init = 1;
 
-uint8_t g_im_show_inspector = 0;
+uint8_t g_im_show_left_panel = 0;
+uint8_t g_im_show_right_panel = 0;
 
 void *g_im_font_default_16 = 0;
 
@@ -224,37 +225,39 @@ void im_draw(void) {
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 10.0F);
 
-  switch (g_sidebar_tab) {
+  if (g_im_show_left_panel) {
+    switch (g_sidebar_tab) {
 
-    case IM_SIDEBAR_TAB_HIERARCHY: {
+      case IM_SIDEBAR_TAB_HIERARCHY: {
 
-      im_hierarchy_draw();
+        im_hierarchy_draw();
 
-      break;
-    }
-    case IM_SIDEBAR_TAB_FILESYSTEM: {
+        break;
+      }
+      case IM_SIDEBAR_TAB_FILESYSTEM: {
 
-      im_fs_draw();
+        im_fs_draw();
 
-      break;
-    }
-    case IM_SIDEBAR_TAB_HANDLE: {
+        break;
+      }
+      case IM_SIDEBAR_TAB_HANDLE: {
 
-      im_handle_draw();
+        im_handle_draw();
 
-      break;
-    }
-    case IM_SIDEBAR_TAB_RENDERER: {
+        break;
+      }
+      case IM_SIDEBAR_TAB_RENDERER: {
 
-      im_renderer_draw();
+        im_renderer_draw();
 
-      break;
+        break;
+      }
     }
   }
 
   im_viewport_draw();
 
-  if (g_im_show_inspector) {
+  if (g_im_show_right_panel) {
     im_inspector_draw();
   }
 
@@ -325,6 +328,7 @@ static void build_layout(void) {
     ImGui::DockBuilderDockWindow("Hierarchy", dock_left);
     ImGui::DockBuilderDockWindow("Filesystem", dock_left);
     ImGui::DockBuilderDockWindow("Handle", dock_left);
+    ImGui::DockBuilderDockWindow("Renderer", dock_left);
     ImGui::DockBuilderDockWindow("Inspector", dock_right);
 
     ImGui::DockBuilderFinish(dockspace_id);

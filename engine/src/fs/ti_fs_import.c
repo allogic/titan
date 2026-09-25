@@ -27,8 +27,15 @@ static uint8_t compile_glsl_shader(char const *file_path, glslang_stage_t stage,
 static uint8_t convert_spirv_input_variables(fs_pipeline_t *pipeline, SpvReflectShaderModule *module);
 static uint8_t convert_spirv_descriptor_bindings(fs_pipeline_t *pipeline, SpvReflectShaderModule *module);
 
-uint8_t fs_import_model(char const *asset_file, char const *model_file) {
+uint8_t fs_import_model(fs_asset_t *asset, char const *model_file) {
   uint8_t status = 0;
+
+  fs_model_t *model = (fs_model_t *)asset->instance;
+
+  uint64_t path_size = strlen(asset->path);
+
+  const char *file_name = fs_path_file_name(asset->path, path_size);
+  const char *file_ext = fs_path_extension(asset->path, path_size);
 
   void *gltf_buffer = 0;
   uint64_t gltf_buffer_size = 0;
@@ -83,21 +90,6 @@ uint8_t fs_import_model(char const *asset_file, char const *model_file) {
 
   QueryPerformanceCounter(&t4);
 
-  fs_asset_t asset = {
-    .magic = TI_FS_ASSET_MAGIC,
-    .type = FS_ASSET_TYPE_MODEL,
-    .path = asset_file,
-  };
-
-  fs_asset_create(&asset);
-
-  fs_model_t *model = (fs_model_t *)asset.instance;
-
-  uint64_t path_size = strlen(asset_file);
-
-  const char *file_name = fs_path_file_name(asset_file, path_size);
-  const char *file_ext = fs_path_extension(asset_file, path_size);
-
   if (file_name && file_ext) {
     memcpy(model->name, file_name, file_ext - file_name - 1);
   } else {
@@ -105,9 +97,6 @@ uint8_t fs_import_model(char const *asset_file, char const *model_file) {
   }
 
   convert_gltf_model(model, gltf_data);
-
-  fs_asset_store(&asset);
-  fs_asset_destroy(&asset);
 
   QueryPerformanceCounter(&t5);
 
@@ -118,7 +107,7 @@ uint8_t fs_import_model(char const *asset_file, char const *model_file) {
   LONGLONG d4 = ((t5.QuadPart - t4.QuadPart) * 1000) / freq.QuadPart;
   LONGLONG dt = d0 + d1 + d2 + d3 + d4;
 
-  printf("Importing %s\n", asset_file);
+  printf("Importing %s\n", asset->path);
   printf("  Load file        %8lld ms\n", d0);
   printf("  Parse file       %8lld ms\n", d1);
   printf("  Load buffer      %8lld ms\n", d2);
@@ -139,8 +128,15 @@ error:
 
   return status;
 }
-uint8_t fs_import_pipeline(fs_pipeline_type_t pipeline_type, char const *asset_file, char const *vertex_file, char const *fragment_file) {
+uint8_t fs_import_pipeline(fs_asset_t *asset, fs_pipeline_type_t pipeline_type, char const *vertex_file, char const *fragment_file) {
   uint8_t status = 0;
+
+  fs_pipeline_t *pipeline = (fs_pipeline_t *)asset->instance;
+
+  uint64_t path_size = strlen(asset->path);
+
+  const char *file_name = fs_path_file_name(asset->path, path_size);
+  const char *file_ext = fs_path_extension(asset->path, path_size);
 
   uint32_t *spirv_vertex_words = 0;
   uint32_t *spirv_fragment_words = 0;
@@ -194,28 +190,11 @@ uint8_t fs_import_pipeline(fs_pipeline_type_t pipeline_type, char const *asset_f
 
   QueryPerformanceCounter(&t3);
 
-  fs_asset_t asset = {
-    .magic = TI_FS_ASSET_MAGIC,
-    .type = FS_ASSET_TYPE_PIPELINE,
-    .path = asset_file,
-  };
-
-  fs_asset_create(&asset);
-
-  fs_pipeline_t *pipeline = (fs_pipeline_t *)asset.instance;
-
-  uint64_t path_size = strlen(asset_file);
-
-  const char *file_name = fs_path_file_name(asset_file, path_size);
-  const char *file_ext = fs_path_extension(asset_file, path_size);
-
   if (file_name && file_ext) {
     memcpy(pipeline->name, file_name, file_ext - file_name - 1);
   } else {
     snprintf(pipeline->name, TI_PATH_SIZE, "<unnamed>");
   }
-
-  pipeline->pipeline_type = pipeline_type;
 
   switch (pipeline_type) {
 
@@ -252,20 +231,6 @@ uint8_t fs_import_pipeline(fs_pipeline_type_t pipeline_type, char const *asset_f
     }
   }
 
-  // TODO: find a way to easily configure the imported pipelines
-  //       after they were imported.. (this is hard coded now, and it is wrong!)
-
-  pipeline->primitive_topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
-  pipeline->polygon_mode = VK_POLYGON_MODE_FILL;
-  pipeline->cull_mode_flags = VK_CULL_MODE_BACK_BIT;
-  pipeline->enable_blending = 1;
-  pipeline->enable_depth_test = 1;
-  pipeline->enable_depth_write = 1;
-  pipeline->descriptor_set_count = 1; // TODO
-
-  fs_asset_store(&asset);
-  fs_asset_destroy(&asset);
-
   QueryPerformanceCounter(&t4);
 
   LONGLONG d0 = ((t1.QuadPart - t0.QuadPart) * 1000) / freq.QuadPart;
@@ -274,7 +239,7 @@ uint8_t fs_import_pipeline(fs_pipeline_type_t pipeline_type, char const *asset_f
   LONGLONG d3 = ((t4.QuadPart - t3.QuadPart) * 1000) / freq.QuadPart;
   LONGLONG dt = d0 + d1 + d2 + d3;
 
-  printf("Importing %s\n", asset_file);
+  printf("Importing %s\n", asset->path);
   printf("  Compile vertex shader   %8lld ms\n", d0);
   printf("  Compile fragment shader %8lld ms\n", d1);
   printf("  Convert vertex shader   %8lld ms\n", d2);
@@ -297,8 +262,15 @@ error:
 
   return status;
 }
-uint8_t fs_import_font(char const *asset_file, char const *font_file) {
+uint8_t fs_import_font(fs_asset_t *asset, char const *font_file) {
   uint8_t status = 0;
+
+  fs_font_t *font = (fs_font_t *)asset->instance;
+
+  uint64_t path_size = strlen(asset->path);
+
+  const char *file_name = fs_path_file_name(asset->path, path_size);
+  const char *file_ext = fs_path_extension(asset->path, path_size);
 
   void *buffer = 0;
   uint64_t buffer_size = 0;
@@ -320,21 +292,6 @@ uint8_t fs_import_font(char const *asset_file, char const *font_file) {
 
   QueryPerformanceCounter(&t1);
 
-  fs_asset_t asset = {
-    .magic = TI_FS_ASSET_MAGIC,
-    .type = FS_ASSET_TYPE_FONT,
-    .path = asset_file,
-  };
-
-  fs_asset_create(&asset);
-
-  fs_font_t *font = (fs_font_t *)asset.instance;
-
-  uint64_t path_size = strlen(asset_file);
-
-  const char *file_name = fs_path_file_name(asset_file, path_size);
-  const char *file_ext = fs_path_extension(asset_file, path_size);
-
   if (file_name && file_ext) {
     memcpy(font->name, file_name, file_ext - file_name - 1);
   } else {
@@ -343,16 +300,13 @@ uint8_t fs_import_font(char const *asset_file, char const *font_file) {
 
   convert_ttf_font(font, buffer, buffer_size);
 
-  fs_asset_store(&asset);
-  fs_asset_destroy(&asset);
-
   QueryPerformanceCounter(&t2);
 
   LONGLONG d0 = ((t1.QuadPart - t0.QuadPart) * 1000) / freq.QuadPart;
   LONGLONG d1 = ((t2.QuadPart - t1.QuadPart) * 1000) / freq.QuadPart;
   LONGLONG dt = d0 + d1;
 
-  printf("Importing %s\n", asset_file);
+  printf("Importing %s\n", asset->path);
   printf("  Read font        %8lld ms\n", d0);
   printf("  Convert font     %8lld ms\n", d1);
   printf("  Total            %8llu ms\n", dt);
@@ -435,7 +389,7 @@ static void convert_gltf_float_accessor_by_attribute(fs_primitive_t *primitive, 
 
       primitive->position_count = value_count;
       primitive->position_stride = value_stride;
-      primitive->positions = TI_ALLOC(value_stride, 0, 0);
+      primitive->positions = TI_ALLOC(value_stride * value_count, 0, 0);
 
       break;
     }
@@ -443,7 +397,7 @@ static void convert_gltf_float_accessor_by_attribute(fs_primitive_t *primitive, 
 
       primitive->normal_count = value_count;
       primitive->normal_stride = value_stride;
-      primitive->normals = TI_ALLOC(value_stride, 0, 0);
+      primitive->normals = TI_ALLOC(value_stride * value_count, 0, 0);
 
       break;
     }
@@ -451,7 +405,7 @@ static void convert_gltf_float_accessor_by_attribute(fs_primitive_t *primitive, 
 
       primitive->tangent_count = value_count;
       primitive->tangent_stride = value_stride;
-      primitive->tangents = TI_ALLOC(value_stride, 0, 0);
+      primitive->tangents = TI_ALLOC(value_stride * value_count, 0, 0);
 
       break;
     }
@@ -459,7 +413,7 @@ static void convert_gltf_float_accessor_by_attribute(fs_primitive_t *primitive, 
 
       primitive->texcoord_count = value_count;
       primitive->texcoord_stride = value_stride;
-      primitive->texcoords = TI_ALLOC(value_stride, 0, 0);
+      primitive->texcoords = TI_ALLOC(value_stride * value_count, 0, 0);
 
       break;
     }
@@ -467,7 +421,7 @@ static void convert_gltf_float_accessor_by_attribute(fs_primitive_t *primitive, 
 
       primitive->color_count = value_count;
       primitive->color_stride = value_stride;
-      primitive->colors = TI_ALLOC(value_stride, 0, 0);
+      primitive->colors = TI_ALLOC(value_stride * value_count, 0, 0);
 
       break;
     }
@@ -475,7 +429,7 @@ static void convert_gltf_float_accessor_by_attribute(fs_primitive_t *primitive, 
 
       primitive->joint_count = value_count;
       primitive->joint_stride = value_stride;
-      primitive->joints = TI_ALLOC(value_stride, 0, 0);
+      primitive->joints = TI_ALLOC(value_stride * value_count, 0, 0);
 
       break;
     }
@@ -483,7 +437,7 @@ static void convert_gltf_float_accessor_by_attribute(fs_primitive_t *primitive, 
 
       primitive->weight_count = value_count;
       primitive->weight_stride = value_stride;
-      primitive->weights = TI_ALLOC(value_stride, 0, 0);
+      primitive->weights = TI_ALLOC(value_stride * value_count, 0, 0);
 
       break;
     }
@@ -562,7 +516,7 @@ static void convert_gltf_uint_accessor_by_attribute(fs_primitive_t *primitive, c
 
       primitive->position_count = value_count;
       primitive->position_stride = value_stride;
-      primitive->positions = TI_ALLOC(value_stride, 0, 0);
+      primitive->positions = TI_ALLOC(value_stride * value_count, 0, 0);
 
       break;
     }
@@ -570,7 +524,7 @@ static void convert_gltf_uint_accessor_by_attribute(fs_primitive_t *primitive, c
 
       primitive->normal_count = value_count;
       primitive->normal_stride = value_stride;
-      primitive->normals = TI_ALLOC(value_stride, 0, 0);
+      primitive->normals = TI_ALLOC(value_stride * value_count, 0, 0);
 
       break;
     }
@@ -578,7 +532,7 @@ static void convert_gltf_uint_accessor_by_attribute(fs_primitive_t *primitive, c
 
       primitive->tangent_count = value_count;
       primitive->tangent_stride = value_stride;
-      primitive->tangents = TI_ALLOC(value_stride, 0, 0);
+      primitive->tangents = TI_ALLOC(value_stride * value_count, 0, 0);
 
       break;
     }
@@ -586,7 +540,7 @@ static void convert_gltf_uint_accessor_by_attribute(fs_primitive_t *primitive, c
 
       primitive->texcoord_count = value_count;
       primitive->texcoord_stride = value_stride;
-      primitive->texcoords = TI_ALLOC(value_stride, 0, 0);
+      primitive->texcoords = TI_ALLOC(value_stride * value_count, 0, 0);
 
       break;
     }
@@ -594,7 +548,7 @@ static void convert_gltf_uint_accessor_by_attribute(fs_primitive_t *primitive, c
 
       primitive->color_count = value_count;
       primitive->color_stride = value_stride;
-      primitive->colors = TI_ALLOC(value_stride, 0, 0);
+      primitive->colors = TI_ALLOC(value_stride * value_count, 0, 0);
 
       break;
     }
@@ -602,7 +556,7 @@ static void convert_gltf_uint_accessor_by_attribute(fs_primitive_t *primitive, c
 
       primitive->joint_count = value_count;
       primitive->joint_stride = value_stride;
-      primitive->joints = TI_ALLOC(value_stride, 0, 0);
+      primitive->joints = TI_ALLOC(value_stride * value_count, 0, 0);
 
       break;
     }
@@ -610,7 +564,7 @@ static void convert_gltf_uint_accessor_by_attribute(fs_primitive_t *primitive, c
 
       primitive->weight_count = value_count;
       primitive->weight_stride = value_stride;
-      primitive->weights = TI_ALLOC(value_stride, 0, 0);
+      primitive->weights = TI_ALLOC(value_stride * value_count, 0, 0);
 
       break;
     }

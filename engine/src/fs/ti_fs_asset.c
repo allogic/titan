@@ -65,6 +65,12 @@ void fs_asset_create(fs_asset_t *asset) {
     }
   }
 }
+uint8_t fs_asset_exists(fs_asset_t *asset) {
+  fs_file_info info = {0};
+  fs_result result = fs_info(g_fs, asset->path, 0, &info);
+
+  return result != FS_DOES_NOT_EXIST;
+}
 void fs_asset_load(fs_asset_t *asset) {
   fs_file *file = 0;
 

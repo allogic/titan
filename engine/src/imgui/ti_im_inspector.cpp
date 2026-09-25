@@ -60,6 +60,9 @@ void im_inspector_select(im_inspector_type_t type, void *selection) {
   s_inspector_type = type;
   s_selected_data = selection;
 
+  // TODO: find a clean way when assets cant be loaded..
+  //       e.g. when the user clicks a file that is not a valid asset!
+
   switch (s_inspector_type) {
     case IM_INSPECTOR_TYPE_ASSET: {
 

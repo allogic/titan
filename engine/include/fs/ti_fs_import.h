@@ -5,9 +5,9 @@
 extern "C" {
 #endif // __cplusplus
 
-uint8_t fs_import_model(char const *asset_file, char const *model_file);
-uint8_t fs_import_pipeline(fs_pipeline_type_t pipeline_type, char const *asset_file, char const *vertex_file, char const *fragment_file);
-uint8_t fs_import_font(char const *asset_file, char const *font_file);
+uint8_t fs_import_model(fs_asset_t *asset, char const *model_file);
+uint8_t fs_import_pipeline(fs_asset_t *asset, fs_pipeline_type_t pipeline_type, char const *vertex_file, char const *fragment_file);
+uint8_t fs_import_font(fs_asset_t *asset, char const *font_file);
 
 #ifdef __cplusplus
 }

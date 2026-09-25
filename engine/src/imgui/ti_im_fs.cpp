@@ -296,40 +296,26 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
 
         if (ImGui::MenuItem("Model")) {
 
-          fs_import_model("asset/character/veigar_greybeard.pak", "static/character/veigar_greybeard.glb");
-          fs_import_model("asset/character/viktor.pak", "static/character/viktor.glb");
-          fs_import_model("asset/character/demonblade_tryndamere.pak", "static/character/demonblade_tryndamere.glb");
-          fs_import_model("asset/character/spirit_blossom_springs_teemo.pak", "static/character/spirit_blossom_springs_teemo.glb");
-          fs_import_model("asset/character/prestige_pandemonium_shaco.pak", "static/character/prestige_pandemonium_shaco.glb");
-          fs_import_model("asset/character/old_god_malphite.pak", "static/character/old_god_malphite.glb");
-          fs_import_model("asset/character/high_noon_locke.pak", "static/character/high_noon_locke.glb");
-          fs_import_model("asset/character/immortalized_legend_kaisa.pak", "static/character/immortalized_legend_kaisa.glb");
-          fs_import_model("asset/character/old_god_mordekaiser.pak", "static/character/old_god_mordekaiser.glb");
-          fs_import_model("asset/character/steel_legion_garen.pak", "static/character/steel_legion_garen.glb");
-          fs_import_model("asset/character/pulsefire_caitlyn.pak", "static/character/pulsefire_caitlyn.glb");
-          fs_import_model("asset/character/grand_reckoning_sion.pak", "static/character/grand_reckoning_sion.glb");
-          fs_import_model("asset/character/marauder_kalista.pak", "static/character/marauder_kalista.glb");
+          // TODO
 
           im_fs_refresh();
         }
 
         if (ImGui::MenuItem("Pipeline")) {
 
-          fs_import_pipeline(FS_PIPELINE_TYPE_DFLT, "asset/pipeline/standard/brdf.pak", "static/shader/standard/brdf.vert", "static/shader/standard/brdf.frag");
-          fs_import_pipeline(FS_PIPELINE_TYPE_DFLT, "asset/pipeline/debug/line.pak", "static/shader/debug/line.vert", "static/shader/debug/line.frag");
+          // TODO
 
           im_fs_refresh();
         }
 
         if (ImGui::MenuItem("Font")) {
 
-          fs_import_font("asset/font/commit_mono_latin_400_normal.pak", "static/font/commit_mono_latin_400_normal.ttf");
-          fs_import_font("asset/font/material_symbols_rounded_fill.pak", "static/font/material_symbols_rounded_fill.ttf");
+          // TODO
 
           im_fs_refresh();
         }
 
-        if (ImGui::MenuItem("Texture")) {
+        if (ImGui::MenuItem("Image")) {
 
           // TODO
         }

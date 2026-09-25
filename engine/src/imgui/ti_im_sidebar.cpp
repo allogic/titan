@@ -49,19 +49,26 @@ void im_sidebar_reset(void) {
 }
 
 static void draw_button(ImVec2 position, im_sidebar_tab_t current_tab, char const *label) {
+  uint8_t show = g_im_show_left_panel;
   im_sidebar_tab_t tab = g_sidebar_tab;
 
   ImGui::SetCursorPos(position);
 
-  if (tab == current_tab) {
+  if (show && (tab == current_tab)) {
     ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
   }
 
   if (ImGui::Button(label)) {
+    if (tab == current_tab) {
+      g_im_show_left_panel = !g_im_show_left_panel;
+    } else {
+      g_im_show_left_panel = 1;
+    }
+
     g_sidebar_tab = current_tab;
   }
 
-  if (tab == current_tab) {
+  if (show && (tab == current_tab)) {
     ImGui::PopStyleColor(1);
   }
 }

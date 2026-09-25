@@ -6,6 +6,7 @@ extern "C" {
 #endif // __cplusplus
 
 void fs_asset_create(fs_asset_t *asset);
+uint8_t fs_asset_exists(fs_asset_t *asset);
 void fs_asset_load(fs_asset_t *asset);
 void fs_asset_store(fs_asset_t *asset);
 void fs_asset_destroy(fs_asset_t *asset);
