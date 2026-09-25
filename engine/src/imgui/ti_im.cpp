@@ -187,7 +187,11 @@ void im_create(void) {
   };
 
   ImGui_ImplVulkan_Init(&imgui_vulkan_init_info);
+
+  // TODO refector this in the future
+  im_text_editor_refresh();
 }
+
 void im_draw(void) {
   ImGui_ImplVulkan_NewFrame();
   ImGui_ImplWin32_NewFrame();
@@ -255,7 +259,8 @@ void im_draw(void) {
     }
   }
 
-  im_viewport_draw();
+  // im_viewport_draw();
+  im_text_editor_draw();
 
   if (g_im_show_right_panel) {
     im_inspector_draw();
@@ -276,6 +281,7 @@ void im_message(HWND window_handle, UINT window_message, WPARAM w_param, LPARAM 
 void im_destroy(void) {
   im_fs_reset();
   im_handle_reset();
+  im_text_editor_reset();
   im_hierarchy_reset();
   im_inspector_reset();
   im_sidebar_reset();
@@ -328,6 +334,7 @@ static void build_layout(void) {
     ImGui::DockBuilderDockWindow("Hierarchy", dock_left);
     ImGui::DockBuilderDockWindow("Filesystem", dock_left);
     ImGui::DockBuilderDockWindow("Handle", dock_left);
+    ImGui::DockBuilderDockWindow("Text Editor", dock_main);
     ImGui::DockBuilderDockWindow("Renderer", dock_left);
     ImGui::DockBuilderDockWindow("Inspector", dock_right);
 

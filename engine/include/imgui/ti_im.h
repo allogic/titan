@@ -7,6 +7,7 @@
 #include <imgui/ti_im_viewport.h>
 #include <imgui/ti_im_inspector.h>
 #include <imgui/ti_im_handle.h>
+#include <imgui/ti_im_text_editor.h>
 #include <imgui/ti_im_titlebar.h>
 #include <imgui/ti_im_sidebar.h>
 #include <imgui/ti_im_renderer.h>

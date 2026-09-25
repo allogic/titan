@@ -2,15 +2,17 @@ ADD_LIBRARY (glslang INTERFACE)
 
 TARGET_COMPILE_DEFINITIONS (glslang INTERFACE "_CRT_SECURE_NO_WARNINGS")
 
-TARGET_INCLUDE_DIRECTORIES (glslang INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+GET_FILENAME_COMPONENT (GLSLANG_LIBRARY_DIR "${Vulkan_LIBRARY}" DIRECTORY)
+
+TARGET_INCLUDE_DIRECTORIES (glslang INTERFACE "${Vulkan_INCLUDE_DIR}")
 
 TARGET_LINK_LIBRARIES (glslang INTERFACE
-	"${CMAKE_CURRENT_SOURCE_DIR}/lib/SPIRV.lib"
-	"${CMAKE_CURRENT_SOURCE_DIR}/lib/SPIRV-Tools.lib"
-	"${CMAKE_CURRENT_SOURCE_DIR}/lib/SPIRV-Tools-opt.lib"
-	"${CMAKE_CURRENT_SOURCE_DIR}/lib/GenericCodeGen.lib"
-	"${CMAKE_CURRENT_SOURCE_DIR}/lib/glslang.lib"
-	"${CMAKE_CURRENT_SOURCE_DIR}/lib/glslang-default-resource-limits.lib"
-	"${CMAKE_CURRENT_SOURCE_DIR}/lib/MachineIndependent.lib"
-	"${CMAKE_CURRENT_SOURCE_DIR}/lib/OSDependent.lib"
+  "${GLSLANG_LIBRARY_DIR}/SPIRV$<$<CONFIG:Debug>:d>.lib"
+  "${GLSLANG_LIBRARY_DIR}/SPIRV-Tools$<$<CONFIG:Debug>:d>.lib"
+  "${GLSLANG_LIBRARY_DIR}/SPIRV-Tools-opt$<$<CONFIG:Debug>:d>.lib"
+  "${GLSLANG_LIBRARY_DIR}/GenericCodeGen$<$<CONFIG:Debug>:d>.lib"
+  "${GLSLANG_LIBRARY_DIR}/glslang$<$<CONFIG:Debug>:d>.lib"
+  "${GLSLANG_LIBRARY_DIR}/glslang-default-resource-limits$<$<CONFIG:Debug>:d>.lib"
+  "${GLSLANG_LIBRARY_DIR}/MachineIndependent$<$<CONFIG:Debug>:d>.lib"
+  "${GLSLANG_LIBRARY_DIR}/OSDependent$<$<CONFIG:Debug>:d>.lib"
 )
