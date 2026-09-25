@@ -4,7 +4,7 @@
 
 static void draw_button(ImVec2 position, im_sidebar_tab_t current_tab, char const *label);
 
-im_sidebar_tab_t g_sidebar_tab = IM_SIDEBAR_TAB_NONE;
+im_sidebar_tab_t g_sidebar_tab = IM_SIDEBAR_TAB_FILESYSTEM;
 
 void im_sidebar_draw(void) {
   ImGui::SetNextWindowPos(ImVec2(0.0F, (float)g_pl_window.titlebar_height));

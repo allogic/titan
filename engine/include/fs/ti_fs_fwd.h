@@ -121,7 +121,6 @@ typedef struct fs_input_variable_t {
   uint64_t format_index;
 } fs_input_variable_t;
 typedef struct fs_pipeline_t {
-  char name[TI_PATH_SIZE];
   fs_pipeline_type_t pipeline_type;
   uint8_t enable_blending;
   uint8_t enable_depth_test;
@@ -133,8 +132,8 @@ typedef struct fs_pipeline_t {
   uint32_t *spirv_vertex_words;
   uint32_t *spirv_fragment_words;
   uint32_t descriptor_set_count;
-  VkPrimitiveTopology primitive_topology;
-  VkPolygonMode polygon_mode;
+  uint64_t primitive_topology_index;
+  uint64_t polygon_mode_index;
   VkCullModeFlags cull_mode_flags;
   fs_asset_reference_t *input_variables;
   fs_asset_reference_t *descriptor_bindings;

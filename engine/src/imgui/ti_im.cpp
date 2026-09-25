@@ -29,8 +29,8 @@ static VkDescriptorPoolSize s_descriptor_pool_sizes[] = {
 
 static uint8_t s_layout_init = 1;
 
-uint8_t g_im_show_left_panel = 0;
-uint8_t g_im_show_right_panel = 0;
+uint8_t g_im_show_left_panel = 1;
+uint8_t g_im_show_right_panel = 1;
 
 void *g_im_font_default_16 = 0;
 

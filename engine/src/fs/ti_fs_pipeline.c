@@ -9,7 +9,6 @@ static void write_descriptor_bindings(fs_pipeline_t *pipeline, fs_file *file);
 void fs_pipeline_load(fs_pipeline_t *pipeline, fs_file *file) {
   memset(pipeline, 0, sizeof(fs_pipeline_t));
 
-  fs_file_read(file, pipeline->name, TI_PATH_SIZE, 0);
   fs_file_read(file, &pipeline->pipeline_type, sizeof(fs_pipeline_type_t), 0);
 
   switch (pipeline->pipeline_type) {
@@ -31,8 +30,8 @@ void fs_pipeline_load(fs_pipeline_t *pipeline, fs_file *file) {
       fs_file_read(file, &pipeline->enable_depth_test, sizeof(uint8_t), 0);
       fs_file_read(file, &pipeline->enable_depth_write, sizeof(uint8_t), 0);
 
-      fs_file_read(file, &pipeline->primitive_topology, sizeof(VkPrimitiveTopology), 0);
-      fs_file_read(file, &pipeline->polygon_mode, sizeof(VkPolygonMode), 0);
+      fs_file_read(file, &pipeline->primitive_topology_index, sizeof(uint64_t), 0);
+      fs_file_read(file, &pipeline->polygon_mode_index, sizeof(uint64_t), 0);
       fs_file_read(file, &pipeline->cull_mode_flags, sizeof(VkCullModeFlags), 0);
 
       break;
@@ -60,7 +59,6 @@ void fs_pipeline_load(fs_pipeline_t *pipeline, fs_file *file) {
   fs_file_read(file, &pipeline->descriptor_set_count, sizeof(uint32_t), 0);
 }
 void fs_pipeline_store(fs_pipeline_t *pipeline, fs_file *file) {
-  fs_file_write(file, pipeline->name, TI_PATH_SIZE, 0);
   fs_file_write(file, &pipeline->pipeline_type, sizeof(fs_pipeline_type_t), 0);
 
   switch (pipeline->pipeline_type) {
@@ -80,8 +78,8 @@ void fs_pipeline_store(fs_pipeline_t *pipeline, fs_file *file) {
       fs_file_write(file, &pipeline->enable_depth_test, sizeof(uint8_t), 0);
       fs_file_write(file, &pipeline->enable_depth_write, sizeof(uint8_t), 0);
 
-      fs_file_write(file, &pipeline->primitive_topology, sizeof(VkPrimitiveTopology), 0);
-      fs_file_write(file, &pipeline->polygon_mode, sizeof(VkPolygonMode), 0);
+      fs_file_write(file, &pipeline->primitive_topology_index, sizeof(uint64_t), 0);
+      fs_file_write(file, &pipeline->polygon_mode_index, sizeof(uint64_t), 0);
       fs_file_write(file, &pipeline->cull_mode_flags, sizeof(VkCullModeFlags), 0);
 
       break;

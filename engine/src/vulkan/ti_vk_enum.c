@@ -443,6 +443,25 @@ vk_enum_record_t g_vk_descriptor_type_table[19] = {
   {VK_DESCRIPTOR_TYPE_MUTABLE_EXT, "VK_DESCRIPTOR_TYPE_MUTABLE_EXT"},
   {VK_DESCRIPTOR_TYPE_PARTITIONED_ACCELERATION_STRUCTURE_NV, "VK_DESCRIPTOR_TYPE_PARTITIONED_ACCELERATION_STRUCTURE_NV"},
 };
+vk_enum_record_t g_vk_primitive_topology_table[11] = {
+  {VK_PRIMITIVE_TOPOLOGY_POINT_LIST, "VK_PRIMITIVE_TOPOLOGY_POINT_LIST"},
+  {VK_PRIMITIVE_TOPOLOGY_LINE_LIST, "VK_PRIMITIVE_TOPOLOGY_LINE_LIST"},
+  {VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, "VK_PRIMITIVE_TOPOLOGY_LINE_STRIP"},
+  {VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, "VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST"},
+  {VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, "VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP"},
+  {VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN, "VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN"},
+  {VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY, "VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY"},
+  {VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY, "VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY"},
+  {VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY, "VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY"},
+  {VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY, "VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY"},
+  {VK_PRIMITIVE_TOPOLOGY_PATCH_LIST, "VK_PRIMITIVE_TOPOLOGY_PATCH_LIST"},
+};
+vk_enum_record_t g_vk_polygon_mode_table[4] = {
+  {VK_POLYGON_MODE_FILL, "VK_POLYGON_MODE_FILL"},
+  {VK_POLYGON_MODE_LINE, "VK_POLYGON_MODE_LINE"},
+  {VK_POLYGON_MODE_POINT, "VK_POLYGON_MODE_POINT"},
+  {VK_POLYGON_MODE_FILL_RECTANGLE_NV, "VK_POLYGON_MODE_FILL_RECTANGLE_NV"},
+};
 
 uint64_t vk_find_format_index(VkFormat format) {
   uint64_t index = 0;
@@ -551,6 +570,46 @@ uint64_t vk_find_descriptor_type_index(VkDescriptorType descriptor_type) {
   while (index < count) {
 
     if (descriptor_type == g_vk_descriptor_type_table[index].value) {
+      return index;
+    }
+
+    index++;
+  }
+
+  // TODO: We should never reach this!
+  //       Someone has made an oopsie..
+
+  __debugbreak();
+
+  return 0;
+}
+uint64_t vk_find_primitive_topology_index(VkPrimitiveTopology primitive_topology) {
+  uint64_t index = 0;
+  uint64_t count = TI_ARRAY_COUNT(g_vk_primitive_topology_table);
+
+  while (index < count) {
+
+    if (primitive_topology == g_vk_primitive_topology_table[index].value) {
+      return index;
+    }
+
+    index++;
+  }
+
+  // TODO: We should never reach this!
+  //       Someone has made an oopsie..
+
+  __debugbreak();
+
+  return 0;
+}
+uint64_t vk_find_polygon_mode_index(VkPolygonMode polygon_mode) {
+  uint64_t index = 0;
+  uint64_t count = TI_ARRAY_COUNT(g_vk_polygon_mode_table);
+
+  while (index < count) {
+
+    if (polygon_mode == g_vk_polygon_mode_table[index].value) {
       return index;
     }
 
