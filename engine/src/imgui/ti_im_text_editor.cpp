@@ -15,9 +15,9 @@ void im_text_editor_setup(char const *source_code) {
   s_text_editor.SetText(source_code);
 }
 void im_text_editor_draw(void) {
-  if (ImGui::Begin("Text Editor", 0, ImGuiWindowFlags_NoDecoration)) {
+  ImGui::Begin("Text Editor", 0, ImGuiWindowFlags_NoDecoration);
 
-    draw_background();
+  draw_background();
 
     if (ImGui::Button("Compile and Run")) {
       ti_clang_compile(s_text_editor.GetText().c_str());

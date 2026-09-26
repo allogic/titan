@@ -9,22 +9,16 @@ static void write_descriptor_bindings(fs_pipeline_t *pipeline, fs_file *file);
 void fs_pipeline_load(fs_pipeline_t *pipeline, fs_file *file) {
   memset(pipeline, 0, sizeof(fs_pipeline_t));
 
-  fs_file_read(file, &pipeline->pipeline_type, sizeof(fs_pipeline_type_t), 0);
+  fs_file_read(file, &pipeline->pipeline_type, sizeof(int32_t), 0);
+  fs_file_read(file, &pipeline->descriptor_set_count, sizeof(uint32_t), 0);
+
+  read_descriptor_bindings(pipeline, file);
 
   switch (pipeline->pipeline_type) {
 
     case FS_PIPELINE_TYPE_DEFAULT: {
 
       read_input_variables(pipeline, file);
-      read_descriptor_bindings(pipeline, file);
-
-      fs_file_read(file, &pipeline->spirv_vertex_word_count, sizeof(uint64_t), 0);
-      pipeline->spirv_vertex_words = (uint32_t *)TI_ALLOC(sizeof(uint32_t) * pipeline->spirv_vertex_word_count, 0, 0);
-      fs_file_read(file, pipeline->spirv_vertex_words, sizeof(uint32_t) * pipeline->spirv_vertex_word_count, 0);
-
-      fs_file_read(file, &pipeline->spirv_fragment_word_count, sizeof(uint64_t), 0);
-      pipeline->spirv_fragment_words = (uint32_t *)TI_ALLOC(sizeof(uint32_t) * pipeline->spirv_fragment_word_count, 0, 0);
-      fs_file_read(file, pipeline->spirv_fragment_words, sizeof(uint32_t) * pipeline->spirv_fragment_word_count, 0);
 
       fs_file_read(file, &pipeline->enable_blending, sizeof(uint8_t), 0);
       fs_file_read(file, &pipeline->enable_depth_test, sizeof(uint8_t), 0);
@@ -34,45 +28,113 @@ void fs_pipeline_load(fs_pipeline_t *pipeline, fs_file *file) {
       fs_file_read(file, &pipeline->polygon_mode_index, sizeof(uint64_t), 0);
       fs_file_read(file, &pipeline->cull_mode_flags, sizeof(VkCullModeFlags), 0);
 
+      fs_file_read(file, &pipeline->spirv_vertex_word_count, sizeof(uint64_t), 0);
+      pipeline->spirv_vertex_words = TI_ALLOC(sizeof(uint32_t) * pipeline->spirv_vertex_word_count, 0, 0);
+      fs_file_read(file, pipeline->spirv_vertex_words, sizeof(uint32_t) * pipeline->spirv_vertex_word_count, 0);
+
+      fs_file_read(file, &pipeline->spirv_fragment_word_count, sizeof(uint64_t), 0);
+      pipeline->spirv_fragment_words = TI_ALLOC(sizeof(uint32_t) * pipeline->spirv_fragment_word_count, 0, 0);
+      fs_file_read(file, pipeline->spirv_fragment_words, sizeof(uint32_t) * pipeline->spirv_fragment_word_count, 0);
+
+      fs_file_read(file, &pipeline->glsl_vertex_shader_size, sizeof(uint64_t), 0);
+      pipeline->glsl_vertex_shader = TI_ALLOC(pipeline->glsl_vertex_shader_size, 0, 0);
+      fs_file_read(file, &pipeline->glsl_vertex_shader, pipeline->glsl_vertex_shader_size, 0);
+
+      fs_file_read(file, &pipeline->glsl_fragment_shader_size, sizeof(uint64_t), 0);
+      pipeline->glsl_fragment_shader = TI_ALLOC(pipeline->glsl_fragment_shader_size, 0, 0);
+      fs_file_read(file, &pipeline->glsl_fragment_shader, pipeline->glsl_fragment_shader_size, 0);
+
       break;
     }
     case FS_PIPELINE_TYPE_MESH: {
 
-      // TODO
+      fs_file_read(file, &pipeline->spirv_task_word_count, sizeof(uint64_t), 0);
+      pipeline->spirv_task_words = TI_ALLOC(sizeof(uint32_t) * pipeline->spirv_task_word_count, 0, 0);
+      fs_file_read(file, pipeline->spirv_task_words, sizeof(uint32_t) * pipeline->spirv_task_word_count, 0);
+
+      fs_file_read(file, &pipeline->spirv_mesh_word_count, sizeof(uint64_t), 0);
+      pipeline->spirv_mesh_words = TI_ALLOC(sizeof(uint32_t) * pipeline->spirv_mesh_word_count, 0, 0);
+      fs_file_read(file, pipeline->spirv_mesh_words, sizeof(uint32_t) * pipeline->spirv_mesh_word_count, 0);
+
+      fs_file_read(file, &pipeline->spirv_fragment_word_count, sizeof(uint64_t), 0);
+      pipeline->spirv_fragment_words = TI_ALLOC(sizeof(uint32_t) * pipeline->spirv_fragment_word_count, 0, 0);
+      fs_file_read(file, pipeline->spirv_fragment_words, sizeof(uint32_t) * pipeline->spirv_fragment_word_count, 0);
+
+      fs_file_read(file, &pipeline->glsl_task_shader_size, sizeof(uint64_t), 0);
+      pipeline->glsl_task_shader = TI_ALLOC(pipeline->glsl_task_shader_size, 0, 0);
+      fs_file_read(file, &pipeline->glsl_task_shader, pipeline->glsl_task_shader_size, 0);
+
+      fs_file_read(file, &pipeline->glsl_mesh_shader_size, sizeof(uint64_t), 0);
+      pipeline->glsl_mesh_shader = TI_ALLOC(pipeline->glsl_mesh_shader_size, 0, 0);
+      fs_file_read(file, &pipeline->glsl_mesh_shader, pipeline->glsl_mesh_shader_size, 0);
+
+      fs_file_read(file, &pipeline->glsl_fragment_shader_size, sizeof(uint64_t), 0);
+      pipeline->glsl_fragment_shader = TI_ALLOC(pipeline->glsl_fragment_shader_size, 0, 0);
+      fs_file_read(file, &pipeline->glsl_fragment_shader, pipeline->glsl_fragment_shader_size, 0);
 
       break;
     }
     case FS_PIPELINE_TYPE_RAY_TRACING: {
 
-      // TODO
+      fs_file_read(file, &pipeline->spirv_ray_gen_word_count, sizeof(uint64_t), 0);
+      pipeline->spirv_ray_gen_words = TI_ALLOC(sizeof(uint32_t) * pipeline->spirv_ray_gen_word_count, 0, 0);
+      fs_file_read(file, pipeline->spirv_ray_gen_words, sizeof(uint32_t) * pipeline->spirv_ray_gen_word_count, 0);
+
+      fs_file_read(file, &pipeline->spirv_ray_miss_word_count, sizeof(uint64_t), 0);
+      pipeline->spirv_ray_miss_words = TI_ALLOC(sizeof(uint32_t) * pipeline->spirv_ray_miss_word_count, 0, 0);
+      fs_file_read(file, pipeline->spirv_ray_miss_words, sizeof(uint32_t) * pipeline->spirv_ray_miss_word_count, 0);
+
+      fs_file_read(file, &pipeline->spirv_ray_intersect_word_count, sizeof(uint64_t), 0);
+      pipeline->spirv_ray_intersect_words = TI_ALLOC(sizeof(uint32_t) * pipeline->spirv_ray_intersect_word_count, 0, 0);
+      fs_file_read(file, pipeline->spirv_ray_intersect_words, sizeof(uint32_t) * pipeline->spirv_ray_intersect_word_count, 0);
+
+      fs_file_read(file, &pipeline->spirv_ray_closest_hit_word_count, sizeof(uint64_t), 0);
+      pipeline->spirv_ray_closest_hit_words = TI_ALLOC(sizeof(uint32_t) * pipeline->spirv_ray_closest_hit_word_count, 0, 0);
+      fs_file_read(file, pipeline->spirv_ray_closest_hit_words, sizeof(uint32_t) * pipeline->spirv_ray_closest_hit_word_count, 0);
+
+      fs_file_read(file, &pipeline->glsl_ray_gen_shader_size, sizeof(uint64_t), 0);
+      pipeline->glsl_ray_gen_shader = TI_ALLOC(pipeline->glsl_ray_gen_shader_size, 0, 0);
+      fs_file_read(file, &pipeline->glsl_ray_gen_shader, pipeline->glsl_ray_gen_shader_size, 0);
+
+      fs_file_read(file, &pipeline->glsl_ray_miss_shader_size, sizeof(uint64_t), 0);
+      pipeline->glsl_ray_miss_shader = TI_ALLOC(pipeline->glsl_ray_miss_shader_size, 0, 0);
+      fs_file_read(file, &pipeline->glsl_ray_miss_shader, pipeline->glsl_ray_miss_shader_size, 0);
+
+      fs_file_read(file, &pipeline->glsl_ray_intersect_shader_size, sizeof(uint64_t), 0);
+      pipeline->glsl_ray_intersect_shader = TI_ALLOC(pipeline->glsl_ray_intersect_shader_size, 0, 0);
+      fs_file_read(file, &pipeline->glsl_ray_intersect_shader, pipeline->glsl_ray_intersect_shader_size, 0);
+
+      fs_file_read(file, &pipeline->glsl_ray_closest_hit_shader_size, sizeof(uint64_t), 0);
+      pipeline->glsl_ray_closest_hit_shader = TI_ALLOC(pipeline->glsl_ray_closest_hit_shader_size, 0, 0);
+      fs_file_read(file, &pipeline->glsl_ray_closest_hit_shader, pipeline->glsl_ray_closest_hit_shader_size, 0);
 
       break;
     }
     case FS_PIPELINE_TYPE_COMPUTE: {
 
-      // TODO
+      fs_file_read(file, &pipeline->spirv_compute_word_count, sizeof(uint64_t), 0);
+      pipeline->spirv_compute_words = TI_ALLOC(sizeof(uint32_t) * pipeline->spirv_compute_word_count, 0, 0);
+      fs_file_read(file, pipeline->spirv_compute_words, sizeof(uint32_t) * pipeline->spirv_compute_word_count, 0);
+
+      fs_file_read(file, &pipeline->glsl_compute_shader_size, sizeof(uint64_t), 0);
+      pipeline->glsl_compute_shader = TI_ALLOC(pipeline->glsl_compute_shader_size, 0, 0);
+      fs_file_read(file, &pipeline->glsl_compute_shader, pipeline->glsl_compute_shader_size, 0);
 
       break;
     }
   }
-
-  fs_file_read(file, &pipeline->descriptor_set_count, sizeof(uint32_t), 0);
 }
 void fs_pipeline_store(fs_pipeline_t *pipeline, fs_file *file) {
   fs_file_write(file, &pipeline->pipeline_type, sizeof(fs_pipeline_type_t), 0);
+  fs_file_write(file, &pipeline->descriptor_set_count, sizeof(uint32_t), 0);
+
+  write_descriptor_bindings(pipeline, file);
 
   switch (pipeline->pipeline_type) {
 
     case FS_PIPELINE_TYPE_DEFAULT: {
 
       write_input_variables(pipeline, file);
-      write_descriptor_bindings(pipeline, file);
-
-      fs_file_write(file, &pipeline->spirv_vertex_word_count, sizeof(uint64_t), 0);
-      fs_file_write(file, pipeline->spirv_vertex_words, sizeof(uint32_t) * pipeline->spirv_vertex_word_count, 0);
-
-      fs_file_write(file, &pipeline->spirv_fragment_word_count, sizeof(uint64_t), 0);
-      fs_file_write(file, pipeline->spirv_fragment_words, sizeof(uint32_t) * pipeline->spirv_fragment_word_count, 0);
 
       fs_file_write(file, &pipeline->enable_blending, sizeof(uint8_t), 0);
       fs_file_write(file, &pipeline->enable_depth_test, sizeof(uint8_t), 0);
@@ -82,57 +144,130 @@ void fs_pipeline_store(fs_pipeline_t *pipeline, fs_file *file) {
       fs_file_write(file, &pipeline->polygon_mode_index, sizeof(uint64_t), 0);
       fs_file_write(file, &pipeline->cull_mode_flags, sizeof(VkCullModeFlags), 0);
 
+      fs_file_write(file, &pipeline->spirv_vertex_word_count, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->spirv_vertex_words, sizeof(uint32_t) * pipeline->spirv_vertex_word_count, 0);
+
+      fs_file_write(file, &pipeline->spirv_fragment_word_count, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->spirv_fragment_words, sizeof(uint32_t) * pipeline->spirv_fragment_word_count, 0);
+
+      fs_file_write(file, &pipeline->glsl_vertex_shader_size, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->glsl_vertex_shader, pipeline->glsl_vertex_shader_size, 0);
+
+      fs_file_write(file, &pipeline->glsl_fragment_shader_size, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->glsl_fragment_shader, pipeline->glsl_fragment_shader_size, 0);
+
       break;
     }
     case FS_PIPELINE_TYPE_MESH: {
 
-      // TODO
+      fs_file_write(file, &pipeline->spirv_task_word_count, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->spirv_task_words, sizeof(uint32_t) * pipeline->spirv_task_word_count, 0);
+
+      fs_file_write(file, &pipeline->spirv_mesh_word_count, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->spirv_mesh_words, sizeof(uint32_t) * pipeline->spirv_mesh_word_count, 0);
+
+      fs_file_write(file, &pipeline->spirv_fragment_word_count, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->spirv_fragment_words, sizeof(uint32_t) * pipeline->spirv_fragment_word_count, 0);
+
+      fs_file_write(file, &pipeline->glsl_task_shader_size, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->glsl_task_shader, pipeline->glsl_task_shader_size, 0);
+
+      fs_file_write(file, &pipeline->glsl_mesh_shader_size, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->glsl_mesh_shader, pipeline->glsl_mesh_shader_size, 0);
+
+      fs_file_write(file, &pipeline->glsl_fragment_shader_size, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->glsl_fragment_shader, pipeline->glsl_fragment_shader_size, 0);
 
       break;
     }
     case FS_PIPELINE_TYPE_RAY_TRACING: {
 
-      // TODO
+      fs_file_write(file, &pipeline->spirv_ray_gen_word_count, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->spirv_ray_gen_words, sizeof(uint32_t) * pipeline->spirv_ray_gen_word_count, 0);
+
+      fs_file_write(file, &pipeline->spirv_ray_miss_word_count, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->spirv_ray_miss_words, sizeof(uint32_t) * pipeline->spirv_ray_miss_word_count, 0);
+
+      fs_file_write(file, &pipeline->spirv_ray_intersect_word_count, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->spirv_ray_intersect_words, sizeof(uint32_t) * pipeline->spirv_ray_intersect_word_count, 0);
+
+      fs_file_write(file, &pipeline->spirv_ray_closest_hit_word_count, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->spirv_ray_closest_hit_words, sizeof(uint32_t) * pipeline->spirv_ray_closest_hit_word_count, 0);
+
+      fs_file_write(file, &pipeline->glsl_ray_gen_shader_size, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->glsl_ray_gen_shader, pipeline->glsl_ray_gen_shader_size, 0);
+
+      fs_file_write(file, &pipeline->glsl_ray_miss_shader_size, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->glsl_ray_miss_shader, pipeline->glsl_ray_miss_shader_size, 0);
+
+      fs_file_write(file, &pipeline->glsl_ray_intersect_shader_size, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->glsl_ray_intersect_shader, pipeline->glsl_ray_intersect_shader_size, 0);
+
+      fs_file_write(file, &pipeline->glsl_ray_closest_hit_shader_size, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->glsl_ray_closest_hit_shader, pipeline->glsl_ray_closest_hit_shader_size, 0);
 
       break;
     }
     case FS_PIPELINE_TYPE_COMPUTE: {
 
-      // TODO
+      fs_file_write(file, &pipeline->spirv_compute_word_count, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->spirv_compute_words, sizeof(uint32_t) * pipeline->spirv_compute_word_count, 0);
+
+      fs_file_write(file, &pipeline->glsl_compute_shader_size, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->glsl_compute_shader, pipeline->glsl_compute_shader_size, 0);
 
       break;
     }
   }
-
-  fs_file_write(file, &pipeline->descriptor_set_count, sizeof(uint32_t), 0);
 }
 void fs_pipeline_destroy(fs_pipeline_t *pipeline) {
+  TI_FREE(pipeline->descriptor_bindings);
+
   switch (pipeline->pipeline_type) {
 
     case FS_PIPELINE_TYPE_DEFAULT: {
 
       TI_FREE(pipeline->input_variables);
-      TI_FREE(pipeline->descriptor_bindings);
+
       TI_FREE(pipeline->spirv_vertex_words);
       TI_FREE(pipeline->spirv_fragment_words);
+
+      TI_FREE(pipeline->glsl_vertex_shader);
+      TI_FREE(pipeline->glsl_fragment_shader);
 
       break;
     }
     case FS_PIPELINE_TYPE_MESH: {
 
-      // TODO
+      TI_FREE(pipeline->spirv_task_words);
+      TI_FREE(pipeline->spirv_mesh_words);
+      TI_FREE(pipeline->spirv_fragment_words);
+
+      TI_FREE(pipeline->glsl_task_shader);
+      TI_FREE(pipeline->glsl_mesh_shader);
+      TI_FREE(pipeline->glsl_fragment_shader);
 
       break;
     }
     case FS_PIPELINE_TYPE_RAY_TRACING: {
 
-      // TODO
+      TI_FREE(pipeline->spirv_ray_gen_words);
+      TI_FREE(pipeline->spirv_ray_miss_words);
+      TI_FREE(pipeline->spirv_ray_intersect_words);
+      TI_FREE(pipeline->spirv_ray_closest_hit_words);
+
+      TI_FREE(pipeline->glsl_ray_gen_shader);
+      TI_FREE(pipeline->glsl_ray_miss_shader);
+      TI_FREE(pipeline->glsl_ray_intersect_shader);
+      TI_FREE(pipeline->glsl_ray_closest_hit_shader);
 
       break;
     }
     case FS_PIPELINE_TYPE_COMPUTE: {
 
-      // TODO
+      TI_FREE(pipeline->spirv_compute_words);
+
+      TI_FREE(pipeline->glsl_compute_shader);
 
       break;
     }

@@ -5,7 +5,7 @@
 extern "C" {
 #endif // __cplusplus
 
-void im_test_editor_setup(char const *source_code);
+void im_text_editor_setup(char const *source_code);
 void im_text_editor_draw(void);
 void im_text_editor_refresh(void);
 void im_text_editor_reset(void);

@@ -4,6 +4,105 @@
 // TODO: Check all VkImageMemoryBarrier's and remove double transitions depending on current renderpass (VkAttachmentDescription)
 // TODO: Rename functions with their proper module name..
 
+// TODO
+/*
+
+I reviewed [eg_clang.cpp](C:/Users/Brunzhilde/Downloads/eg_clang.cpp). There are several concrete problems.
+
+[P1] Some calls do not match Titan’s current Clang headers
+
+At [line 93 (line 93)](C:/Users/Brunzhilde/Downloads/eg_clang.cpp:93):
+
+createFileManager() returns void.
+
+createSourceManager() takes no arguments.
+
+getVirtualFile() has been replaced by getVirtualFileRef().
+
+Against your current headers, the initialization needs this form:
+
+s_compiler_instance->createFileManager();
+s_compiler_file_manager = &s_compiler_instance->getFileManager();
+
+s_compiler_instance->createSourceManager();
+s_compiler_source_manager = &s_compiler_instance->getSourceManager();
+
+The virtual-file call at line 106 also needs updating.
+
+[P1] Diagnostic objects have conflicting owners
+
+At [lines 65–67 (line 65)](C:/Users/Brunzhilde/Downloads/eg_clang.cpp:65), two different ownership problems exist:
+
+make_shared owns the diagnostic printer, while the final true tells DiagnosticsEngine to delete it too.
+
+DiagnosticIDs and DiagnosticsEngine use Clang’s intrusive reference counting internally, but your globals manage them independently with std::shared_ptr.
+
+This can cause invalid deletion during shutdown.
+
+Fix: use llvm::IntrusiveRefCntPtr for the IDs and diagnostics engine. If you keep the printer’s existing owner, pass false for ShouldOwnClient.
+
+[P1] Repeated compilation retains a freed source buffer
+
+At [line 104 (line 104)](C:/Users/Brunzhilde/Downloads/eg_clang.cpp:104), addRemappedFile() stores a raw pointer. Your local memory_buffer is destroyed when eg_clang_compile() returns, but the persistent invocation retains that pointer.
+
+On the next compilation, Clang processes the old entry and accesses freed memory.
+
+Fix: clear previous remappings before adding the current buffer. Keep that buffer alive throughout compilation. RetainRemappedFileBuffers = true leaves ownership with you; it does not copy the buffer.
+[P1] Compilation continues after a compiler error
+
+At [line 119 (line 119)](C:/Users/Brunzhilde/Downloads/eg_clang.cpp:119), failure only prints a message. Execution continues to:
+
+module->getDataLayout()
+
+However, takeModule() can return null after failure.
+
+Fix: return when ExecuteAction() fails, and check module before using it. A syntax error should end this compilation attempt.
+
+[P1] Valid C++ input can fail the "add" lookup
+
+You select C++ at line 72, but [line 142 (line 142)](C:/Users/Brunzhilde/Downloads/eg_clang.cpp:142) looks up the literal symbol "add".
+
+This ordinary C++ function receives a decorated symbol name:
+
+int add(int a, int b) {
+  return a + b;
+}
+
+For the existing lookup, the compiled source needs C linkage:
+
+extern "C" int add(int a, int b) {
+  return a + b;
+}
+
+Also, cantFail(jit->lookup("add")) makes a missing function fatal. Handle lookup failure before calling the function pointer.
+
+[P2] ThreadSafeModule receives the wrong context
+
+At [line 138 (line 138)](C:/Users/Brunzhilde/Downloads/eg_clang.cpp:138), you create a new context unrelated to the generated module. The wrapper therefore manages and locks the wrong context. LLVM’s ownership explanation.
+
+Use the context belonging to the action:
+
+llvm::orc::ThreadSafeModule thread_safe_module(
+  std::move(module),
+  std::unique_ptr<llvm::LLVMContext>(emit_llvm_only_action.takeLLVMContext()));
+[P2] Expected results are accessed without checking
+
+This happens with:
+
+file_entry_ref at line 110.
+
+target_machine_builder at line 133.
+
+symbol at line 146.
+
+LLVM builds with its checked-error support can abort even when an unchecked result contains a value. Failed results also cannot safely be dereferenced.
+
+At line 142, cantFail() already extracts an ExecutorAddr; wrapping it back into Expected<ExecutorAddr> creates another unchecked result unnecessarily.
+
+Verification: reviewed against your local Clang/LLVM headers and official LLVM source. I have not compiled or executed this file, and made no changes.
+
+*/
+
 static void import_dflt_assets(void);
 static void create_dflt_assets(void);
 
@@ -323,7 +422,10 @@ static void import_dflt_assets(void) {
 
       fs_asset_create(&asset);
 
-      if (fs_import_pipeline(&asset, FS_PIPELINE_TYPE_DEFAULT, "static/shader/standard_brdf/main.vert", "static/shader/standard_brdf/main.frag") == 0) {
+      if (fs_import_pipeline(&asset, FS_PIPELINE_TYPE_DEFAULT,
+                             "static/shader/standard_brdf/main.vert",
+                             "static/shader/standard_brdf/main.frag",
+                             "", "", "", "", "", "", "") == 0) {
 
         fs_pipeline_t *pipeline = (fs_pipeline_t *)asset.instance;
 
@@ -353,7 +455,10 @@ static void import_dflt_assets(void) {
 
       fs_asset_create(&asset);
 
-      if (fs_import_pipeline(&asset, FS_PIPELINE_TYPE_DEFAULT, "static/shader/debug_line/main.vert", "static/shader/debug_line/main.frag") == 0) {
+      if (fs_import_pipeline(&asset, FS_PIPELINE_TYPE_DEFAULT,
+                             "static/shader/debug_line/main.vert",
+                             "static/shader/debug_line/main.frag",
+                             "", "", "", "", "", "", "") == 0) {
 
         fs_pipeline_t *pipeline = (fs_pipeline_t *)asset.instance;
 

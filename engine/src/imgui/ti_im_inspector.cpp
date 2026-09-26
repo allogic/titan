@@ -364,6 +364,20 @@ static void draw_asset(void) {
 
       fs_pipeline_t *pipeline = (fs_pipeline_t *)s_selected_asset.instance;
 
+      if (ImGui::Button("Vertex Shader")) {
+
+        // pipeline->
+
+        // TODO: im_text_editor_load();
+      }
+
+      ImGui::SameLine();
+
+      if (ImGui::Button("Fragment Shader")) {
+
+        // TODO: im_text_editor_load();
+      }
+
       dirty |= ImGui::Checkbox("Enable Blending", (bool *)&pipeline->enable_blending);
       dirty |= ImGui::Checkbox("Enable Depth Test", (bool *)&pipeline->enable_depth_test);
       dirty |= ImGui::Checkbox("Enable Depth Write", (bool *)&pipeline->enable_depth_write);
