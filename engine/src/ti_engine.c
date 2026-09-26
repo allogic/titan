@@ -1,4 +1,5 @@
 #include <ti_pch.h>
+#include <ti_clang.h>
 
 // TODO: Check all VkImageMemoryBarrier's and remove double transitions depending on current renderpass (VkAttachmentDescription)
 // TODO: Rename functions with their proper module name..
@@ -8,10 +9,11 @@ static void create_dflt_assets(void);
 
 int32_t main(int32_t argc, char **argv) {
   dmalloc_init();
-
+  
   __try {
 
     fs_create(ROOT_DIR "/static", ROOT_DIR "/asset");
+    ti_clang_create();
     scene_create(&g_scene, "test", "asset/scene/test.pak");
 
     import_dflt_assets();
@@ -22,6 +24,7 @@ int32_t main(int32_t argc, char **argv) {
     pl_window_destroy(&g_pl_window);
 
     scene_destroy(&g_scene);
+    ti_clang_destroy();
     fs_destroy();
 
   } __except (EXCEPTION_EXECUTE_HANDLER) {

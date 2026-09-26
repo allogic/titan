@@ -1,4 +1,5 @@
 #include <ti_pch.h>
+#include <ti_clang.h>
 
 #include <imgui.h>
 #include <TextEditor.h>
@@ -7,23 +8,30 @@ static void draw_background(void);
 
 static TextEditor s_text_editor;
 
+void im_text_editor_setup(char const *source_code) {
+  s_text_editor.SetLanguage(TextEditor::Language::C());
+  s_text_editor.SetPalette(TextEditor::GetDarkPalette());
+  s_text_editor.SetTabSize(2);
+  s_text_editor.SetText(source_code);
+}
 void im_text_editor_draw(void) {
   if (ImGui::Begin("Text Editor", 0, ImGuiWindowFlags_NoDecoration)) {
 
     draw_background();
 
-    s_text_editor.Render("##TextEditor");
+    if (ImGui::Button("Compile and Run")) {
+      ti_clang_compile(s_text_editor.GetText().c_str());
+    }
 
-    ImGui::End();
+    s_text_editor.Render("##TextEditor");
   }
+
+  ImGui::End();
 }
 void im_text_editor_refresh(void) {
-  s_text_editor.SetLanguage(TextEditor::Language::C());
-  s_text_editor.SetPalette(TextEditor::GetDarkPalette());
-  s_text_editor.SetTabSize(2);
-
-  s_text_editor.SetText("int main(void) {\n  return 0;\n}\n");
+  // TODO
 }
+
 void im_text_editor_reset(void) {
   s_text_editor.ClearText();
 }
