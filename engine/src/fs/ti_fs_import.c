@@ -22,7 +22,7 @@ static void convert_gltf_joint(fs_joint_t *joint, cgltf_node *gltf_node);
 
 static void convert_ttf_font(fs_font_t *font, void *buffer, uint64_t buffer_size);
 
-static uint8_t compile_glsl_shader(char const *file_path, glslang_stage_t stage, uint32_t **words, uint64_t *word_count);
+static uint8_t compile_glsl_shader(fs_pipeline_t *pipeline, char const *file_path, glslang_stage_t stage);
 
 static uint64_t count_spirv_input_variables(SpvReflectShaderModule *module);
 static uint64_t count_spirv_descriptor_bindings(SpvReflectShaderModule *module);
@@ -131,152 +131,6 @@ error:
 
   return status;
 }
-uint8_t fs_import_pipeline(fs_asset_t *asset, fs_pipeline_type_t pipeline_type, char const *vertex_file, char const *fragment_file) {
-  uint8_t status = 0;
-
-  fs_pipeline_t *pipeline = (fs_pipeline_t *)asset->instance;
-
-  uint64_t path_size = strlen(asset->path);
-
-  const char *file_name = fs_path_file_name(asset->path, path_size);
-  const char *file_ext = fs_path_extension(asset->path, path_size);
-
-  uint32_t *spirv_vertex_words = 0;
-  uint32_t *spirv_fragment_words = 0;
-
-  uint64_t spirv_vertex_word_count = 0;
-  uint64_t spirv_fragment_word_count = 0;
-
-  SpvReflectShaderModule vertex_module = {0};
-  SpvReflectShaderModule fragment_module = {0};
-
-  LARGE_INTEGER freq = {0};
-  LARGE_INTEGER t0 = {0};
-  LARGE_INTEGER t1 = {0};
-  LARGE_INTEGER t2 = {0};
-  LARGE_INTEGER t3 = {0};
-  LARGE_INTEGER t4 = {0};
-
-  QueryPerformanceFrequency(&freq);
-  QueryPerformanceCounter(&t0);
-
-  if (compile_glsl_shader(vertex_file, GLSLANG_STAGE_VERTEX, &spirv_vertex_words, &spirv_vertex_word_count)) {
-
-    status = 1;
-
-    goto error;
-  }
-
-  QueryPerformanceCounter(&t1);
-
-  if (compile_glsl_shader(fragment_file, GLSLANG_STAGE_FRAGMENT, &spirv_fragment_words, &spirv_fragment_word_count)) {
-
-    status = 1;
-
-    goto error;
-  }
-
-  QueryPerformanceCounter(&t2);
-
-  if (spvReflectCreateShaderModule(sizeof(uint32_t) * spirv_vertex_word_count, spirv_vertex_words, &vertex_module) != SPV_REFLECT_RESULT_SUCCESS) {
-
-    status = 1;
-
-    goto error;
-  }
-  if (spvReflectCreateShaderModule(sizeof(uint32_t) * spirv_fragment_word_count, spirv_fragment_words, &fragment_module) != SPV_REFLECT_RESULT_SUCCESS) {
-
-    status = 1;
-
-    goto error;
-  }
-
-  QueryPerformanceCounter(&t3);
-
-  switch (pipeline_type) {
-
-    case FS_PIPELINE_TYPE_DEFAULT: {
-
-      uint64_t input_variable_offset = 0;
-      uint64_t input_variable_count = 0;
-
-      uint64_t descriptor_binding_offset = 0;
-      uint64_t descriptor_binding_count = 0;
-
-      input_variable_count += count_spirv_input_variables(&vertex_module);
-
-      descriptor_binding_count += count_spirv_descriptor_bindings(&vertex_module);
-      descriptor_binding_count += count_spirv_descriptor_bindings(&fragment_module);
-
-      pipeline->input_variable_count = input_variable_count;
-      pipeline->descriptor_binding_count = descriptor_binding_count;
-      pipeline->input_variables = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * input_variable_count, 0, 0);
-      pipeline->descriptor_bindings = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * descriptor_binding_count, 0, 0);
-
-      convert_spirv_input_variables(asset, pipeline, &input_variable_offset, &vertex_module);
-
-      convert_spirv_descriptor_bindings(asset, pipeline, &descriptor_binding_offset, &vertex_module);
-      convert_spirv_descriptor_bindings(asset, pipeline, &descriptor_binding_offset, &fragment_module);
-
-      pipeline->spirv_vertex_word_count = spirv_vertex_word_count;
-      pipeline->spirv_fragment_word_count = spirv_fragment_word_count;
-
-      pipeline->spirv_vertex_words = (uint32_t *)TI_ALLOC(sizeof(uint32_t) * spirv_vertex_word_count, 0, spirv_vertex_words);
-      pipeline->spirv_fragment_words = (uint32_t *)TI_ALLOC(sizeof(uint32_t) * spirv_fragment_word_count, 0, spirv_fragment_words);
-
-      break;
-    }
-    case FS_PIPELINE_TYPE_MESH: {
-
-      // TODO
-
-      break;
-    }
-    case FS_PIPELINE_TYPE_RAY_TRACING: {
-
-      // TODO
-
-      break;
-    }
-    case FS_PIPELINE_TYPE_COMPUTE: {
-
-      // TODO
-
-      break;
-    }
-  }
-
-  QueryPerformanceCounter(&t4);
-
-  LONGLONG d0 = ((t1.QuadPart - t0.QuadPart) * 1000) / freq.QuadPart;
-  LONGLONG d1 = ((t2.QuadPart - t1.QuadPart) * 1000) / freq.QuadPart;
-  LONGLONG d2 = ((t3.QuadPart - t2.QuadPart) * 1000) / freq.QuadPart;
-  LONGLONG d3 = ((t4.QuadPart - t3.QuadPart) * 1000) / freq.QuadPart;
-  LONGLONG dt = d0 + d1 + d2 + d3;
-
-  printf("Importing %s\n", asset->path);
-  printf("  Compile vertex shader   %8lld ms\n", d0);
-  printf("  Compile fragment shader %8lld ms\n", d1);
-  printf("  Convert vertex shader   %8lld ms\n", d2);
-  printf("  Convert fragment shader %8lld ms\n", d3);
-  printf("  Total                   %8llu ms\n", dt);
-  printf("\n");
-
-error:
-
-  spvReflectDestroyShaderModule(&vertex_module);
-  spvReflectDestroyShaderModule(&fragment_module);
-
-  if (spirv_vertex_words) {
-    TI_FREE(spirv_vertex_words);
-  }
-
-  if (spirv_fragment_words) {
-    TI_FREE(spirv_fragment_words);
-  }
-
-  return status;
-}
 uint8_t fs_import_font(fs_asset_t *asset, char const *font_file) {
   uint8_t status = 0;
 
@@ -325,6 +179,332 @@ error:
 
   if (buffer) {
     fs_free(buffer, 0);
+  }
+
+  return status;
+}
+uint8_t fs_import_pipeline(fs_asset_t *asset, fs_pipeline_type_t pipeline_type,
+                           char const *vertex_file,
+                           char const *fragment_file,
+                           char const *task_file,
+                           char const *mesh_file,
+                           char const *ray_gen_file,
+                           char const *ray_miss_file,
+                           char const *ray_intersect_file,
+                           char const *ray_closest_hit_file,
+                           char const *compute_file) {
+  uint8_t status = 0;
+
+  fs_pipeline_t *pipeline = (fs_pipeline_t *)asset->instance;
+
+  SpvReflectShaderModule vertex_module = {0};
+  SpvReflectShaderModule fragment_module = {0};
+  SpvReflectShaderModule task_module = {0};
+  SpvReflectShaderModule mesh_module = {0};
+  SpvReflectShaderModule ray_gen_module = {0};
+  SpvReflectShaderModule ray_miss_module = {0};
+  SpvReflectShaderModule ray_intersect_module = {0};
+  SpvReflectShaderModule ray_closest_hit_module = {0};
+  SpvReflectShaderModule compute_module = {0};
+
+  LARGE_INTEGER freq = {0};
+  LARGE_INTEGER t0 = {0};
+  LARGE_INTEGER t1 = {0};
+  LARGE_INTEGER t2 = {0};
+  LARGE_INTEGER t3 = {0};
+
+  QueryPerformanceFrequency(&freq);
+  QueryPerformanceCounter(&t0);
+
+  switch (pipeline_type) {
+
+    case FS_PIPELINE_TYPE_DEFAULT: {
+
+      if (compile_glsl_shader(pipeline, vertex_file, GLSLANG_STAGE_VERTEX)) {
+
+        status = 1;
+
+        goto error;
+      }
+      if (compile_glsl_shader(pipeline, fragment_file, GLSLANG_STAGE_FRAGMENT)) {
+
+        status = 1;
+
+        goto error;
+      }
+
+      QueryPerformanceCounter(&t1);
+
+      if (spvReflectCreateShaderModule(sizeof(uint32_t) * pipeline->spirv_vertex_word_count, pipeline->spirv_vertex_words, &vertex_module) != SPV_REFLECT_RESULT_SUCCESS) {
+
+        status = 1;
+
+        goto error;
+      }
+      if (spvReflectCreateShaderModule(sizeof(uint32_t) * pipeline->spirv_fragment_word_count, pipeline->spirv_fragment_words, &fragment_module) != SPV_REFLECT_RESULT_SUCCESS) {
+
+        status = 1;
+
+        goto error;
+      }
+
+      QueryPerformanceCounter(&t2);
+
+      uint64_t input_variable_offset = 0;
+      uint64_t input_variable_count = 0;
+
+      uint64_t descriptor_binding_offset = 0;
+      uint64_t descriptor_binding_count = 0;
+
+      input_variable_count += count_spirv_input_variables(&vertex_module);
+
+      descriptor_binding_count += count_spirv_descriptor_bindings(&vertex_module);
+      descriptor_binding_count += count_spirv_descriptor_bindings(&fragment_module);
+
+      pipeline->input_variable_count = input_variable_count;
+      pipeline->input_variables = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * input_variable_count, 0, 0);
+
+      pipeline->descriptor_binding_count = descriptor_binding_count;
+      pipeline->descriptor_bindings = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * descriptor_binding_count, 0, 0);
+
+      convert_spirv_input_variables(asset, pipeline, &input_variable_offset, &vertex_module);
+
+      convert_spirv_descriptor_bindings(asset, pipeline, &descriptor_binding_offset, &vertex_module);
+      convert_spirv_descriptor_bindings(asset, pipeline, &descriptor_binding_offset, &fragment_module);
+
+      break;
+    }
+    case FS_PIPELINE_TYPE_MESH: {
+
+      if (compile_glsl_shader(pipeline, task_file, GLSLANG_STAGE_TASK)) {
+
+        status = 1;
+
+        goto error;
+      }
+      if (compile_glsl_shader(pipeline, mesh_file, GLSLANG_STAGE_MESH)) {
+
+        status = 1;
+
+        goto error;
+      }
+      if (compile_glsl_shader(pipeline, fragment_file, GLSLANG_STAGE_FRAGMENT)) {
+
+        status = 1;
+
+        goto error;
+      }
+
+      QueryPerformanceCounter(&t1);
+
+      if (spvReflectCreateShaderModule(sizeof(uint32_t) * pipeline->spirv_task_word_count, pipeline->spirv_task_words, &task_module) != SPV_REFLECT_RESULT_SUCCESS) {
+
+        status = 1;
+
+        goto error;
+      }
+      if (spvReflectCreateShaderModule(sizeof(uint32_t) * pipeline->spirv_mesh_word_count, pipeline->spirv_mesh_words, &mesh_module) != SPV_REFLECT_RESULT_SUCCESS) {
+
+        status = 1;
+
+        goto error;
+      }
+      if (spvReflectCreateShaderModule(sizeof(uint32_t) * pipeline->spirv_fragment_word_count, pipeline->spirv_fragment_words, &fragment_module) != SPV_REFLECT_RESULT_SUCCESS) {
+
+        status = 1;
+
+        goto error;
+      }
+
+      QueryPerformanceCounter(&t2);
+
+      uint64_t input_variable_count = 0;
+
+      uint64_t descriptor_binding_offset = 0;
+      uint64_t descriptor_binding_count = 0;
+
+      descriptor_binding_count += count_spirv_descriptor_bindings(&task_module);
+      descriptor_binding_count += count_spirv_descriptor_bindings(&mesh_module);
+      descriptor_binding_count += count_spirv_descriptor_bindings(&fragment_module);
+
+      pipeline->input_variable_count = input_variable_count;
+      pipeline->descriptor_binding_count = descriptor_binding_count;
+
+      pipeline->input_variables = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * input_variable_count, 0, 0);
+      pipeline->descriptor_bindings = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * descriptor_binding_count, 0, 0);
+
+      convert_spirv_descriptor_bindings(asset, pipeline, &descriptor_binding_offset, &task_module);
+      convert_spirv_descriptor_bindings(asset, pipeline, &descriptor_binding_offset, &mesh_module);
+      convert_spirv_descriptor_bindings(asset, pipeline, &descriptor_binding_offset, &fragment_module);
+
+      break;
+    }
+    case FS_PIPELINE_TYPE_RAY_TRACING: {
+
+      if (compile_glsl_shader(pipeline, ray_gen_file, GLSLANG_STAGE_RAYGEN)) {
+
+        status = 1;
+
+        goto error;
+      }
+      if (compile_glsl_shader(pipeline, ray_miss_file, GLSLANG_STAGE_MISS)) {
+
+        status = 1;
+
+        goto error;
+      }
+      if (compile_glsl_shader(pipeline, ray_intersect_file, GLSLANG_STAGE_INTERSECT)) {
+
+        status = 1;
+
+        goto error;
+      }
+      if (compile_glsl_shader(pipeline, ray_closest_hit_file, GLSLANG_STAGE_CLOSESTHIT)) {
+
+        status = 1;
+
+        goto error;
+      }
+
+      QueryPerformanceCounter(&t1);
+
+      if (spvReflectCreateShaderModule(sizeof(uint32_t) * pipeline->spirv_ray_gen_word_count, pipeline->spirv_ray_gen_words, &ray_gen_module) != SPV_REFLECT_RESULT_SUCCESS) {
+
+        status = 1;
+
+        goto error;
+      }
+      if (spvReflectCreateShaderModule(sizeof(uint32_t) * pipeline->spirv_ray_miss_word_count, pipeline->spirv_ray_miss_words, &ray_miss_module) != SPV_REFLECT_RESULT_SUCCESS) {
+
+        status = 1;
+
+        goto error;
+      }
+      if (spvReflectCreateShaderModule(sizeof(uint32_t) * pipeline->spirv_ray_intersect_word_count, pipeline->spirv_ray_intersect_words, &ray_intersect_module) != SPV_REFLECT_RESULT_SUCCESS) {
+
+        status = 1;
+
+        goto error;
+      }
+      if (spvReflectCreateShaderModule(sizeof(uint32_t) * pipeline->spirv_ray_closest_hit_word_count, pipeline->spirv_ray_closest_hit_words, &ray_closest_hit_module) != SPV_REFLECT_RESULT_SUCCESS) {
+
+        status = 1;
+
+        goto error;
+      }
+
+      QueryPerformanceCounter(&t2);
+
+      uint64_t input_variable_count = 0;
+
+      uint64_t descriptor_binding_offset = 0;
+      uint64_t descriptor_binding_count = 0;
+
+      descriptor_binding_count += count_spirv_descriptor_bindings(&ray_gen_module);
+      descriptor_binding_count += count_spirv_descriptor_bindings(&ray_miss_module);
+      descriptor_binding_count += count_spirv_descriptor_bindings(&ray_intersect_module);
+      descriptor_binding_count += count_spirv_descriptor_bindings(&ray_closest_hit_module);
+
+      pipeline->input_variable_count = input_variable_count;
+      pipeline->descriptor_binding_count = descriptor_binding_count;
+
+      pipeline->input_variables = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * input_variable_count, 0, 0);
+      pipeline->descriptor_bindings = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * descriptor_binding_count, 0, 0);
+
+      convert_spirv_descriptor_bindings(asset, pipeline, &descriptor_binding_offset, &ray_gen_module);
+      convert_spirv_descriptor_bindings(asset, pipeline, &descriptor_binding_offset, &ray_miss_module);
+      convert_spirv_descriptor_bindings(asset, pipeline, &descriptor_binding_offset, &ray_intersect_module);
+      convert_spirv_descriptor_bindings(asset, pipeline, &descriptor_binding_offset, &ray_closest_hit_module);
+
+      break;
+    }
+    case FS_PIPELINE_TYPE_COMPUTE: {
+
+      if (compile_glsl_shader(pipeline, compute_file, GLSLANG_STAGE_COMPUTE)) {
+
+        status = 1;
+
+        goto error;
+      }
+
+      QueryPerformanceCounter(&t1);
+
+      if (spvReflectCreateShaderModule(sizeof(uint32_t) * pipeline->spirv_compute_word_count, pipeline->spirv_compute_words, &compute_module) != SPV_REFLECT_RESULT_SUCCESS) {
+
+        status = 1;
+
+        goto error;
+      }
+
+      QueryPerformanceCounter(&t2);
+
+      uint64_t input_variable_count = 0;
+
+      uint64_t descriptor_binding_offset = 0;
+      uint64_t descriptor_binding_count = 0;
+
+      descriptor_binding_count += count_spirv_descriptor_bindings(&compute_module);
+
+      pipeline->input_variable_count = input_variable_count;
+      pipeline->descriptor_binding_count = descriptor_binding_count;
+
+      pipeline->input_variables = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * input_variable_count, 0, 0);
+      pipeline->descriptor_bindings = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * descriptor_binding_count, 0, 0);
+
+      convert_spirv_descriptor_bindings(asset, pipeline, &descriptor_binding_offset, &compute_module);
+
+      break;
+    }
+  }
+
+  QueryPerformanceCounter(&t3);
+
+  LONGLONG d0 = ((t1.QuadPart - t0.QuadPart) * 1000) / freq.QuadPart;
+  LONGLONG d1 = ((t2.QuadPart - t1.QuadPart) * 1000) / freq.QuadPart;
+  LONGLONG d2 = ((t3.QuadPart - t2.QuadPart) * 1000) / freq.QuadPart;
+  LONGLONG dt = d0 + d1 + d2;
+
+  printf("Importing %s\n", asset->path);
+  printf("  Compile shaders         %8lld ms\n", d0);
+  printf("  Reflect shaders         %8lld ms\n", d1);
+  printf("  Convert shaders         %8lld ms\n", d2);
+  printf("  Total                   %8llu ms\n", dt);
+  printf("\n");
+
+error:
+
+  switch (pipeline_type) {
+
+    case FS_PIPELINE_TYPE_DEFAULT: {
+
+      spvReflectDestroyShaderModule(&vertex_module);
+      spvReflectDestroyShaderModule(&fragment_module);
+
+      break;
+    }
+    case FS_PIPELINE_TYPE_MESH: {
+
+      spvReflectDestroyShaderModule(&mesh_module);
+      spvReflectDestroyShaderModule(&task_module);
+      spvReflectDestroyShaderModule(&fragment_module);
+
+      break;
+    }
+    case FS_PIPELINE_TYPE_RAY_TRACING: {
+
+      spvReflectDestroyShaderModule(&ray_gen_module);
+      spvReflectDestroyShaderModule(&ray_miss_module);
+      spvReflectDestroyShaderModule(&ray_intersect_module);
+      spvReflectDestroyShaderModule(&ray_closest_hit_module);
+
+      break;
+    }
+    case FS_PIPELINE_TYPE_COMPUTE: {
+
+      spvReflectDestroyShaderModule(&compute_module);
+
+      break;
+    }
   }
 
   return status;
@@ -723,7 +903,7 @@ static void convert_ttf_font(fs_font_t *font, void *buffer, uint64_t buffer_size
   font->buffer_size = buffer_size;
 }
 
-static uint8_t compile_glsl_shader(char const *file_path, glslang_stage_t stage, uint32_t **words, uint64_t *word_count) {
+static uint8_t compile_glsl_shader(fs_pipeline_t *pipeline, char const *file_path, glslang_stage_t stage) {
   uint8_t status = 0;
 
   void *buffer = 0;
@@ -788,10 +968,92 @@ static uint8_t compile_glsl_shader(char const *file_path, glslang_stage_t stage,
 
   glslang_program_SPIRV_generate(program, stage);
 
-  *word_count = glslang_program_SPIRV_get_size(program);
-  *words = (uint32_t *)TI_ALLOC(sizeof(uint32_t) * (*word_count), 0, 0);
+  uint64_t word_count = glslang_program_SPIRV_get_size(program);
+  uint32_t *words = glslang_program_SPIRV_get_ptr(program);
 
-  memcpy(*words, glslang_program_SPIRV_get_ptr(program), sizeof(uint32_t) * (*word_count));
+  switch (stage) {
+
+    case GLSLANG_STAGE_VERTEX: {
+
+      pipeline->spirv_vertex_word_count = word_count;
+      pipeline->spirv_vertex_words = TI_ALLOC(sizeof(uint32_t) * word_count, 0, words);
+
+      pipeline->glsl_vertex_shader_size = buffer_size;
+      pipeline->glsl_vertex_shader = TI_ALLOC(buffer_size, 0, buffer);
+
+      break;
+    }
+    case GLSLANG_STAGE_FRAGMENT: {
+
+      pipeline->spirv_fragment_word_count = word_count;
+      pipeline->spirv_fragment_words = TI_ALLOC(sizeof(uint32_t) * word_count, 0, words);
+
+      pipeline->glsl_fragment_shader_size = buffer_size;
+      pipeline->glsl_fragment_shader = TI_ALLOC(buffer_size, 0, buffer);
+
+      break;
+    }
+    case GLSLANG_STAGE_TASK: {
+
+      pipeline->spirv_task_word_count = word_count;
+      pipeline->spirv_task_words = TI_ALLOC(sizeof(uint32_t) * word_count, 0, words);
+
+      pipeline->glsl_task_shader_size = buffer_size;
+      pipeline->glsl_task_shader = TI_ALLOC(buffer_size, 0, buffer);
+
+      break;
+    }
+    case GLSLANG_STAGE_MESH: {
+
+      pipeline->spirv_mesh_word_count = word_count;
+      pipeline->spirv_mesh_words = TI_ALLOC(sizeof(uint32_t) * word_count, 0, words);
+
+      pipeline->glsl_mesh_shader_size = buffer_size;
+      pipeline->glsl_mesh_shader = TI_ALLOC(buffer_size, 0, buffer);
+
+      break;
+    }
+    case GLSLANG_STAGE_RAYGEN: {
+
+      pipeline->spirv_ray_gen_word_count = word_count;
+      pipeline->spirv_ray_gen_words = TI_ALLOC(sizeof(uint32_t) * word_count, 0, words);
+
+      pipeline->glsl_ray_gen_shader_size = buffer_size;
+      pipeline->glsl_ray_gen_shader = TI_ALLOC(buffer_size, 0, buffer);
+
+      break;
+    }
+    case GLSLANG_STAGE_MISS: {
+
+      pipeline->spirv_ray_miss_word_count = word_count;
+      pipeline->spirv_ray_miss_words = TI_ALLOC(sizeof(uint32_t) * word_count, 0, words);
+
+      pipeline->glsl_ray_miss_shader_size = buffer_size;
+      pipeline->glsl_ray_miss_shader = TI_ALLOC(buffer_size, 0, buffer);
+
+      break;
+    }
+    case GLSLANG_STAGE_INTERSECT: {
+
+      pipeline->spirv_ray_intersect_word_count = word_count;
+      pipeline->spirv_ray_intersect_words = TI_ALLOC(sizeof(uint32_t) * word_count, 0, words);
+
+      pipeline->glsl_ray_intersect_shader_size = buffer_size;
+      pipeline->glsl_ray_intersect_shader = TI_ALLOC(buffer_size, 0, buffer);
+
+      break;
+    }
+    case GLSLANG_STAGE_CLOSESTHIT: {
+
+      pipeline->spirv_ray_closest_hit_word_count = word_count;
+      pipeline->spirv_ray_closest_hit_words = TI_ALLOC(sizeof(uint32_t) * word_count, 0, words);
+
+      pipeline->glsl_ray_closest_hit_shader_size = buffer_size;
+      pipeline->glsl_ray_closest_hit_shader = TI_ALLOC(buffer_size, 0, buffer);
+
+      break;
+    }
+  }
 
 error:
 

@@ -7,10 +7,10 @@ static void create_pipeline_layout(vk_pipeline_t *pipeline);
 
 static void create_sbt_buffer(vk_pipeline_t *pipeline);
 
-static void create_dflt_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *renderpass);
+static void create_default_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *renderpass);
 static void create_mesh_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *renderpass);
-static void create_ray_pipeline(vk_pipeline_t *pipeline);
-static void create_comp_pipeline(vk_pipeline_t *pipeline);
+static void create_ray_tracing_pipeline(vk_pipeline_t *pipeline);
+static void create_compute_pipeline(vk_pipeline_t *pipeline);
 
 static void destroy_sbt_buffer(vk_pipeline_t *pipeline);
 
@@ -33,7 +33,7 @@ void vk_pipeline_create(vk_pipeline_t *pipeline, vk_renderpass_t *renderpass, ch
 
     case FS_PIPELINE_TYPE_DEFAULT: {
 
-      create_dflt_pipeline(pipeline, renderpass);
+      create_default_pipeline(pipeline, renderpass);
 
       break;
     }
@@ -45,7 +45,7 @@ void vk_pipeline_create(vk_pipeline_t *pipeline, vk_renderpass_t *renderpass, ch
     }
     case FS_PIPELINE_TYPE_RAY_TRACING: {
 
-      create_ray_pipeline(pipeline);
+      create_ray_tracing_pipeline(pipeline);
 
       create_sbt_buffer(pipeline);
 
@@ -53,7 +53,7 @@ void vk_pipeline_create(vk_pipeline_t *pipeline, vk_renderpass_t *renderpass, ch
     }
     case FS_PIPELINE_TYPE_COMPUTE: {
 
-      create_comp_pipeline(pipeline);
+      create_compute_pipeline(pipeline);
 
       break;
     }
@@ -245,7 +245,7 @@ static void create_sbt_buffer(vk_pipeline_t *pipeline) {
   pipeline->callable_region.size = 0;
 }
 
-static void create_dflt_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *renderpass) {
+static void create_default_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *renderpass) {
   fs_pipeline_t *config = (fs_pipeline_t *)pipeline->asset.instance;
 
   VkShaderModule vertex_module = 0;
@@ -619,7 +619,7 @@ static void create_mesh_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *rende
   vkDestroyShaderModule(g_vk_instance.device, mesh_module, 0);
   vkDestroyShaderModule(g_vk_instance.device, fragment_module, 0);
 }
-static void create_ray_pipeline(vk_pipeline_t *pipeline) {
+static void create_ray_tracing_pipeline(vk_pipeline_t *pipeline) {
   VkShaderModule ray_gen_module = 0;
   VkShaderModule ray_miss_module = 0;
   VkShaderModule ray_intersect_module = 0;
@@ -772,7 +772,7 @@ static void create_ray_pipeline(vk_pipeline_t *pipeline) {
   vkDestroyShaderModule(g_vk_instance.device, ray_intersect_module, 0);
   vkDestroyShaderModule(g_vk_instance.device, ray_closest_hit_module, 0);
 }
-static void create_comp_pipeline(vk_pipeline_t *pipeline) {
+static void create_compute_pipeline(vk_pipeline_t *pipeline) {
   VkShaderModule compute_module = 0;
 
   // TODO
