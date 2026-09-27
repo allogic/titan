@@ -15,6 +15,7 @@ CMakeUserPresets.json
 # Folder
 .vs
 out
+asset
 
 # Files
 *.pdb
