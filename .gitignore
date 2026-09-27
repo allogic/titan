@@ -24,3 +24,5 @@ asset
 *.glb
 *.pak
 *.spv
+*.zip
+*.exp
