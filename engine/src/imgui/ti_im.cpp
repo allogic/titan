@@ -189,7 +189,7 @@ void im_create(void) {
   ImGui_ImplVulkan_Init(&imgui_vulkan_init_info);
 
   // TODO refector this in the future
-  im_text_editor_refresh();
+  im_text_editor_setup("int add(int a, int b) {\n\treturn a + b;\n}\n");
 }
 
 void im_draw(void) {

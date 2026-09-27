@@ -69,6 +69,18 @@ void fs_asset_create(fs_asset_t *asset) {
 
       break;
     }
+    case FS_ASSET_TYPE_SCRIPT: {
+
+      asset->instance = TI_ALLOC(sizeof(fs_script_t), 1, 0);
+
+      break;
+    }
+    case FS_ASSET_TYPE_SOUND: {
+
+      asset->instance = TI_ALLOC(sizeof(fs_sound_t), 1, 0);
+
+      break;
+    }
   }
 }
 uint8_t fs_asset_exists(fs_asset_t *asset) {
@@ -184,6 +196,22 @@ void fs_asset_load(fs_asset_t *asset) {
 
       break;
     }
+    case FS_ASSET_TYPE_SCRIPT: {
+
+      asset->instance = TI_ALLOC(sizeof(fs_script_t), 1, 0);
+
+      fs_script_load(asset->instance, file);
+
+      break;
+    }
+    case FS_ASSET_TYPE_SOUND: {
+
+      asset->instance = TI_ALLOC(sizeof(fs_sound_t), 1, 0);
+
+      fs_sound_load(asset->instance, file);
+
+      break;
+    }
   }
 
   fs_file_close(file);
@@ -270,6 +298,18 @@ void fs_asset_store(fs_asset_t *asset) {
 
       break;
     }
+    case FS_ASSET_TYPE_SCRIPT: {
+
+      fs_script_store(asset->instance, file);
+
+      break;
+    }
+    case FS_ASSET_TYPE_SOUND: {
+
+      fs_sound_store(asset->instance, file);
+
+      break;
+    }
   }
 
   fs_file_close(file);
@@ -340,6 +380,18 @@ void fs_asset_destroy(fs_asset_t *asset) {
     case FS_ASSET_TYPE_RENDERER: {
 
       fs_renderer_destroy(asset->instance);
+
+      break;
+    }
+    case FS_ASSET_TYPE_SCRIPT: {
+
+      fs_script_destroy(asset->instance);
+
+      break;
+    }
+    case FS_ASSET_TYPE_SOUND: {
+
+      fs_sound_destroy(asset->instance);
 
       break;
     }

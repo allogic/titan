@@ -16,6 +16,8 @@
 #include <fs/ti_fs_swapchain.h>
 #include <fs/ti_fs_renderpass.h>
 #include <fs/ti_fs_renderer.h>
+#include <fs/ti_fs_script.h>
+#include <fs/ti_fs_sound.h>
 #include <fs/ti_fs_asset.h>
 #include <fs/ti_fs_import.h>
 

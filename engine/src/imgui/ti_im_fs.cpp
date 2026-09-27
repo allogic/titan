@@ -218,7 +218,6 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
           s_new_file_type = IM_FILE_TYPE_ASSET;
           s_new_file_name[0] = 0;
         }
-
         if (ImGui::MenuItem("Pipeline")) {
 
           s_selected_file = file_entry;
@@ -229,7 +228,6 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
           s_new_file_type = IM_FILE_TYPE_ASSET;
           s_new_file_name[0] = 0;
         }
-
         if (ImGui::MenuItem("Font")) {
 
           s_selected_file = file_entry;
@@ -253,7 +251,6 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
           s_new_file_type = IM_FILE_TYPE_ASSET;
           s_new_file_name[0] = 0;
         }
-
         if (ImGui::MenuItem("Buffer")) {
 
           s_selected_file = file_entry;

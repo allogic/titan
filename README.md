@@ -50,7 +50,8 @@ https://mega.nz/file/zcRkybJB#2nj2zRwO3ANY-hVFekGJWR6njWSBLBdgdnVLvjs6L3g
 
 ### LLVM-23.1.2 x86-64 Windows Libraries
 ```
-
+https://mega.nz/file/iYhklbyA#LzZwy3IPmBzPetMT1tvkRfNtXesmJdfVQFokFjcWRmY
+https://mega.nz/file/iYJxTIjY#vBkfenwF-WD686JPRZiBU1VZuFkCyCvrURW2Ejg2fqA
 ```
 
 ## Static Resources

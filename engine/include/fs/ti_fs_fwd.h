@@ -14,6 +14,8 @@ typedef enum fs_asset_type_t {
   FS_ASSET_TYPE_SWAPCHAIN,          // OK
   FS_ASSET_TYPE_RENDERPASS,         // OK
   FS_ASSET_TYPE_RENDERER,           // OK
+  FS_ASSET_TYPE_SCRIPT,
+  FS_ASSET_TYPE_SOUND,
   FS_ASSET_TYPE_COUNT,
 } fs_asset_type_t;
 
@@ -189,6 +191,12 @@ typedef struct fs_renderer_t {
   fs_asset_reference_t full_screen_vertex_buffer;
   fs_asset_reference_t full_screen_index_buffer;
 } fs_renderer_t;
+typedef struct fs_script_t {
+  void *dummy;
+} fs_script_t;
+typedef struct fs_sound_t {
+  void *dummy;
+} fs_sound_t;
 
 typedef struct fs_asset_t {
   uint64_t magic;

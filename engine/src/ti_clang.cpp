@@ -39,10 +39,9 @@ void ti_clang_create(void) {
 }
 
 void ti_clang_compile(char const *source_code) {
-  std::string compiler_source = "extern \"C\" int add(int, int);\n#line 1 \"main.cpp\"\n";
-  compiler_source += source_code;
+  std::string compiler_source = source_code;
 
-  std::unique_ptr<llvm::MemoryBuffer> memory_buffer = llvm::MemoryBuffer::getMemBufferCopy(compiler_source, "main.cpp");
+  std::unique_ptr<llvm::MemoryBuffer> memory_buffer = llvm::MemoryBuffer::getMemBufferCopy(compiler_source, "main.c");
 
   clang::CompilerInstance compiler_instance;
 
@@ -50,9 +49,8 @@ void ti_clang_compile(char const *source_code) {
   compiler_instance.createDiagnostics();
 
   char const *compiler_args[] = {
-    "-std=c++20",
-    "-xc++",
-    "main.cpp",
+    "-std=c23",
+    "main.c",
   };
 
   if (clang::CompilerInvocation::CreateFromArgs(compiler_instance.getInvocation(), compiler_args, compiler_instance.getDiagnostics()) == false) {
@@ -60,7 +58,7 @@ void ti_clang_compile(char const *source_code) {
   }
 
   compiler_instance.getPreprocessorOpts().RetainRemappedFileBuffers = true;
-  compiler_instance.getPreprocessorOpts().addRemappedFile("main.cpp", memory_buffer.get());
+  compiler_instance.getPreprocessorOpts().addRemappedFile("main.c", memory_buffer.get());
 
   clang::EmitLLVMOnlyAction emit_llvm_only_action;
 
@@ -77,34 +75,33 @@ void ti_clang_compile(char const *source_code) {
   module->print(llvm::outs(), 0);
 
   llvm::orc::LLJITBuilder jit_builder;
+
   jit_builder.setDataLayout(module->getDataLayout());
 
   std::unique_ptr<llvm::orc::LLJIT> jit;
 
   if (llvm::Error error = jit_builder.create().moveInto(jit)) {
-    llvm::errs() << llvm::toString(std::move(error)) << "\n";
+    llvm::errs() << llvm::toString(std::move(error)) << "\n"; // TODO
     return;
   }
 
-  llvm::orc::ThreadSafeModule thread_safe_module(
-    std::move(module),
-    std::unique_ptr<llvm::LLVMContext>(emit_llvm_only_action.takeLLVMContext()));
+  llvm::orc::ThreadSafeModule thread_safe_module(std::move(module), std::unique_ptr<llvm::LLVMContext>(emit_llvm_only_action.takeLLVMContext()));
 
   if (llvm::Error error = jit->addIRModule(std::move(thread_safe_module))) {
-    llvm::errs() << llvm::toString(std::move(error)) << "\n";
+    llvm::errs() << llvm::toString(std::move(error)) << "\n"; // TODO
     return;
   }
 
   llvm::orc::ExecutorAddr symbol;
 
   if (llvm::Error error = jit->lookup("add").moveInto(symbol)) {
-    llvm::errs() << llvm::toString(std::move(error)) << "\n";
+    llvm::errs() << llvm::toString(std::move(error)) << "\n"; // TODO
     return;
   }
 
   int (*add_proc)(int, int) = symbol.toPtr<int (*)(int, int)>();
 
-  add_proc(100, 42);
+  int result = add_proc(100, 42);
 }
 
 void ti_clang_destroy(void) {
