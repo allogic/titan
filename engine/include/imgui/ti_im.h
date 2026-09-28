@@ -11,6 +11,7 @@
 #include <imgui/ti_im_titlebar.h>
 #include <imgui/ti_im_sidebar.h>
 #include <imgui/ti_im_renderer.h>
+#include <imgui/ti_im_sound_studio.h>
 
 #ifdef __cplusplus
 extern "C" {

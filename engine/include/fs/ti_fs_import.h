@@ -7,6 +7,7 @@ extern "C" {
 
 uint8_t fs_import_model(fs_asset_t *asset, char const *model_file);
 uint8_t fs_import_font(fs_asset_t *asset, char const *font_file);
+uint8_t fs_import_sound(fs_asset_t *asset, char const *file_path, uint8_t mono);
 uint8_t fs_import_pipeline(fs_asset_t *asset, fs_pipeline_type_t pipeline_type,
                            char const *vertex_file,
                            char const *fragment_file,

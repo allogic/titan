@@ -1,5 +1,8 @@
 #include <ti_pch.h>
 
+#include <miniaudio.h>
+
+
 #define CGLTF_IMPLEMENTATION
 #include <cgltf.h>
 
@@ -30,6 +33,51 @@ static uint64_t count_spirv_descriptor_bindings(SpvReflectShaderModule *module);
 static uint8_t convert_spirv_input_variables(fs_asset_t *asset, fs_pipeline_t *pipeline, uint64_t *input_variable_offset, SpvReflectShaderModule *module);
 static uint8_t convert_spirv_descriptor_bindings(fs_asset_t *asset, fs_pipeline_t *pipeline, uint64_t *descriptor_binding_offset, SpvReflectShaderModule *module);
 
+uint8_t fs_import_sound(fs_asset_t *asset, char const *file_path, uint8_t stereo) {
+  void *file_data = 0;
+  size_t file_size = 0;
+  void *samples = 0;
+  ma_uint64 frame_count = 0;
+  ma_decoder_config config = ma_decoder_config_init(ma_format_s16, stereo, 0);
+  fs_sound_t imported = {0};
+  uint8_t result = 1;
+
+  if (fs_file_open_and_read(g_fs, file_path, FS_FORMAT_BINARY, &file_data, &file_size) != FS_SUCCESS) {
+    goto cleanup;
+  }
+
+  if (ma_decode_memory(file_data, file_size, &config, &frame_count, &samples) != MA_SUCCESS) {
+    goto cleanup;
+  }
+
+  if (frame_count == 0 || (config.channels != 1 && config.channels != 2) ||
+      config.sampleRate == 0 || config.sampleRate > INT_MAX ||
+      frame_count > INT_MAX / (config.channels * sizeof(int16_t))) {
+    goto cleanup;
+  }
+
+  imported.channel_count = config.channels;
+  imported.sample_rate = config.sampleRate;
+  imported.buffer_size = frame_count * config.channels * sizeof(int16_t);
+  imported.buffer = TI_ALLOC(imported.buffer_size, 0, 0);
+
+  if (imported.buffer == 0) {
+    goto cleanup;
+  }
+
+  memcpy(imported.buffer, samples, imported.buffer_size);
+  fs_sound_destroy(asset->instance);
+  *(fs_sound_t *)asset->instance = imported;
+  imported = (fs_sound_t){0};
+  result = 0;
+
+cleanup:
+  fs_sound_destroy(&imported);
+  ma_free(samples, &config.allocationCallbacks);
+  fs_free(file_data, fs_get_allocation_callbacks(g_fs));
+
+  return result;
+}
 uint8_t fs_import_model(fs_asset_t *asset, char const *model_file) {
   uint8_t status = 0;
 

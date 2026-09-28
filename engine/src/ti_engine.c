@@ -1,5 +1,4 @@
 #include <ti_pch.h>
-#include <ti_clang.h>
 
 // TODO: Check all VkImageMemoryBarrier's and remove double transitions depending on current renderpass (VkAttachmentDescription)
 // TODO: Rename functions with their proper module name..
@@ -112,6 +111,8 @@ int32_t main(int32_t argc, char **argv) {
   __try {
 
     fs_create(ROOT_DIR "/static", ROOT_DIR "/asset");
+    ti_audio_create(); // TODO Missing ti_audio_demo_create
+    srand(GetTickCount()); // TODO / fuck you!
     ti_clang_create();
     scene_create(&g_scene, "test", "asset/scene/test.pak");
 
@@ -121,9 +122,11 @@ int32_t main(int32_t argc, char **argv) {
     pl_window_create(&g_pl_window);
     pl_window_run(&g_pl_window);
     pl_window_destroy(&g_pl_window);
-
+    
     scene_destroy(&g_scene);
     ti_clang_destroy();
+    ti_audio_destroy();
+    ti_audio_demo_destroy();
     fs_destroy();
 
   } __except (EXCEPTION_EXECUTE_HANDLER) {
@@ -137,6 +140,37 @@ int32_t main(int32_t argc, char **argv) {
 }
 
 static void import_dflt_assets(void) {
+  {
+    uint32_t sound_index = 1;
+
+    while (sound_index <= 10) {
+
+      char asset_path[TI_PATH_SIZE] = {0};
+      char source_path[TI_PATH_SIZE] = {0};
+
+      snprintf(asset_path, TI_PATH_SIZE, "asset/sound/fart_%02u.pak", sound_index);
+      snprintf(source_path, TI_PATH_SIZE, "static/sound/fart_%02u.wav", sound_index);
+
+      fs_asset_t asset = {
+        .magic = TI_FS_ASSET_MAGIC,
+        .type = FS_ASSET_TYPE_SOUND,
+        .path = asset_path,
+      };
+
+      if (fs_asset_exists(&asset) == 0) {
+
+        fs_asset_create(&asset);
+
+        if (fs_import_sound(&asset, source_path, 1) == 0) {
+          fs_asset_store(&asset);
+        }
+
+        fs_asset_destroy(&asset);
+      }
+
+      sound_index++;
+    }
+  }
   {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,

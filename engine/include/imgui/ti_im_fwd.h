@@ -14,6 +14,7 @@ typedef enum im_sidebar_tab_t {
   IM_SIDEBAR_TAB_FILESYSTEM,
   IM_SIDEBAR_TAB_HANDLE,
   IM_SIDEBAR_TAB_RENDERER,
+  IM_SIDEBAR_TAB_SOUND_STUDIO,
   IM_SIDEBAR_TAB_COUNT,
 } im_sidebar_tab_t;
 

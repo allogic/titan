@@ -32,7 +32,6 @@ void im_fs_draw(void) {
 
       TI_FREE(s_root_file);
     }
-
     s_root_file = (im_file_entry_t *)TI_ALLOC(sizeof(im_file_entry_t), 1, 0);
 
     strcpy(s_root_file->path, "asset");

@@ -18,6 +18,9 @@ out
 asset
 
 # Files
+*.ogg
+*.mp3
+*.wav
 *.pdb
 *.lib
 *.ttf

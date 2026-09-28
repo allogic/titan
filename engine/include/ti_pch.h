@@ -1,6 +1,7 @@
 #ifndef TI_PCH_H
 #define TI_PCH_H
 
+#include <limits.h>
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -78,5 +79,8 @@
 #include <imgui/ti_im.h>
 
 #include <ti_scene.h>
+#include <ti_audio.h>
+#include <ti_audio_demo.h>
+#include <ti_clang.h>
 
 #endif // TI_PCH_H

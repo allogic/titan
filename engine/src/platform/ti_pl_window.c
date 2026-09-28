@@ -103,6 +103,7 @@ void pl_window_run(pl_window_t *window) {
     }
 
     vk_renderer_draw(&g_vk_renderer);
+    ti_audio_update();
 
     QueryPerformanceCounter(&window->time_curr);
 

@@ -195,7 +195,10 @@ typedef struct fs_script_t {
   void *dummy;
 } fs_script_t;
 typedef struct fs_sound_t {
-  void *dummy;
+  uint32_t channel_count;
+  uint32_t sample_rate;
+  uint64_t buffer_size;
+  void *buffer;
 } fs_sound_t;
 
 typedef struct fs_asset_t {

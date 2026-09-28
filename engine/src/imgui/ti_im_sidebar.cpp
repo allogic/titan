@@ -37,6 +37,7 @@ void im_sidebar_draw(void) {
   draw_button(ImVec2(7.0F, 55.0F), IM_SIDEBAR_TAB_FILESYSTEM, ICON_MS_FOLDER);
   draw_button(ImVec2(7.0F, 100.0F), IM_SIDEBAR_TAB_HANDLE, ICON_MS_LINE_END_CIRCLE);
   draw_button(ImVec2(7.0F, 145.0F), IM_SIDEBAR_TAB_RENDERER, ICON_MS_PHOTO_CAMERA);
+  draw_button(ImVec2(7.0F, 190.0F), IM_SIDEBAR_TAB_SOUND_STUDIO, ICON_MS_VOLUME_UP);
 
   ImGui::PopFont();
   ImGui::PopStyleVar(1);

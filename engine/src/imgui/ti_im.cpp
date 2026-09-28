@@ -256,6 +256,12 @@ void im_draw(void) {
 
         break;
       }
+      case IM_SIDEBAR_TAB_SOUND_STUDIO: {
+
+        im_sound_studio_draw();
+
+        break;
+      }
     }
   }
 
@@ -282,6 +288,7 @@ void im_destroy(void) {
   im_fs_reset();
   im_handle_reset();
   im_text_editor_reset();
+  im_sound_studio_reset();
   im_hierarchy_reset();
   im_inspector_reset();
   im_sidebar_reset();
@@ -336,6 +343,7 @@ static void build_layout(void) {
     ImGui::DockBuilderDockWindow("Handle", dock_left);
     ImGui::DockBuilderDockWindow("Text Editor", dock_main);
     ImGui::DockBuilderDockWindow("Renderer", dock_left);
+    ImGui::DockBuilderDockWindow("Sound Studio", dock_left);
     ImGui::DockBuilderDockWindow("Inspector", dock_right);
 
     ImGui::DockBuilderFinish(dockspace_id);
