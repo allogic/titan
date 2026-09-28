@@ -19,6 +19,7 @@ extern "C" {
 
 extern uint8_t g_im_show_left_panel;
 extern uint8_t g_im_show_right_panel;
+extern uint8_t g_im_show_bottom_panel;
 
 extern void *g_im_font_default_16;
 

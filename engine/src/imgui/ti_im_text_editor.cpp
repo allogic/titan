@@ -8,7 +8,9 @@ static void draw_background(void);
 
 static TextEditor s_text_editor = {};
 
-void im_text_editor_setup(char const *source_code) {
+static fs_asset_t *s_asset = 0;
+
+void im_text_editor_setup(void) {
   TextEditor::Palette palette = {{
     IM_COL32(224, 224, 224, 255), // text
     IM_COL32(197, 134, 192, 255), // keyword
@@ -20,7 +22,7 @@ void im_text_editor_setup(char const *source_code) {
     IM_COL32(156, 220, 254, 255), // identifier
     IM_COL32(79, 193, 255, 255),  // known identifier
     IM_COL32(106, 153, 85, 255),  // comment
-    IM_COL32(30, 30, 30, 255),    // background
+    TI_DARK_GREY,                 // background
     IM_COL32(224, 224, 224, 255), // cursor
     IM_COL32(32, 96, 160, 255),   // selection
     IM_COL32(80, 80, 80, 255),    // whitespace
@@ -39,33 +41,95 @@ void im_text_editor_setup(char const *source_code) {
   s_text_editor.SetLanguage(TextEditor::Language::C());
   s_text_editor.SetPalette(palette);
   s_text_editor.SetTabSize(2);
-  s_text_editor.SetText(source_code);
-  s_text_editor.SetFocus();
+  s_text_editor.SetText("");
+  s_text_editor.SetShowMiniMapEnabled(true);
+  s_text_editor.SetShowScrollbarMiniMapEnabled(true);
+  s_text_editor.SetShowCurrentLineHighlightEnabled(true);
+  s_text_editor.SetShowMatchingBrackets(true);
+  s_text_editor.SetShowSpacesEnabled(true);
+  s_text_editor.SetShowTabsEnabled(true);
+}
+void im_text_editor_open(fs_asset_t *asset) {
+  s_asset = asset;
+
+  switch (s_asset->type) {
+
+    case FS_ASSET_TYPE_SCRIPT: {
+
+      fs_script_t *script = (fs_script_t *)s_asset->instance;
+
+      // TODO: find clean way without the need of if statements..
+
+      if (script->buffer_size) {
+
+        s_text_editor.SetText((char *)script->buffer);
+      }
+
+      break;
+    }
+    default: {
+
+      s_text_editor.SetText("");
+
+      break;
+    }
+  }
 }
 void im_text_editor_draw(void) {
   ImGui::Begin("Text Editor", 0, ImGuiWindowFlags_NoDecoration);
 
   draw_background();
 
-  if (ImGui::Button("Compile and Run")) {
+  if (ImGui::Button("Save")) {
+
+    fs_script_t *script = (fs_script_t *)s_asset->instance;
+
+    if (script->buffer) {
+
+      TI_FREE(script->buffer);
+    }
+
+    std::string source = s_text_editor.GetText();
+
+    script->buffer_size = source.size() + 1;
+    script->buffer = TI_ALLOC(script->buffer_size, 0, 0);
+
+    memcpy(script->buffer, source.c_str(), script->buffer_size);
+
+    ((char *)script->buffer)[script->buffer_size - 1] = 0;
+
+    fs_asset_store(s_asset);
+  }
+
+  ImGui::SameLine();
+
+  if (ImGui::Button("Compile")) {
 
     ti_clang_compile(s_text_editor.GetText().c_str());
   }
 
-  // ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0F, 0.0F));
-  // ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0F);
-  // ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0.0F);
-  s_text_editor.Render("##TextEditor", ImVec2(0.0F, 0.0F), ImGuiChildFlags_None, ImGuiWindowFlags_NoDecoration);
-  // ImGui::PopStyleVar(3);
+  ImGui::PushStyleColor(ImGuiCol_NavCursor, IM_COL32(0, 0, 0, 0));
+  ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, IM_COL32(0, 0, 0, 0));
+  ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, IM_COL32(0, 0, 0, 0));
+  ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, IM_COL32(0, 0, 0, 0));
+  ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, IM_COL32(0, 0, 0, 0));
+
+  ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 0.0F);
+
+  s_text_editor.Render("##TextEditor", ImVec2(0.0F, 0.0F), ImGuiChildFlags_None, ImGuiWindowFlags_None);
+
+  ImGui::PopStyleVar(1);
+  ImGui::PopStyleColor(5);
 
   ImGui::End();
 }
 void im_text_editor_refresh(void) {
   // TODO
 }
-
 void im_text_editor_reset(void) {
   s_text_editor.ClearText();
+
+  s_asset = 0;
 }
 
 static void draw_background(void) {

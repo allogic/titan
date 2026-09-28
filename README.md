@@ -42,13 +42,13 @@ cp build/include/llvm/Config/*.h ../titan/vendor/clang/include/llvm/Config/
 
 ## Pre Compiled Libraries
 
-### GLSLang-16.6.0 x86-64 Windows Libraries
+### GLSLang-16.6.0 x64 Windows Libraries
 ```
 https://mega.nz/file/PdwWBaxY#3fnC1-AxyOqTLBYVYDhrZhb5hqr4b2LPA70FIlHc8SE
 https://mega.nz/file/zcRkybJB#2nj2zRwO3ANY-hVFekGJWR6njWSBLBdgdnVLvjs6L3g
 ```
 
-### LLVM-23.1.2 x86-64 Windows Libraries
+### LLVM-23.1.2 x64 Windows Libraries
 ```
 https://mega.nz/file/iYhklbyA#LzZwy3IPmBzPetMT1tvkRfNtXesmJdfVQFokFjcWRmY
 https://mega.nz/file/iYJxTIjY#vBkfenwF-WD686JPRZiBU1VZuFkCyCvrURW2Ejg2fqA

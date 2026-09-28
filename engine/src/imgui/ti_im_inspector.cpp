@@ -19,7 +19,6 @@ static bool draw_vulkan_enum_dropdown(char const *label, uint64_t *selected_inde
 
 static im_inspector_type_t s_inspector_type = IM_INSPECTOR_TYPE_NONE;
 static comp_type_t s_selected_comp = COMP_TYPE_TRANSFORM;
-static fs_asset_t s_selected_asset = {0};
 
 static void *s_selected_data = 0;
 
@@ -29,193 +28,6 @@ static const char *s_component_name[] = {
   "Material",
   "Mesh",
   "Skeleton",
-};
-static const char *s_vk_format_name[] = {
-  "VK_FORMAT_UNDEFINED",
-  "VK_FORMAT_R4G4_UNORM_PACK8",
-  "VK_FORMAT_R4G4B4A4_UNORM_PACK16",
-  "VK_FORMAT_B4G4R4A4_UNORM_PACK16",
-  "VK_FORMAT_R5G6B5_UNORM_PACK16",
-  "VK_FORMAT_B5G6R5_UNORM_PACK16",
-  "VK_FORMAT_R5G5B5A1_UNORM_PACK16",
-  "VK_FORMAT_B5G5R5A1_UNORM_PACK16",
-  "VK_FORMAT_A1R5G5B5_UNORM_PACK16",
-  "VK_FORMAT_R8_UNORM",
-  "VK_FORMAT_R8_SNORM",
-  "VK_FORMAT_R8_USCALED",
-  "VK_FORMAT_R8_SSCALED",
-  "VK_FORMAT_R8_UINT",
-  "VK_FORMAT_R8_SINT",
-  "VK_FORMAT_R8_SRGB",
-  "VK_FORMAT_R8G8_UNORM",
-  "VK_FORMAT_R8G8_SNORM",
-  "VK_FORMAT_R8G8_USCALED",
-  "VK_FORMAT_R8G8_SSCALED",
-  "VK_FORMAT_R8G8_UINT",
-  "VK_FORMAT_R8G8_SINT",
-  "VK_FORMAT_R8G8_SRGB",
-  "VK_FORMAT_R8G8B8_UNORM",
-  "VK_FORMAT_R8G8B8_SNORM",
-  "VK_FORMAT_R8G8B8_USCALED",
-  "VK_FORMAT_R8G8B8_SSCALED",
-  "VK_FORMAT_R8G8B8_UINT",
-  "VK_FORMAT_R8G8B8_SINT",
-  "VK_FORMAT_R8G8B8_SRGB",
-  "VK_FORMAT_B8G8R8_UNORM",
-  "VK_FORMAT_B8G8R8_SNORM",
-  "VK_FORMAT_B8G8R8_USCALED",
-  "VK_FORMAT_B8G8R8_SSCALED",
-  "VK_FORMAT_B8G8R8_UINT",
-  "VK_FORMAT_B8G8R8_SINT",
-  "VK_FORMAT_B8G8R8_SRGB",
-  "VK_FORMAT_R8G8B8A8_UNORM",
-  "VK_FORMAT_R8G8B8A8_SNORM",
-  "VK_FORMAT_R8G8B8A8_USCALED",
-  "VK_FORMAT_R8G8B8A8_SSCALED",
-  "VK_FORMAT_R8G8B8A8_UINT",
-  "VK_FORMAT_R8G8B8A8_SINT",
-  "VK_FORMAT_R8G8B8A8_SRGB",
-  "VK_FORMAT_B8G8R8A8_UNORM",
-  "VK_FORMAT_B8G8R8A8_SNORM",
-  "VK_FORMAT_B8G8R8A8_USCALED",
-  "VK_FORMAT_B8G8R8A8_SSCALED",
-  "VK_FORMAT_B8G8R8A8_UINT",
-  "VK_FORMAT_B8G8R8A8_SINT",
-  "VK_FORMAT_B8G8R8A8_SRGB",
-  "VK_FORMAT_A8B8G8R8_UNORM_PACK32",
-  "VK_FORMAT_A8B8G8R8_SNORM_PACK32",
-  "VK_FORMAT_A8B8G8R8_USCALED_PACK32",
-  "VK_FORMAT_A8B8G8R8_SSCALED_PACK32",
-  "VK_FORMAT_A8B8G8R8_UINT_PACK32",
-  "VK_FORMAT_A8B8G8R8_SINT_PACK32",
-  "VK_FORMAT_A8B8G8R8_SRGB_PACK32",
-  "VK_FORMAT_A2R10G10B10_UNORM_PACK32",
-  "VK_FORMAT_A2R10G10B10_SNORM_PACK32",
-  "VK_FORMAT_A2R10G10B10_USCALED_PACK32",
-  "VK_FORMAT_A2R10G10B10_SSCALED_PACK32",
-  "VK_FORMAT_A2R10G10B10_UINT_PACK32",
-  "VK_FORMAT_A2R10G10B10_SINT_PACK32",
-  "VK_FORMAT_A2B10G10R10_UNORM_PACK32",
-  "VK_FORMAT_A2B10G10R10_SNORM_PACK32",
-  "VK_FORMAT_A2B10G10R10_USCALED_PACK32",
-  "VK_FORMAT_A2B10G10R10_SSCALED_PACK32",
-  "VK_FORMAT_A2B10G10R10_UINT_PACK32",
-  "VK_FORMAT_A2B10G10R10_SINT_PACK32",
-  "VK_FORMAT_R16_UNORM",
-  "VK_FORMAT_R16_SNORM",
-  "VK_FORMAT_R16_USCALED",
-  "VK_FORMAT_R16_SSCALED",
-  "VK_FORMAT_R16_UINT",
-  "VK_FORMAT_R16_SINT",
-  "VK_FORMAT_R16_SFLOAT",
-  "VK_FORMAT_R16G16_UNORM",
-  "VK_FORMAT_R16G16_SNORM",
-  "VK_FORMAT_R16G16_USCALED",
-  "VK_FORMAT_R16G16_SSCALED",
-  "VK_FORMAT_R16G16_UINT",
-  "VK_FORMAT_R16G16_SINT",
-  "VK_FORMAT_R16G16_SFLOAT",
-  "VK_FORMAT_R16G16B16_UNORM",
-  "VK_FORMAT_R16G16B16_SNORM",
-  "VK_FORMAT_R16G16B16_USCALED",
-  "VK_FORMAT_R16G16B16_SSCALED",
-  "VK_FORMAT_R16G16B16_UINT",
-  "VK_FORMAT_R16G16B16_SINT",
-  "VK_FORMAT_R16G16B16_SFLOAT",
-  "VK_FORMAT_R16G16B16A16_UNORM",
-  "VK_FORMAT_R16G16B16A16_SNORM",
-  "VK_FORMAT_R16G16B16A16_USCALED",
-  "VK_FORMAT_R16G16B16A16_SSCALED",
-  "VK_FORMAT_R16G16B16A16_UINT",
-  "VK_FORMAT_R16G16B16A16_SINT",
-  "VK_FORMAT_R16G16B16A16_SFLOAT",
-  "VK_FORMAT_R32_UINT",
-  "VK_FORMAT_R32_SINT",
-  "VK_FORMAT_R32_SFLOAT",
-  "VK_FORMAT_R32G32_UINT",
-  "VK_FORMAT_R32G32_SINT",
-  "VK_FORMAT_R32G32_SFLOAT",
-  "VK_FORMAT_R32G32B32_UINT",
-  "VK_FORMAT_R32G32B32_SINT",
-  "VK_FORMAT_R32G32B32_SFLOAT",
-  "VK_FORMAT_R32G32B32A32_UINT",
-  "VK_FORMAT_R32G32B32A32_SINT",
-  "VK_FORMAT_R32G32B32A32_SFLOAT",
-  "VK_FORMAT_R64_UINT",
-  "VK_FORMAT_R64_SINT",
-  "VK_FORMAT_R64_SFLOAT",
-  "VK_FORMAT_R64G64_UINT",
-  "VK_FORMAT_R64G64_SINT",
-  "VK_FORMAT_R64G64_SFLOAT",
-  "VK_FORMAT_R64G64B64_UINT",
-  "VK_FORMAT_R64G64B64_SINT",
-  "VK_FORMAT_R64G64B64_SFLOAT",
-  "VK_FORMAT_R64G64B64A64_UINT",
-  "VK_FORMAT_R64G64B64A64_SINT",
-  "VK_FORMAT_R64G64B64A64_SFLOAT",
-  "VK_FORMAT_B10G11R11_UFLOAT_PACK32",
-  "VK_FORMAT_E5B9G9R9_UFLOAT_PACK32",
-  "VK_FORMAT_D16_UNORM",
-  "VK_FORMAT_X8_D24_UNORM_PACK32",
-  "VK_FORMAT_D32_SFLOAT",
-  "VK_FORMAT_S8_UINT",
-  "VK_FORMAT_D16_UNORM_S8_UINT",
-  "VK_FORMAT_D24_UNORM_S8_UINT",
-  "VK_FORMAT_D32_SFLOAT_S8_UINT",
-  "VK_FORMAT_BC1_RGB_UNORM_BLOCK",
-  "VK_FORMAT_BC1_RGB_SRGB_BLOCK",
-  "VK_FORMAT_BC1_RGBA_UNORM_BLOCK",
-  "VK_FORMAT_BC1_RGBA_SRGB_BLOCK",
-  "VK_FORMAT_BC2_UNORM_BLOCK",
-  "VK_FORMAT_BC2_SRGB_BLOCK",
-  "VK_FORMAT_BC3_UNORM_BLOCK",
-  "VK_FORMAT_BC3_SRGB_BLOCK",
-  "VK_FORMAT_BC4_UNORM_BLOCK",
-  "VK_FORMAT_BC4_SNORM_BLOCK",
-  "VK_FORMAT_BC5_UNORM_BLOCK",
-  "VK_FORMAT_BC5_SNORM_BLOCK",
-  "VK_FORMAT_BC6H_UFLOAT_BLOCK",
-  "VK_FORMAT_BC6H_SFLOAT_BLOCK",
-  "VK_FORMAT_BC7_UNORM_BLOCK",
-  "VK_FORMAT_BC7_SRGB_BLOCK",
-  "VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK",
-  "VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK",
-  "VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK",
-  "VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK",
-  "VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK",
-  "VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK",
-  "VK_FORMAT_EAC_R11_UNORM_BLOCK",
-  "VK_FORMAT_EAC_R11_SNORM_BLOCK",
-  "VK_FORMAT_EAC_R11G11_UNORM_BLOCK",
-  "VK_FORMAT_EAC_R11G11_SNORM_BLOCK",
-  "VK_FORMAT_ASTC_4x4_UNORM_BLOCK",
-  "VK_FORMAT_ASTC_4x4_SRGB_BLOCK",
-  "VK_FORMAT_ASTC_5x4_UNORM_BLOCK",
-  "VK_FORMAT_ASTC_5x4_SRGB_BLOCK",
-  "VK_FORMAT_ASTC_5x5_UNORM_BLOCK",
-  "VK_FORMAT_ASTC_5x5_SRGB_BLOCK",
-  "VK_FORMAT_ASTC_6x5_UNORM_BLOCK",
-  "VK_FORMAT_ASTC_6x5_SRGB_BLOCK",
-  "VK_FORMAT_ASTC_6x6_UNORM_BLOCK",
-  "VK_FORMAT_ASTC_6x6_SRGB_BLOCK",
-  "VK_FORMAT_ASTC_8x5_UNORM_BLOCK",
-  "VK_FORMAT_ASTC_8x5_SRGB_BLOCK",
-  "VK_FORMAT_ASTC_8x6_UNORM_BLOCK",
-  "VK_FORMAT_ASTC_8x6_SRGB_BLOCK",
-  "VK_FORMAT_ASTC_8x8_UNORM_BLOCK",
-  "VK_FORMAT_ASTC_8x8_SRGB_BLOCK",
-  "VK_FORMAT_ASTC_10x5_UNORM_BLOCK",
-  "VK_FORMAT_ASTC_10x5_SRGB_BLOCK",
-  "VK_FORMAT_ASTC_10x6_UNORM_BLOCK",
-  "VK_FORMAT_ASTC_10x6_SRGB_BLOCK",
-  "VK_FORMAT_ASTC_10x8_UNORM_BLOCK",
-  "VK_FORMAT_ASTC_10x8_SRGB_BLOCK",
-  "VK_FORMAT_ASTC_10x10_UNORM_BLOCK",
-  "VK_FORMAT_ASTC_10x10_SRGB_BLOCK",
-  "VK_FORMAT_ASTC_12x10_UNORM_BLOCK",
-  "VK_FORMAT_ASTC_12x10_SRGB_BLOCK",
-  "VK_FORMAT_ASTC_12x12_UNORM_BLOCK",
-  "VK_FORMAT_ASTC_12x12_SRGB_BLOCK",
 };
 
 void im_inspector_draw(void) {
@@ -244,42 +56,10 @@ void im_inspector_draw(void) {
   ImGui::End();
 }
 void im_inspector_select(im_inspector_type_t type, void *selection) {
-  switch (s_inspector_type) {
-    case IM_INSPECTOR_TYPE_ASSET: {
-
-      fs_asset_destroy(&s_selected_asset);
-
-      break;
-    }
-  }
-
   s_inspector_type = type;
   s_selected_data = selection;
-
-  // TODO: find a clean way when assets cant be loaded..
-  //       e.g. when the user clicks a file that is not a valid asset!
-
-  switch (s_inspector_type) {
-    case IM_INSPECTOR_TYPE_ASSET: {
-
-      s_selected_asset.path = (char const *)s_selected_data;
-
-      fs_asset_load(&s_selected_asset);
-
-      break;
-    }
-  }
 }
 void im_inspector_reset(void) {
-  switch (s_inspector_type) {
-    case IM_INSPECTOR_TYPE_ASSET: {
-
-      fs_asset_destroy(&s_selected_asset);
-
-      break;
-    }
-  }
-
   s_inspector_type = IM_INSPECTOR_TYPE_NONE;
   s_selected_comp = COMP_TYPE_TRANSFORM;
 
@@ -303,13 +83,15 @@ static void draw_asset_controls(void) {
   // TODO
 }
 static void draw_asset(void) {
+  fs_asset_t *asset = (fs_asset_t *)s_selected_data;
+
   bool dirty = false;
 
-  switch (s_selected_asset.type) {
+  switch (asset->type) {
 
     case FS_ASSET_TYPE_MODEL: {
 
-      fs_model_t *model = (fs_model_t *)s_selected_asset.instance;
+      fs_model_t *model = (fs_model_t *)asset->instance;
 
       ImGui::Text("%s", model->name);
       ImGui::Text("Mesh Count: %llu", model->mesh_count);
@@ -362,7 +144,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_PIPELINE: {
 
-      fs_pipeline_t *pipeline = (fs_pipeline_t *)s_selected_asset.instance;
+      fs_pipeline_t *pipeline = (fs_pipeline_t *)asset->instance;
 
       if (ImGui::Button("Vertex Shader")) {
 
@@ -427,7 +209,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_FONT: {
 
-      fs_font_t *font = (fs_font_t *)s_selected_asset.instance;
+      fs_font_t *font = (fs_font_t *)asset->instance;
 
       // TODO
 
@@ -435,7 +217,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_INPUT_VARIABLE: {
 
-      fs_input_variable_t *input_variable = (fs_input_variable_t *)s_selected_asset.instance;
+      fs_input_variable_t *input_variable = (fs_input_variable_t *)asset->instance;
 
       dirty |= ImGui::InputText("Name", input_variable->name, TI_PATH_SIZE, ImGuiInputTextFlags_EnterReturnsTrue);
       dirty |= ImGui::InputScalar("Location", ImGuiDataType_U32, &input_variable->location, 0, 0, "%lu", ImGuiInputTextFlags_EnterReturnsTrue);
@@ -447,7 +229,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_DESCRIPTOR_BINDING: {
 
-      fs_descriptor_binding_t *descriptor_binding = (fs_descriptor_binding_t *)s_selected_asset.instance;
+      fs_descriptor_binding_t *descriptor_binding = (fs_descriptor_binding_t *)asset->instance;
 
       dirty |= ImGui::InputText("Name", descriptor_binding->name, TI_PATH_SIZE, ImGuiInputTextFlags_EnterReturnsTrue);
       dirty |= ImGui::InputScalar("Set", ImGuiDataType_U32, &descriptor_binding->set, 0, 0, "%lu", ImGuiInputTextFlags_EnterReturnsTrue);
@@ -504,7 +286,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_FRAMEBUFFER: {
 
-      fs_framebuffer_t *framebuffer = (fs_framebuffer_t *)s_selected_asset.instance;
+      fs_framebuffer_t *framebuffer = (fs_framebuffer_t *)asset->instance;
 
       dirty |= ImGui::InputText("Depth Attachment", framebuffer->depth_attachment.reference_path, TI_PATH_SIZE, ImGuiInputTextFlags_EnterReturnsTrue);
 
@@ -580,7 +362,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_BUFFER: {
 
-      fs_buffer_t *buffer = (fs_buffer_t *)s_selected_asset.instance;
+      fs_buffer_t *buffer = (fs_buffer_t *)asset->instance;
 
       dirty |= ImGui::Checkbox("Zero Data", (bool *)&buffer->zero_data);
       dirty |= ImGui::InputScalar("Size", ImGuiDataType_U64, &buffer->size, 0, 0, "%llu", ImGuiInputTextFlags_EnterReturnsTrue);
@@ -598,7 +380,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_IMAGE: {
 
-      fs_image_t *image = (fs_image_t *)s_selected_asset.instance;
+      fs_image_t *image = (fs_image_t *)asset->instance;
 
       dirty |= ImGui::InputScalar("Width", ImGuiDataType_U32, &image->width, 0, 0, "%lu", ImGuiInputTextFlags_EnterReturnsTrue);
       dirty |= ImGui::InputScalar("Height", ImGuiDataType_U32, &image->height, 0, 0, "%lu", ImGuiInputTextFlags_EnterReturnsTrue);
@@ -627,7 +409,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_SWAPCHAIN: {
 
-      fs_swapchain_t *swapchain = (fs_swapchain_t *)s_selected_asset.instance;
+      fs_swapchain_t *swapchain = (fs_swapchain_t *)asset->instance;
 
       dirty |= ImGui::InputScalar("Image Count", ImGuiDataType_U32, &swapchain->image_count, 0, 0, "%lu", ImGuiInputTextFlags_EnterReturnsTrue);
 
@@ -635,7 +417,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_RENDERPASS: {
 
-      fs_renderpass_t *renderpass = (fs_renderpass_t *)s_selected_asset.instance;
+      fs_renderpass_t *renderpass = (fs_renderpass_t *)asset->instance;
 
       dirty |= draw_vulkan_enum_dropdown("Initial Color Attachment Layout", &renderpass->initial_color_attachment_layout_index, g_vk_image_layout_table, TI_ARRAY_COUNT(g_vk_image_layout_table));
       dirty |= draw_vulkan_enum_dropdown("Initial Depth Attachment Layout", &renderpass->initial_depth_attachment_layout_index, g_vk_image_layout_table, TI_ARRAY_COUNT(g_vk_image_layout_table));
@@ -646,7 +428,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_RENDERER: {
 
-      fs_renderer_t *renderer = (fs_renderer_t *)s_selected_asset.instance;
+      fs_renderer_t *renderer = (fs_renderer_t *)asset->instance;
 
       dirty |= ImGui::InputText("Debug Line Vertex Buffer", renderer->debug_line_vertex_buffer.reference_path, TI_PATH_SIZE, ImGuiInputTextFlags_EnterReturnsTrue);
       dirty |= ImGui::InputText("Debug Line Index Buffer", renderer->debug_line_index_buffer.reference_path, TI_PATH_SIZE, ImGuiInputTextFlags_EnterReturnsTrue);
@@ -655,10 +437,26 @@ static void draw_asset(void) {
 
       break;
     }
+    case FS_ASSET_TYPE_SCRIPT: {
+
+      fs_script_t *script = (fs_script_t *)asset->instance;
+
+      // TODO
+
+      break;
+    }
+    case FS_ASSET_TYPE_SOUND: {
+
+      fs_sound_t *sound = (fs_sound_t *)asset->instance;
+
+      // TODO
+
+      break;
+    }
   }
 
   if (dirty) {
-    fs_asset_store(&s_selected_asset);
+    fs_asset_store(asset);
   }
 }
 static void draw_entity_controls(void) {

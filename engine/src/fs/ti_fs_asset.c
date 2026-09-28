@@ -1,6 +1,8 @@
 #include <ti_pch.h>
 
 void fs_asset_create(fs_asset_t *asset) {
+  asset->magic = TI_FS_ASSET_MAGIC;
+
   switch (asset->type) {
 
     case FS_ASSET_TYPE_MODEL: {
@@ -99,7 +101,7 @@ void fs_asset_load(fs_asset_t *asset) {
   fs_file_read(file, &asset->magic, sizeof(uint64_t), 0);
 
   if (asset->magic != TI_FS_ASSET_MAGIC) {
-    return;
+    goto error;
   }
 
   // TODO: additionally do checksums..
@@ -214,6 +216,8 @@ void fs_asset_load(fs_asset_t *asset) {
     }
   }
 
+error:
+
   fs_file_close(file);
 }
 void fs_asset_store(fs_asset_t *asset) {
@@ -224,8 +228,10 @@ void fs_asset_store(fs_asset_t *asset) {
   }
 
   if (asset->magic != TI_FS_ASSET_MAGIC) {
-    return;
+    goto error;
   }
+
+  // TODO: additionally do checksums..
 
   fs_file_write(file, &asset->magic, sizeof(uint64_t), 0);
   fs_file_write(file, &asset->type, sizeof(fs_asset_type_t), 0);
@@ -311,6 +317,8 @@ void fs_asset_store(fs_asset_t *asset) {
       break;
     }
   }
+
+error:
 
   fs_file_close(file);
 }
