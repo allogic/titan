@@ -8,6 +8,7 @@ static void draw_background(void);
 
 static TextEditor s_text_editor = {};
 
+static char s_asset_path[TI_PATH_SIZE] = {};
 static fs_asset_t *s_asset = 0;
 
 void im_text_editor_setup(void) {
@@ -49,8 +50,21 @@ void im_text_editor_setup(void) {
   s_text_editor.SetShowSpacesEnabled(true);
   s_text_editor.SetShowTabsEnabled(true);
 }
-void im_text_editor_open(fs_asset_t *asset) {
-  s_asset = asset;
+void im_text_editor_open(char const *asset_path) {
+  if (s_asset) {
+
+    fs_asset_destroy(s_asset);
+
+    TI_FREE(s_asset);
+  }
+
+  strcpy(s_asset_path, asset_path);
+
+  s_asset = (fs_asset_t *)TI_ALLOC(sizeof(fs_asset_t), 0, 0);
+
+  s_asset->path = s_asset_path;
+
+  fs_asset_load(s_asset);
 
   switch (s_asset->type) {
 
@@ -67,12 +81,13 @@ void im_text_editor_open(fs_asset_t *asset) {
 
       break;
     }
-    default: {
+  }
+}
+void im_text_editor_close(void) {
+  fs_asset_destroy(s_asset);
 
-      s_text_editor.SetText("");
-
-      break;
-    }
+  if (s_asset) {
+    TI_FREE(s_asset);
   }
 }
 void im_text_editor_draw(void) {
@@ -127,9 +142,16 @@ void im_text_editor_refresh(void) {
   // TODO
 }
 void im_text_editor_reset(void) {
+  if (s_asset) {
+
+    fs_asset_destroy(s_asset);
+
+    TI_FREE(s_asset);
+  }
+
   s_text_editor.ClearText();
 
-  s_asset = 0;
+  s_asset_path[0] = 0;
 }
 
 static void draw_background(void) {

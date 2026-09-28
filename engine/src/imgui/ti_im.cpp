@@ -189,7 +189,7 @@ void im_create(void) {
 
   ImGui_ImplVulkan_Init(&imgui_vulkan_init_info);
 
-  im_text_editor_setup(); // TODO
+  im_text_editor_setup();
 }
 
 void im_draw(void) {

@@ -6,7 +6,7 @@ extern "C" {
 #endif // __cplusplus
 
 void im_text_editor_setup(void);
-void im_text_editor_open(fs_asset_t *asset);
+void im_text_editor_open(char const *asset_path);
 void im_text_editor_close(void);
 void im_text_editor_draw(void);
 void im_text_editor_refresh(void);

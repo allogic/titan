@@ -17,10 +17,10 @@ static bool draw_cull_mode_flags(VkCullModeFlags *flags);
 
 static bool draw_vulkan_enum_dropdown(char const *label, uint64_t *selected_index, vk_enum_record_t *table, uint64_t table_count);
 
-static im_inspector_type_t s_inspector_type = IM_INSPECTOR_TYPE_NONE;
+static im_inspector_type_t s_selected_type = IM_INSPECTOR_TYPE_NONE;
 static comp_type_t s_selected_comp = COMP_TYPE_TRANSFORM;
-
-static void *s_selected_data = 0;
+static ecs_entity_t s_selected_entity = 0;
+static fs_asset_t *s_selected_asset = 0;
 
 static const char *s_component_name[] = {
   "Transform",
@@ -30,12 +30,14 @@ static const char *s_component_name[] = {
   "Skeleton",
 };
 
+static char s_asset_path[TI_PATH_SIZE] = {0};
+
 void im_inspector_draw(void) {
   ImGui::Begin("Inspector", 0, ImGuiWindowFlags_NoDecoration);
 
   draw_background();
 
-  switch (s_inspector_type) {
+  switch (s_selected_type) {
 
     case IM_INSPECTOR_TYPE_ENTITY: {
 
@@ -55,15 +57,53 @@ void im_inspector_draw(void) {
 
   ImGui::End();
 }
-void im_inspector_select(im_inspector_type_t type, void *selection) {
-  s_inspector_type = type;
-  s_selected_data = selection;
+void im_inspector_select(im_inspector_type_t type, void *data) {
+  switch (type) {
+
+    case IM_INSPECTOR_TYPE_ENTITY: {
+
+      s_selected_type = type;
+      s_selected_entity = (ecs_entity_t)data;
+
+      break;
+    }
+    case IM_INSPECTOR_TYPE_ASSET: {
+
+      if (s_selected_asset) {
+
+        fs_asset_destroy(s_selected_asset);
+
+        TI_FREE(s_selected_asset);
+      }
+
+      strcpy(s_asset_path, (char const *)data);
+
+      s_selected_asset = (fs_asset_t *)TI_ALLOC(sizeof(fs_asset_t), 0, 0);
+
+      s_selected_asset->path = s_asset_path;
+
+      fs_asset_load(s_selected_asset);
+
+      s_selected_type = type;
+
+      break;
+    }
+  }
 }
 void im_inspector_reset(void) {
-  s_inspector_type = IM_INSPECTOR_TYPE_NONE;
-  s_selected_comp = COMP_TYPE_TRANSFORM;
+  if (s_selected_asset) {
 
-  s_selected_data = 0;
+    fs_asset_destroy(s_selected_asset);
+
+    TI_FREE(s_selected_asset);
+  }
+
+  s_asset_path[0] = 0;
+
+  s_selected_type = IM_INSPECTOR_TYPE_NONE;
+  s_selected_comp = COMP_TYPE_TRANSFORM;
+  s_selected_entity = 0;
+  s_selected_asset = 0;
 }
 
 static void draw_background(void) {
@@ -83,15 +123,13 @@ static void draw_asset_controls(void) {
   // TODO
 }
 static void draw_asset(void) {
-  fs_asset_t *asset = (fs_asset_t *)s_selected_data;
-
   bool dirty = false;
 
-  switch (asset->type) {
+  switch (s_selected_asset->type) {
 
     case FS_ASSET_TYPE_MODEL: {
 
-      fs_model_t *model = (fs_model_t *)asset->instance;
+      fs_model_t *model = (fs_model_t *)s_selected_asset->instance;
 
       ImGui::Text("%s", model->name);
       ImGui::Text("Mesh Count: %llu", model->mesh_count);
@@ -144,7 +182,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_PIPELINE: {
 
-      fs_pipeline_t *pipeline = (fs_pipeline_t *)asset->instance;
+      fs_pipeline_t *pipeline = (fs_pipeline_t *)s_selected_asset->instance;
 
       if (ImGui::Button("Vertex Shader")) {
 
@@ -209,7 +247,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_FONT: {
 
-      fs_font_t *font = (fs_font_t *)asset->instance;
+      fs_font_t *font = (fs_font_t *)s_selected_asset->instance;
 
       // TODO
 
@@ -217,7 +255,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_INPUT_VARIABLE: {
 
-      fs_input_variable_t *input_variable = (fs_input_variable_t *)asset->instance;
+      fs_input_variable_t *input_variable = (fs_input_variable_t *)s_selected_asset->instance;
 
       dirty |= ImGui::InputText("Name", input_variable->name, TI_PATH_SIZE, ImGuiInputTextFlags_EnterReturnsTrue);
       dirty |= ImGui::InputScalar("Location", ImGuiDataType_U32, &input_variable->location, 0, 0, "%lu", ImGuiInputTextFlags_EnterReturnsTrue);
@@ -229,7 +267,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_DESCRIPTOR_BINDING: {
 
-      fs_descriptor_binding_t *descriptor_binding = (fs_descriptor_binding_t *)asset->instance;
+      fs_descriptor_binding_t *descriptor_binding = (fs_descriptor_binding_t *)s_selected_asset->instance;
 
       dirty |= ImGui::InputText("Name", descriptor_binding->name, TI_PATH_SIZE, ImGuiInputTextFlags_EnterReturnsTrue);
       dirty |= ImGui::InputScalar("Set", ImGuiDataType_U32, &descriptor_binding->set, 0, 0, "%lu", ImGuiInputTextFlags_EnterReturnsTrue);
@@ -286,7 +324,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_FRAMEBUFFER: {
 
-      fs_framebuffer_t *framebuffer = (fs_framebuffer_t *)asset->instance;
+      fs_framebuffer_t *framebuffer = (fs_framebuffer_t *)s_selected_asset->instance;
 
       dirty |= ImGui::InputText("Depth Attachment", framebuffer->depth_attachment.reference_path, TI_PATH_SIZE, ImGuiInputTextFlags_EnterReturnsTrue);
 
@@ -362,7 +400,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_BUFFER: {
 
-      fs_buffer_t *buffer = (fs_buffer_t *)asset->instance;
+      fs_buffer_t *buffer = (fs_buffer_t *)s_selected_asset->instance;
 
       dirty |= ImGui::Checkbox("Zero Data", (bool *)&buffer->zero_data);
       dirty |= ImGui::InputScalar("Size", ImGuiDataType_U64, &buffer->size, 0, 0, "%llu", ImGuiInputTextFlags_EnterReturnsTrue);
@@ -380,7 +418,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_IMAGE: {
 
-      fs_image_t *image = (fs_image_t *)asset->instance;
+      fs_image_t *image = (fs_image_t *)s_selected_asset->instance;
 
       dirty |= ImGui::InputScalar("Width", ImGuiDataType_U32, &image->width, 0, 0, "%lu", ImGuiInputTextFlags_EnterReturnsTrue);
       dirty |= ImGui::InputScalar("Height", ImGuiDataType_U32, &image->height, 0, 0, "%lu", ImGuiInputTextFlags_EnterReturnsTrue);
@@ -409,7 +447,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_SWAPCHAIN: {
 
-      fs_swapchain_t *swapchain = (fs_swapchain_t *)asset->instance;
+      fs_swapchain_t *swapchain = (fs_swapchain_t *)s_selected_asset->instance;
 
       dirty |= ImGui::InputScalar("Image Count", ImGuiDataType_U32, &swapchain->image_count, 0, 0, "%lu", ImGuiInputTextFlags_EnterReturnsTrue);
 
@@ -417,7 +455,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_RENDERPASS: {
 
-      fs_renderpass_t *renderpass = (fs_renderpass_t *)asset->instance;
+      fs_renderpass_t *renderpass = (fs_renderpass_t *)s_selected_asset->instance;
 
       dirty |= draw_vulkan_enum_dropdown("Initial Color Attachment Layout", &renderpass->initial_color_attachment_layout_index, g_vk_image_layout_table, TI_ARRAY_COUNT(g_vk_image_layout_table));
       dirty |= draw_vulkan_enum_dropdown("Initial Depth Attachment Layout", &renderpass->initial_depth_attachment_layout_index, g_vk_image_layout_table, TI_ARRAY_COUNT(g_vk_image_layout_table));
@@ -428,7 +466,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_RENDERER: {
 
-      fs_renderer_t *renderer = (fs_renderer_t *)asset->instance;
+      fs_renderer_t *renderer = (fs_renderer_t *)s_selected_asset->instance;
 
       dirty |= ImGui::InputText("Debug Line Vertex Buffer", renderer->debug_line_vertex_buffer.reference_path, TI_PATH_SIZE, ImGuiInputTextFlags_EnterReturnsTrue);
       dirty |= ImGui::InputText("Debug Line Index Buffer", renderer->debug_line_index_buffer.reference_path, TI_PATH_SIZE, ImGuiInputTextFlags_EnterReturnsTrue);
@@ -439,7 +477,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_SCRIPT: {
 
-      fs_script_t *script = (fs_script_t *)asset->instance;
+      fs_script_t *script = (fs_script_t *)s_selected_asset->instance;
 
       // TODO
 
@@ -447,7 +485,7 @@ static void draw_asset(void) {
     }
     case FS_ASSET_TYPE_SOUND: {
 
-      fs_sound_t *sound = (fs_sound_t *)asset->instance;
+      fs_sound_t *sound = (fs_sound_t *)s_selected_asset->instance;
 
       // TODO
 
@@ -456,7 +494,7 @@ static void draw_asset(void) {
   }
 
   if (dirty) {
-    fs_asset_store(asset);
+    fs_asset_store(s_selected_asset);
   }
 }
 static void draw_entity_controls(void) {
@@ -485,17 +523,15 @@ static void draw_entity_controls(void) {
 
   ImGui::SameLine();
 
-  ecs_entity_t entity = (ecs_entity_t)s_selected_data;
-
   if (ImGui::Button("Add")) {
 
     switch (s_selected_comp) {
 
       case COMP_TYPE_TRANSFORM: {
 
-        ecs_add(g_scene.world, entity, transform_t);
+        ecs_add(g_scene.world, s_selected_entity, transform_t);
 
-        transform_t *transform = ecs_get_mut(g_scene.world, entity, transform_t);
+        transform_t *transform = ecs_get_mut(g_scene.world, s_selected_entity, transform_t);
 
         transform_init(transform);
 
@@ -503,9 +539,9 @@ static void draw_entity_controls(void) {
       }
       case COMP_TYPE_CAMERA: {
 
-        ecs_add(g_scene.world, entity, camera_t);
+        ecs_add(g_scene.world, s_selected_entity, camera_t);
 
-        camera_t *camera = ecs_get_mut(g_scene.world, entity, camera_t);
+        camera_t *camera = ecs_get_mut(g_scene.world, s_selected_entity, camera_t);
 
         camera_init(camera);
 
@@ -513,9 +549,9 @@ static void draw_entity_controls(void) {
       }
       case COMP_TYPE_MATERIAL: {
 
-        ecs_add(g_scene.world, entity, material_t);
+        ecs_add(g_scene.world, s_selected_entity, material_t);
 
-        material_t *material = ecs_get_mut(g_scene.world, entity, material_t);
+        material_t *material = ecs_get_mut(g_scene.world, s_selected_entity, material_t);
 
         material_init(material);
 
@@ -523,9 +559,9 @@ static void draw_entity_controls(void) {
       }
       case COMP_TYPE_MESH: {
 
-        ecs_add(g_scene.world, entity, mesh_t);
+        ecs_add(g_scene.world, s_selected_entity, mesh_t);
 
-        mesh_t *mesh = ecs_get_mut(g_scene.world, entity, mesh_t);
+        mesh_t *mesh = ecs_get_mut(g_scene.world, s_selected_entity, mesh_t);
 
         mesh_init(mesh);
 
@@ -533,9 +569,9 @@ static void draw_entity_controls(void) {
       }
       case COMP_TYPE_SKELETON: {
 
-        ecs_add(g_scene.world, entity, skeleton_t);
+        ecs_add(g_scene.world, s_selected_entity, skeleton_t);
 
-        skeleton_t *skeleton = ecs_get_mut(g_scene.world, entity, skeleton_t);
+        skeleton_t *skeleton = ecs_get_mut(g_scene.world, s_selected_entity, skeleton_t);
 
         skeleton_init(skeleton);
 
@@ -552,31 +588,31 @@ static void draw_entity_controls(void) {
 
       case COMP_TYPE_TRANSFORM: {
 
-        ecs_remove(g_scene.world, entity, transform_t);
+        ecs_remove(g_scene.world, s_selected_entity, transform_t);
 
         break;
       }
       case COMP_TYPE_CAMERA: {
 
-        ecs_remove(g_scene.world, entity, camera_t);
+        ecs_remove(g_scene.world, s_selected_entity, camera_t);
 
         break;
       }
       case COMP_TYPE_MATERIAL: {
 
-        ecs_remove(g_scene.world, entity, material_t);
+        ecs_remove(g_scene.world, s_selected_entity, material_t);
 
         break;
       }
       case COMP_TYPE_MESH: {
 
-        ecs_remove(g_scene.world, entity, mesh_t);
+        ecs_remove(g_scene.world, s_selected_entity, mesh_t);
 
         break;
       }
       case COMP_TYPE_SKELETON: {
 
-        ecs_remove(g_scene.world, entity, skeleton_t);
+        ecs_remove(g_scene.world, s_selected_entity, skeleton_t);
 
         break;
       }
@@ -584,17 +620,15 @@ static void draw_entity_controls(void) {
   }
 }
 static void draw_entity(void) {
-  ecs_entity_t entity = (ecs_entity_t)s_selected_data;
-
   ImGuiTreeNodeFlags tree_node_flags = ImGuiTreeNodeFlags_OpenOnArrow |
                                        ImGuiTreeNodeFlags_SpanFullWidth |
                                        ImGuiTreeNodeFlags_FramePadding;
 
-  transform_t *transform = ecs_get_mut(g_scene.world, entity, transform_t);
-  camera_t *camera = ecs_get_mut(g_scene.world, entity, camera_t);
-  material_t *material = ecs_get_mut(g_scene.world, entity, material_t);
-  mesh_t *mesh = ecs_get_mut(g_scene.world, entity, mesh_t);
-  skeleton_t *skeleton = ecs_get_mut(g_scene.world, entity, skeleton_t);
+  transform_t *transform = ecs_get_mut(g_scene.world, s_selected_entity, transform_t);
+  camera_t *camera = ecs_get_mut(g_scene.world, s_selected_entity, camera_t);
+  material_t *material = ecs_get_mut(g_scene.world, s_selected_entity, material_t);
+  mesh_t *mesh = ecs_get_mut(g_scene.world, s_selected_entity, mesh_t);
+  skeleton_t *skeleton = ecs_get_mut(g_scene.world, s_selected_entity, skeleton_t);
 
   if (transform) {
 

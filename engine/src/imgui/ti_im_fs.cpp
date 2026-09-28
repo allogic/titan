@@ -21,8 +21,6 @@ static fs_asset_type_t s_new_asset_type = FS_ASSET_TYPE_NONE;
 static im_file_type_t s_new_file_type = IM_FILE_TYPE_NONE;
 static char s_new_file_name[TI_PATH_SIZE] = {0};
 
-static fs_asset_t *s_selected_asset = 0;
-
 void im_fs_draw(void) {
   if (s_refresh_entries) {
 
@@ -34,6 +32,7 @@ void im_fs_draw(void) {
 
       TI_FREE(s_root_file);
     }
+
     s_root_file = (im_file_entry_t *)TI_ALLOC(sizeof(im_file_entry_t), 1, 0);
 
     strcpy(s_root_file->path, "asset");
@@ -66,28 +65,11 @@ void im_fs_refresh(void) {
 void im_fs_reset(void) {
   im_inspector_select(IM_INSPECTOR_TYPE_NONE, 0);
 
-  switch (s_selected_asset->type) {
-
-    case FS_ASSET_TYPE_SCRIPT: {
-
-      im_text_editor_reset();
-
-      break;
-    }
-  }
-
   if (s_root_file) {
 
     destroy_children(s_root_file);
 
     TI_FREE(s_root_file);
-  }
-
-  if (s_selected_asset) {
-
-    fs_asset_destroy(s_selected_asset);
-
-    TI_FREE(s_selected_asset);
   }
 
   s_root_file = 0;
@@ -168,35 +150,32 @@ static void draw_tree(im_file_entry_t *file_entry) {
 
     } else {
 
-      if (s_selected_asset) {
+      // TODO
+      // im_text_editor_reset();
 
-        fs_asset_destroy(s_selected_asset);
+      fs_asset_t asset = {
+        .path = file_entry->path,
+      };
 
-        TI_FREE(s_selected_asset);
-      }
+      fs_asset_load(&asset);
 
-      s_selected_asset = (fs_asset_t *)TI_ALLOC(sizeof(fs_asset_t), 0, 0);
-
-      s_selected_asset->path = file_entry->path;
-
-      fs_asset_create(s_selected_asset);
-      fs_asset_load(s_selected_asset);
-
-      im_inspector_select(IM_INSPECTOR_TYPE_ASSET, s_selected_asset);
+      im_inspector_select(IM_INSPECTOR_TYPE_ASSET, file_entry->path);
 
       g_im_show_right_panel = 1;
 
-      switch (s_selected_asset->type) {
+      switch (asset.type) {
 
         case FS_ASSET_TYPE_SCRIPT: {
 
-          im_text_editor_open(s_selected_asset);
+          im_text_editor_open(file_entry->path);
 
           g_im_show_bottom_panel = 1;
 
           break;
         }
       }
+
+      fs_asset_destroy(&asset);
     }
   }
 
@@ -241,6 +220,8 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
     s_selected_file = file_entry;
 
     if (file_entry->is_directory) {
+
+      // TODO: how to configure the default values for the new assets..?
 
       if (ImGui::BeginMenu("Add")) {
 
