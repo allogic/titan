@@ -192,7 +192,8 @@ typedef struct fs_renderer_t {
   fs_asset_reference_t full_screen_index_buffer;
 } fs_renderer_t;
 typedef struct fs_script_t {
-  void *dummy;
+  uint64_t buffer_size;
+  void *buffer;
 } fs_script_t;
 typedef struct fs_sound_t {
   void *dummy;

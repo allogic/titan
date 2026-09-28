@@ -21,6 +21,8 @@ static fs_asset_type_t s_new_asset_type = FS_ASSET_TYPE_NONE;
 static im_file_type_t s_new_file_type = IM_FILE_TYPE_NONE;
 static char s_new_file_name[TI_PATH_SIZE] = {0};
 
+static fs_asset_t *s_selected_asset = 0;
+
 void im_fs_draw(void) {
   if (s_refresh_entries) {
 
@@ -63,11 +65,30 @@ void im_fs_refresh(void) {
   s_refresh_entries = 1;
 }
 void im_fs_reset(void) {
+  im_inspector_select(IM_INSPECTOR_TYPE_NONE, 0);
+
+  switch (s_selected_asset->type) {
+
+    case FS_ASSET_TYPE_SCRIPT: {
+
+      im_text_editor_reset();
+
+      break;
+    }
+  }
+
   if (s_root_file) {
 
     destroy_children(s_root_file);
 
     TI_FREE(s_root_file);
+  }
+
+  if (s_selected_asset) {
+
+    fs_asset_destroy(s_selected_asset);
+
+    TI_FREE(s_selected_asset);
   }
 
   s_root_file = 0;
@@ -76,8 +97,6 @@ void im_fs_reset(void) {
   s_new_asset_type = FS_ASSET_TYPE_NONE;
   s_new_file_type = IM_FILE_TYPE_NONE;
   s_new_file_name[0] = 0;
-
-  im_inspector_select(IM_INSPECTOR_TYPE_NONE, 0);
 }
 
 static void check_background_clicks(void) {
@@ -145,9 +164,40 @@ static void draw_tree(im_file_entry_t *file_entry) {
     s_new_file_name[0] = 0;
 
     if (file_entry->is_directory || file_entry->is_symlink) {
+
       im_inspector_select(IM_INSPECTOR_TYPE_NONE, 0);
+
     } else {
-      im_inspector_select(IM_INSPECTOR_TYPE_ASSET, file_entry->path);
+
+      if (s_selected_asset) {
+
+        fs_asset_destroy(s_selected_asset);
+
+        TI_FREE(s_selected_asset);
+      }
+
+      s_selected_asset = (fs_asset_t *)TI_ALLOC(sizeof(fs_asset_t), 0, 0);
+
+      s_selected_asset->path = file_entry->path;
+
+      fs_asset_create(s_selected_asset);
+      fs_asset_load(s_selected_asset);
+
+      im_inspector_select(IM_INSPECTOR_TYPE_ASSET, s_selected_asset);
+
+      g_im_show_right_panel = 1;
+
+      switch (s_selected_asset->type) {
+
+        case FS_ASSET_TYPE_SCRIPT: {
+
+          im_text_editor_open(s_selected_asset);
+
+          g_im_show_bottom_panel = 1;
+
+          break;
+        }
+      }
     }
   }
 
@@ -241,6 +291,16 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
 
         ImGui::Separator();
 
+        if (ImGui::MenuItem("Input Variable")) {
+
+          s_selected_file = file_entry;
+
+          file_entry->should_open = 1;
+
+          s_new_asset_type = FS_ASSET_TYPE_INPUT_VARIABLE;
+          s_new_file_type = IM_FILE_TYPE_ASSET;
+          s_new_file_name[0] = 0;
+        }
         if (ImGui::MenuItem("Descriptor Binding")) {
 
           s_selected_file = file_entry;
@@ -261,7 +321,6 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
           s_new_file_type = IM_FILE_TYPE_ASSET;
           s_new_file_name[0] = 0;
         }
-
         if (ImGui::MenuItem("Image")) {
 
           s_selected_file = file_entry;
@@ -272,7 +331,6 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
           s_new_file_type = IM_FILE_TYPE_ASSET;
           s_new_file_name[0] = 0;
         }
-
         if (ImGui::MenuItem("Framebuffer")) {
 
           s_selected_file = file_entry;
@@ -280,6 +338,42 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
           file_entry->should_open = 1;
 
           s_new_asset_type = FS_ASSET_TYPE_FRAMEBUFFER;
+          s_new_file_type = IM_FILE_TYPE_ASSET;
+          s_new_file_name[0] = 0;
+        }
+        if (ImGui::MenuItem("Renderpass")) {
+
+          s_selected_file = file_entry;
+
+          file_entry->should_open = 1;
+
+          s_new_asset_type = FS_ASSET_TYPE_RENDERPASS;
+          s_new_file_type = IM_FILE_TYPE_ASSET;
+          s_new_file_name[0] = 0;
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Script")) {
+
+          s_selected_file = file_entry;
+
+          file_entry->should_open = 1;
+
+          s_new_asset_type = FS_ASSET_TYPE_SCRIPT;
+          s_new_file_type = IM_FILE_TYPE_ASSET;
+          s_new_file_name[0] = 0;
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Sound")) {
+
+          s_selected_file = file_entry;
+
+          file_entry->should_open = 1;
+
+          s_new_asset_type = FS_ASSET_TYPE_SOUND;
           s_new_file_type = IM_FILE_TYPE_ASSET;
           s_new_file_name[0] = 0;
         }
@@ -297,22 +391,27 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
 
           im_fs_refresh();
         }
-
         if (ImGui::MenuItem("Pipeline")) {
 
           // TODO
 
           im_fs_refresh();
         }
-
         if (ImGui::MenuItem("Font")) {
 
           // TODO
 
           im_fs_refresh();
         }
-
         if (ImGui::MenuItem("Image")) {
+
+          // TODO
+        }
+        if (ImGui::MenuItem("Script")) {
+
+          // TODO
+        }
+        if (ImGui::MenuItem("Sound")) {
 
           // TODO
         }

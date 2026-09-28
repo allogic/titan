@@ -27,10 +27,18 @@ static VkDescriptorPoolSize s_descriptor_pool_sizes[] = {
   {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000},
 };
 
+static fs_asset_t s_commit_mono_asset = {
+  .path = "asset/font/commit_mono_latin_400_normal.pak",
+};
+static fs_asset_t s_material_symbol_asset = {
+  .path = "asset/font/material_symbols_rounded_fill.pak",
+};
+
 static uint8_t s_layout_init = 1;
 
 uint8_t g_im_show_left_panel = 1;
-uint8_t g_im_show_right_panel = 1;
+uint8_t g_im_show_right_panel = 0;
+uint8_t g_im_show_bottom_panel = 0;
 
 void *g_im_font_default_16 = 0;
 
@@ -71,18 +79,11 @@ void im_create(void) {
     0,
   };
 
-  fs_asset_t commit_mono_asset = {
-    .path = "asset/font/commit_mono_latin_400_normal.pak",
-  };
-  fs_asset_t material_symbol_asset = {
-    .path = "asset/font/material_symbols_rounded_fill.pak",
-  };
+  fs_asset_load(&s_commit_mono_asset);
+  fs_asset_load(&s_material_symbol_asset);
 
-  fs_asset_load(&commit_mono_asset);
-  fs_asset_load(&material_symbol_asset);
-
-  fs_font_t *commit_mono = (fs_font_t *)commit_mono_asset.instance;
-  fs_font_t *material_symbols = (fs_font_t *)material_symbol_asset.instance;
+  fs_font_t *commit_mono = (fs_font_t *)s_commit_mono_asset.instance;
+  fs_font_t *material_symbols = (fs_font_t *)s_material_symbol_asset.instance;
 
   if (commit_mono) {
 
@@ -188,8 +189,7 @@ void im_create(void) {
 
   ImGui_ImplVulkan_Init(&imgui_vulkan_init_info);
 
-  // TODO refector this in the future
-  im_text_editor_setup("int add(int a, int b) {\n\treturn a + b;\n}\n");
+  im_text_editor_setup(); // TODO
 }
 
 void im_draw(void) {
@@ -259,8 +259,11 @@ void im_draw(void) {
     }
   }
 
-  // im_viewport_draw();
-  im_text_editor_draw();
+  im_viewport_draw();
+
+  if (g_im_show_bottom_panel) {
+    im_text_editor_draw();
+  }
 
   if (g_im_show_right_panel) {
     im_inspector_draw();
@@ -303,6 +306,9 @@ void im_destroy(void) {
 
   ImGui::DestroyContext();
 
+  fs_asset_destroy(&s_commit_mono_asset);
+  fs_asset_destroy(&s_material_symbol_asset);
+
   vkDestroyDescriptorPool(g_vk_instance.device, s_descriptor_pool, 0);
 }
 
@@ -326,15 +332,17 @@ static void build_layout(void) {
     ImGuiID dock_main = dockspace_id;
     ImGuiID dock_left = 0;
     ImGuiID dock_right = 0;
+    ImGuiID dock_bottom = 0;
 
     dock_left = ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Left, 0.15F, 0, &dock_main);
     dock_right = ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Right, 0.25F, 0, &dock_main);
+    dock_bottom = ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Down, 0.35F, 0, &dock_main);
 
     ImGui::DockBuilderDockWindow("Viewport", dock_main);
     ImGui::DockBuilderDockWindow("Hierarchy", dock_left);
     ImGui::DockBuilderDockWindow("Filesystem", dock_left);
     ImGui::DockBuilderDockWindow("Handle", dock_left);
-    ImGui::DockBuilderDockWindow("Text Editor", dock_main);
+    ImGui::DockBuilderDockWindow("Text Editor", dock_bottom);
     ImGui::DockBuilderDockWindow("Renderer", dock_left);
     ImGui::DockBuilderDockWindow("Inspector", dock_right);
 
