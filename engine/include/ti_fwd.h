@@ -58,4 +58,12 @@ typedef struct scene_t {
   ecs_query_t *root_children;
 } scene_t;
 
+typedef struct ti_physic_t {
+  JPH_PhysicsSystem *system;
+  JPH_BodyInterface *body_interface;
+  JPH_JobSystem *job_system;
+  float accumulator;
+  int32_t running;
+} ti_physic_t;
+
 #endif // TI_FWD_H

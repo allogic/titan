@@ -102,8 +102,10 @@ void pl_window_run(pl_window_t *window) {
       DispatchMessageA(&msg);
     }
 
-    vk_renderer_draw(&g_vk_renderer);
+    ti_physic_update(window->delta_time);
     ti_audio_update();
+
+    vk_renderer_draw(&g_vk_renderer);
 
     QueryPerformanceCounter(&window->time_curr);
 

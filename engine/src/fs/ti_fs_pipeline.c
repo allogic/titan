@@ -38,11 +38,11 @@ void fs_pipeline_load(fs_pipeline_t *pipeline, fs_file *file) {
 
       fs_file_read(file, &pipeline->glsl_vertex_shader_size, sizeof(uint64_t), 0);
       pipeline->glsl_vertex_shader = TI_ALLOC(pipeline->glsl_vertex_shader_size, 0, 0);
-      fs_file_read(file, &pipeline->glsl_vertex_shader, pipeline->glsl_vertex_shader_size, 0);
+      fs_file_read(file, pipeline->glsl_vertex_shader, pipeline->glsl_vertex_shader_size, 0);
 
       fs_file_read(file, &pipeline->glsl_fragment_shader_size, sizeof(uint64_t), 0);
       pipeline->glsl_fragment_shader = TI_ALLOC(pipeline->glsl_fragment_shader_size, 0, 0);
-      fs_file_read(file, &pipeline->glsl_fragment_shader, pipeline->glsl_fragment_shader_size, 0);
+      fs_file_read(file, pipeline->glsl_fragment_shader, pipeline->glsl_fragment_shader_size, 0);
 
       break;
     }

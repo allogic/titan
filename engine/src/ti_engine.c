@@ -114,6 +114,7 @@ int32_t main(int32_t argc, char **argv) {
     ti_audio_create(); // TODO Missing ti_audio_demo_create
     srand(GetTickCount()); // TODO / fuck you!
     ti_clang_create();
+    ti_physic_create();
     scene_create(&g_scene, "test", "asset/scene/test.pak");
 
     import_dflt_assets();
@@ -124,6 +125,8 @@ int32_t main(int32_t argc, char **argv) {
     pl_window_destroy(&g_pl_window);
     
     scene_destroy(&g_scene);
+    ti_physic_demo_destroy();
+    ti_physic_destroy();
     ti_clang_destroy();
     ti_audio_demo_destroy();
     ti_audio_destroy();
@@ -548,6 +551,24 @@ static void import_dflt_assets(void) {
 
         fs_font_t *font = (fs_font_t *)asset.instance;
 
+        fs_asset_store(&asset);
+      }
+
+      fs_asset_destroy(&asset);
+    }
+  }
+  {
+    fs_asset_t asset = {
+      .magic = TI_FS_ASSET_MAGIC,
+      .type = FS_ASSET_TYPE_FONT,
+      .path = "asset/font/material_symbols_antigravity.pak",
+    };
+
+    if (fs_asset_exists(&asset) == 0) {
+
+      fs_asset_create(&asset);
+
+      if (fs_import_font(&asset, "static/font/material_symbols_antigravity.ttf") == 0) {
         fs_asset_store(&asset);
       }
 

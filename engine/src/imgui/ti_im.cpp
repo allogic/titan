@@ -262,6 +262,12 @@ void im_draw(void) {
 
         break;
       }
+      case IM_SIDEBAR_TAB_PHYSIC_STUDIO: {
+
+        im_physic_studio_draw();
+
+        break;
+      }
     }
   }
 
@@ -352,6 +358,7 @@ static void build_layout(void) {
     ImGui::DockBuilderDockWindow("Text Editor", dock_bottom);
     ImGui::DockBuilderDockWindow("Renderer", dock_left);
     ImGui::DockBuilderDockWindow("Sound Studio", dock_left);
+    ImGui::DockBuilderDockWindow("Physics Studio", dock_left);
     ImGui::DockBuilderDockWindow("Inspector", dock_right);
 
     ImGui::DockBuilderFinish(dockspace_id);
