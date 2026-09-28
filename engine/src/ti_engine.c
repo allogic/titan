@@ -125,8 +125,8 @@ int32_t main(int32_t argc, char **argv) {
     
     scene_destroy(&g_scene);
     ti_clang_destroy();
-    ti_audio_destroy();
     ti_audio_demo_destroy();
+    ti_audio_destroy();
     fs_destroy();
 
   } __except (EXCEPTION_EXECUTE_HANDLER) {
