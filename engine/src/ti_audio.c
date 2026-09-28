@@ -29,10 +29,10 @@ static float s_mix[TI_AUDIO_FRAME_SIZE * 2];
 static uint32_t s_mix_cursor = TI_AUDIO_FRAME_SIZE;
 
 static void audio_callback(ma_device *device, void *output, void const *input, ma_uint32 frame_count) {
-  ti_audio_render(output, frame_count);
+  audio_render(output, frame_count);
 }
 
-void ti_audio_create(void) {
+void audio_create(void) {
   IPLContextSettings context_settings = {
     .version = STEAMAUDIO_VERSION,
     .simdLevel = IPL_SIMDLEVEL_AVX2,
@@ -56,7 +56,7 @@ void ti_audio_create(void) {
       iplHRTFCreate(g_audio.context, &audio_settings, &hrtf_settings, &s_hrtf) != IPL_STATUS_SUCCESS ||
       iplSceneCreate(g_audio.context, &scene_settings, &g_audio.scene) != IPL_STATUS_SUCCESS ||
       iplSimulatorCreate(g_audio.context, &simulation_settings, &g_audio.simulator) != IPL_STATUS_SUCCESS) {
-    ti_audio_destroy();
+    audio_destroy();
     return;
   }
 
@@ -79,8 +79,7 @@ void ti_audio_create(void) {
     }
   }
 }
-
-void ti_audio_destroy(void) {
+void audio_destroy(void) {
   if (g_audio.device_available != 0) {
     ma_device_uninit(&s_device);
     g_audio.device_available = 0;
@@ -88,7 +87,7 @@ void ti_audio_destroy(void) {
 
   while (s_sources != 0) {
     ti_audio_source_t *source = s_sources;
-    ti_audio_source_destroy(&source);
+    audio_source_destroy(&source);
   }
 
   iplSimulatorRelease(&g_audio.simulator);
@@ -97,8 +96,7 @@ void ti_audio_destroy(void) {
   iplContextRelease(&g_audio.context);
   s_mix_cursor = TI_AUDIO_FRAME_SIZE;
 }
-
-int ti_audio_load(ti_sound_t **sound, char const *file_path) {
+int audio_load(ti_sound_t **sound, char const *file_path) {
   fs_asset_t asset = {.path = file_path};
   ti_sound_t *loaded = 0;
   int result = 1;
@@ -144,7 +142,7 @@ int ti_audio_load(ti_sound_t **sound, char const *file_path) {
     goto cleanup;
   }
 
-  if (ti_audio_unload(sound) != 0) {
+  if (audio_unload(sound) != 0) {
     goto cleanup;
   }
 
@@ -153,7 +151,7 @@ int ti_audio_load(ti_sound_t **sound, char const *file_path) {
   result = 0;
 
 cleanup:
-  ti_audio_unload(&loaded);
+  audio_unload(&loaded);
 
   if (asset.instance != 0) {
     fs_asset_destroy(&asset);
@@ -161,8 +159,7 @@ cleanup:
 
   return result;
 }
-
-int ti_audio_unload(ti_sound_t **sound) {
+int audio_unload(ti_sound_t **sound) {
   ti_sound_t *removed = 0;
   int result = 0;
 
@@ -186,8 +183,7 @@ int ti_audio_unload(ti_sound_t **sound) {
 
   return result;
 }
-
-int ti_audio_source_create(ti_audio_source_t **source, ti_sound_t *sound) {
+int audio_source_create(ti_audio_source_t **source, ti_sound_t *sound) {
   if (g_audio.simulator == 0 || sound == 0 || *source != 0) {
     return 1;
   }
@@ -242,8 +238,7 @@ int ti_audio_source_create(ti_audio_source_t **source, ti_sound_t *sound) {
 
   return 0;
 }
-
-void ti_audio_source_destroy(ti_audio_source_t **source) {
+void audio_source_destroy(ti_audio_source_t **source) {
   if (*source == 0) {
     return;
   }
@@ -273,10 +268,9 @@ void ti_audio_source_destroy(ti_audio_source_t **source) {
   iplDirectEffectRelease(&removed->direct_effect);
   TI_FREE(removed);
 }
-
-void ti_audio_source_play(ti_audio_source_t *source) {
+void audio_source_play(ti_audio_source_t *source) {
   if (source->simulation != 0) {
-    ti_audio_update();
+    audio_update();
   }
 
   AcquireSRWLockExclusive(&s_lock);
@@ -295,8 +289,7 @@ void ti_audio_source_play(ti_audio_source_t *source) {
 
   ReleaseSRWLockExclusive(&s_lock);
 }
-
-void ti_audio_source_pause(ti_audio_source_t *source) {
+void audio_source_pause(ti_audio_source_t *source) {
   AcquireSRWLockExclusive(&s_lock);
 
   if (source->state == TI_AUDIO_STATE_PLAYING) {
@@ -305,8 +298,7 @@ void ti_audio_source_pause(ti_audio_source_t *source) {
 
   ReleaseSRWLockExclusive(&s_lock);
 }
-
-void ti_audio_source_stop(ti_audio_source_t *source) {
+void audio_source_stop(ti_audio_source_t *source) {
   AcquireSRWLockExclusive(&s_lock);
 
   source->state = TI_AUDIO_STATE_STOPPED;
@@ -314,8 +306,7 @@ void ti_audio_source_stop(ti_audio_source_t *source) {
 
   ReleaseSRWLockExclusive(&s_lock);
 }
-
-void ti_audio_source_set(ti_audio_source_t *source, IPLVector3 *position, float gain, int loop) {
+void audio_source_set(ti_audio_source_t *source, IPLVector3 *position, float gain, int loop) {
   AcquireSRWLockExclusive(&s_lock);
 
   source->position = *position;
@@ -324,8 +315,7 @@ void ti_audio_source_set(ti_audio_source_t *source, IPLVector3 *position, float 
 
   ReleaseSRWLockExclusive(&s_lock);
 }
-
-int ti_audio_source_state(ti_audio_source_t *source) {
+int audio_source_state(ti_audio_source_t *source) {
   AcquireSRWLockShared(&s_lock);
 
   int state = source->state;
@@ -334,12 +324,10 @@ int ti_audio_source_state(ti_audio_source_t *source) {
 
   return state;
 }
-
-void ti_audio_listener_set(IPLCoordinateSpace3 *listener) {
+void audio_listener_set(IPLCoordinateSpace3 *listener) {
   s_listener = *listener;
 }
-
-void ti_audio_update(void) {
+void audio_update(void) {
   if (g_audio.simulator == 0) {
     return;
   }
@@ -390,8 +378,7 @@ void ti_audio_update(void) {
 
   ReleaseSRWLockExclusive(&s_lock);
 }
-
-void ti_audio_render(float *output, uint32_t frame_count) {
+void audio_render(float *output, uint32_t frame_count) {
   float input[TI_AUDIO_FRAME_SIZE];
   float filtered[TI_AUDIO_FRAME_SIZE];
   float left[TI_AUDIO_FRAME_SIZE];

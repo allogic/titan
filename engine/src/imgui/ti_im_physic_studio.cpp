@@ -40,7 +40,7 @@ void im_physic_studio_draw(void) {
     ImGui::BeginDisabled(g_physic.running != 0);
 
     if (ImGui::Button("Step")) {
-      ti_physic_step();
+      physic_step();
     }
 
     ImGui::EndDisabled();

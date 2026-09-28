@@ -7,10 +7,10 @@ extern "C" {
 
 extern ti_physic_t g_physic;
 
-void ti_physic_create(void);
-void ti_physic_destroy(void);
-void ti_physic_update(float delta_time);
-void ti_physic_step(void);
+void physic_create(void);
+void physic_destroy(void);
+void physic_update(float delta_time);
+void physic_step(void);
 
 #ifdef __cplusplus
 }

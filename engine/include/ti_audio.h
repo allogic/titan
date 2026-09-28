@@ -34,20 +34,20 @@ extern "C" {
 
 extern ti_audio_t g_audio;
 
-void ti_audio_create(void);
-void ti_audio_destroy(void);
-int32_t ti_audio_load(ti_sound_t **sound, char const *file_path);
-int32_t ti_audio_unload(ti_sound_t **sound);
-int32_t ti_audio_source_create(ti_audio_source_t **source, ti_sound_t *sound);
-void ti_audio_source_destroy(ti_audio_source_t **source);
-void ti_audio_source_play(ti_audio_source_t *source);
-void ti_audio_source_pause(ti_audio_source_t *source);
-void ti_audio_source_stop(ti_audio_source_t *source);
-void ti_audio_source_set(ti_audio_source_t *source, IPLVector3 *position, float gain, int32_t loop);
-int32_t ti_audio_source_state(ti_audio_source_t *source);
-void ti_audio_listener_set(IPLCoordinateSpace3 *listener);
-void ti_audio_update(void);
-void ti_audio_render(float *output, uint32_t frame_count);
+void audio_create(void);
+void audio_destroy(void);
+int32_t audio_load(ti_sound_t **sound, char const *file_path);
+int32_t audio_unload(ti_sound_t **sound);
+int32_t audio_source_create(ti_audio_source_t **source, ti_sound_t *sound);
+void audio_source_destroy(ti_audio_source_t **source);
+void audio_source_play(ti_audio_source_t *source);
+void audio_source_pause(ti_audio_source_t *source);
+void audio_source_stop(ti_audio_source_t *source);
+void audio_source_set(ti_audio_source_t *source, IPLVector3 *position, float gain, int32_t loop);
+int32_t audio_source_state(ti_audio_source_t *source);
+void audio_listener_set(IPLCoordinateSpace3 *listener);
+void audio_update(void);
+void audio_render(float *output, uint32_t frame_count);
 
 #ifdef __cplusplus
 }

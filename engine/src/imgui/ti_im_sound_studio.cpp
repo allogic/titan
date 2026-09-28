@@ -23,21 +23,21 @@ static int load_sound(char const *path) {
   s_error = 0;
   snprintf(s_error_path, TI_PATH_SIZE, "%s", path);
 
-  if (ti_audio_load(&sound, path) != 0) {
+  if (audio_load(&sound, path) != 0) {
     s_error = "Could not load:";
     return 1;
   }
 
-  if (ti_audio_source_create(&source, sound) != 0) {
+  if (audio_source_create(&source, sound) != 0) {
     s_error = "Could not create playback source for:";
-    ti_audio_unload(&sound);
+    audio_unload(&sound);
     return 1;
   }
 
-  ti_audio_source_set(source, &position, s_volume, s_loop);
+  audio_source_set(source, &position, s_volume, s_loop);
 
-  ti_audio_source_destroy(&s_source);
-  ti_audio_unload(&s_sound);
+  audio_source_destroy(&s_source);
+  audio_unload(&s_sound);
 
   s_sound = sound;
   s_source = source;
@@ -111,8 +111,8 @@ void im_sound_studio_draw(void) {
         IPLVector3 position = {s_position[0], s_position[1], s_position[2]};
 
         s_loop = false;
-        ti_audio_source_set(s_source, &position, s_volume, s_loop);
-        ti_audio_source_play(s_source);
+        audio_source_set(s_source, &position, s_volume, s_loop);
+        audio_source_play(s_source);
       }
     }
 
@@ -141,19 +141,19 @@ void im_sound_studio_draw(void) {
     ImGui::BeginDisabled(s_source == 0);
 
     if (ImGui::Button("Play")) {
-      ti_audio_source_play(s_source);
+      audio_source_play(s_source);
     }
 
     ImGui::SameLine();
 
     if (ImGui::Button("Pause")) {
-      ti_audio_source_pause(s_source);
+      audio_source_pause(s_source);
     }
 
     ImGui::SameLine();
 
     if (ImGui::Button("Stop")) {
-      ti_audio_source_stop(s_source);
+      audio_source_stop(s_source);
     }
 
     ImGui::TextUnformatted("Loop:");
@@ -173,7 +173,7 @@ void im_sound_studio_draw(void) {
 
     if (changed && (s_source != 0)) {
       IPLVector3 position = {s_position[0], s_position[1], s_position[2]};
-      ti_audio_source_set(s_source, &position, s_volume, s_loop);
+      audio_source_set(s_source, &position, s_volume, s_loop);
     }
 
     ImGui::TextUnformatted("Listener Position (X, Y, Z):");
@@ -187,7 +187,7 @@ void im_sound_studio_draw(void) {
         .origin = {s_listener_position[0], s_listener_position[1], s_listener_position[2]},
       };
 
-      ti_audio_listener_set(&listener);
+      audio_listener_set(&listener);
     }
 
     ImGui::SeparatorText("Room Demo:");
@@ -228,7 +228,7 @@ void im_sound_studio_draw(void) {
       float z_max = fmaxf(3.0F, fmaxf(s_position[2], s_listener_position[2]));
       float scale = fminf((size.x - 2.0F * padding) / (x_max - x_min), (size.y - 2.0F * padding) / (z_max - z_min));
       ImVec2 origin = ImVec2(canvas.x + size.x * 0.5F - (x_min + x_max) * scale * 0.5F,
-                            canvas.y + size.y * 0.5F - (z_min + z_max) * scale * 0.5F);
+                             canvas.y + size.y * 0.5F - (z_min + z_max) * scale * 0.5F);
       ImVec2 room_min = ImVec2(origin.x - 3.0F * scale, origin.y - 3.0F * scale);
       ImVec2 room_max = ImVec2(origin.x + 9.0F * scale, origin.y + 3.0F * scale);
       float wall_x = origin.x + 3.0F * scale;
@@ -276,7 +276,7 @@ void im_sound_studio_draw(void) {
       ImGui::TextUnformatted("State: No sound loaded");
     } else {
 
-      switch (ti_audio_source_state(s_source)) {
+      switch (audio_source_state(s_source)) {
         case TI_AUDIO_STATE_STOPPED: {
           ImGui::TextUnformatted("State: Stopped");
           break;
@@ -299,8 +299,8 @@ void im_sound_studio_draw(void) {
 }
 
 void im_sound_studio_reset(void) {
-  ti_audio_source_destroy(&s_source);
-  ti_audio_unload(&s_sound);
+  audio_source_destroy(&s_source);
+  audio_unload(&s_sound);
   s_loaded_path[0] = '\0';
   s_error = 0;
 }

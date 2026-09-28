@@ -102,8 +102,20 @@ void pl_window_run(pl_window_t *window) {
       DispatchMessageA(&msg);
     }
 
-    ti_physic_update(window->delta_time);
-    ti_audio_update();
+    physic_update(window->delta_time);
+    audio_update();
+
+    fvec3_t center = {0.0F, 0.0F, 0.0F};
+    fvec3_t right = {10.0F, 0.0F, 0.0F};
+    fvec3_t up = {0.0F, 10.0F, 0.0F};
+    fvec3_t forward = {0.0F, 0.0F, 10.0F};
+    fvec4_t red = {1.0F, 0.0F, 0.0F, 1.0F};
+    fvec4_t green = {1.0F, 0.0F, 0.0F, 1.0F};
+    fvec4_t blue = {1.0F, 0.0F, 0.0F, 1.0F};
+
+    vk_renderer_draw_debug_line(&g_vk_renderer, center, right, red);
+    vk_renderer_draw_debug_line(&g_vk_renderer, center, up, green);
+    vk_renderer_draw_debug_line(&g_vk_renderer, center, forward, blue);
 
     vk_renderer_draw(&g_vk_renderer);
 

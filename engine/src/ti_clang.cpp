@@ -32,13 +32,15 @@
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/raw_ostream.h>
 
-void ti_clang_create(void) {
+static std::unique_ptr<llvm::orc::LLJIT> s_jit;
+
+void clang_create(void) {
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
 }
 
-void ti_clang_compile(char const *source_code) {
+void clang_compile(char const *source_code) {
   std::string compiler_source = source_code;
 
   std::unique_ptr<llvm::MemoryBuffer> memory_buffer = llvm::MemoryBuffer::getMemBufferCopy(compiler_source, "main.c");
@@ -78,32 +80,30 @@ void ti_clang_compile(char const *source_code) {
 
   jit_builder.setDataLayout(module->getDataLayout());
 
-  std::unique_ptr<llvm::orc::LLJIT> jit;
-
-  if (llvm::Error error = jit_builder.create().moveInto(jit)) {
+  if (llvm::Error error = jit_builder.create().moveInto(s_jit)) {
     llvm::errs() << llvm::toString(std::move(error)) << "\n"; // TODO
     return;
   }
 
   llvm::orc::ThreadSafeModule thread_safe_module(std::move(module), std::unique_ptr<llvm::LLVMContext>(emit_llvm_only_action.takeLLVMContext()));
 
-  if (llvm::Error error = jit->addIRModule(std::move(thread_safe_module))) {
+  if (llvm::Error error = s_jit->addIRModule(std::move(thread_safe_module))) {
     llvm::errs() << llvm::toString(std::move(error)) << "\n"; // TODO
     return;
   }
 
   llvm::orc::ExecutorAddr symbol;
 
-  if (llvm::Error error = jit->lookup("add").moveInto(symbol)) {
+  if (llvm::Error error = s_jit->lookup("add").moveInto(symbol)) {
     llvm::errs() << llvm::toString(std::move(error)) << "\n"; // TODO
     return;
   }
 
-  int (*add_proc)(int, int) = symbol.toPtr<int (*)(int, int)>();
+  int32_t (*add_proc)(int32_t, int32_t) = symbol.toPtr<int32_t (*)(int32_t, int32_t)>();
 
-  int result = add_proc(100, 42);
+  int32_t result = add_proc(100, 42);
 }
 
-void ti_clang_destroy(void) {
+void clang_destroy(void) {
   llvm::llvm_shutdown();
 }

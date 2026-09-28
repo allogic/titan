@@ -14,7 +14,7 @@ IF (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		"${CMAKE_CURRENT_SOURCE_DIR}/lib/debug/glslang-default-resource-limitsd.lib"
 		"${CMAKE_CURRENT_SOURCE_DIR}/lib/debug/MachineIndependentd.lib"
 		"${CMAKE_CURRENT_SOURCE_DIR}/lib/debug/OSDependentd.lib"
-)
+	)
 ELSEIF (CMAKE_BUILD_TYPE STREQUAL "Release")
 	TARGET_LINK_LIBRARIES (glslang INTERFACE
 		"${CMAKE_CURRENT_SOURCE_DIR}/lib/release/SPIRV.lib"
@@ -25,7 +25,7 @@ ELSEIF (CMAKE_BUILD_TYPE STREQUAL "Release")
 		"${CMAKE_CURRENT_SOURCE_DIR}/lib/release/glslang-default-resource-limits.lib"
 		"${CMAKE_CURRENT_SOURCE_DIR}/lib/release/MachineIndependent.lib"
 		"${CMAKE_CURRENT_SOURCE_DIR}/lib/release/OSDependent.lib"
-)
+	)
 ELSE ()
 	MESSAGE (FATAL_ERROR "Unknown build type: ${CMAKE_BUILD_TYPE}")
 ENDIF ()

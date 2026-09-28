@@ -36,7 +36,7 @@ static fs_asset_t s_material_symbol_asset = {
 
 static uint8_t s_layout_init = 1;
 
-uint8_t g_im_show_left_panel = 1;
+uint8_t g_im_show_left_panel = 0;
 uint8_t g_im_show_right_panel = 0;
 uint8_t g_im_show_bottom_panel = 0;
 

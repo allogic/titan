@@ -5,9 +5,9 @@
 extern "C" {
 #endif
 
-void ti_clang_create(void);
-void ti_clang_compile(char const *source_code);
-void ti_clang_destroy(void);
+void clang_create(void);
+void clang_compile(char const *source_code);
+void clang_destroy(void);
 
 #ifdef __cplusplus
 }

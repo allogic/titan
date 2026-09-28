@@ -54,6 +54,18 @@ https://mega.nz/file/iYhklbyA#LzZwy3IPmBzPetMT1tvkRfNtXesmJdfVQFokFjcWRmY
 https://mega.nz/file/iYJxTIjY#vBkfenwF-WD686JPRZiBU1VZuFkCyCvrURW2Ejg2fqA
 ```
 
+### JoltC x64 Windows Libraries
+```
+https://mega.nz/file/vUxVCTLa#vQb245aWOUCijipreaWxZj6AyDVjjj0OxyS0Bb-RHMo
+https://mega.nz/file/KR4DiTTZ#i5cfNNkthwYvspFYV2TCk8zsu6DCiLXbVn5YvT1ynzM
+```
+
+### Steam Audio x64 Windows Libraries
+```
+https://mega.nz/file/DJwmFIDI#c82IPUj44F1dz5s90PX_MS2Itd-u-KRfv3pM6BxxQ30
+https://mega.nz/file/ncJziYKQ#HKVX9KTDj-Ob8PcPFs4UQNhW3ssJqgwc1sZ_u7PgTcw
+```
+
 ## Static Resources
 
 ### Engine Fonts

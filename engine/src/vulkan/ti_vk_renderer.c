@@ -104,11 +104,13 @@ static VkDescriptorSetLayoutBinding s_debug_line_renderer_descriptor_set_layout_
 //
 //   .vertex_input_binding_description = s_debug_line_vertex_input_binding_description,
 //   .vertex_input_binding_description_count = TI_ARRAY_COUNT(s_debug_line_vertex_input_binding_description),
+// 
 //   .vertex_input_attribute_description = s_debug_line_vertex_input_attribute_description,
 //   .vertex_input_attribute_description_count = TI_ARRAY_COUNT(s_debug_line_vertex_input_attribute_description),
 //
 //   .descriptor_pool_size = s_debug_line_renderer_descriptor_pool_size,
 //   .descriptor_pool_size_count = TI_ARRAY_COUNT(s_debug_line_renderer_descriptor_pool_size),
+// 
 //   .descriptor_set_layout_binding = s_debug_line_renderer_descriptor_set_layout_binding,
 //   .descriptor_set_layout_binding_count = TI_ARRAY_COUNT(s_debug_line_renderer_descriptor_set_layout_binding),
 //

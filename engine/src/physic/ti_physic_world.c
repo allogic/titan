@@ -2,7 +2,7 @@
 
 ti_physic_t g_physic = {0};
 
-void ti_physic_create(void) {
+void physic_create(void) {
   int32_t initialized = JPH_Init();
 
   JPH_ObjectLayerPairFilter *object_layers = JPH_ObjectLayerPairFilterTable_Create(TI_PHYSIC_LAYER_COUNT);
@@ -33,8 +33,7 @@ void ti_physic_create(void) {
   g_physic.job_system = JPH_JobSystemThreadPool_Create(&job_settings);
   assert(g_physic.job_system != 0);
 }
-
-void ti_physic_destroy(void) {
+void physic_destroy(void) {
   if (g_physic.system == 0) {
     return;
   }
@@ -45,8 +44,7 @@ void ti_physic_destroy(void) {
 
   g_physic = (ti_physic_t){0};
 }
-
-void ti_physic_update(float delta_time) {
+void physic_update(float delta_time) {
   if (g_physic.running == 0) {
     g_physic.accumulator = 0.0F;
     return;
@@ -55,12 +53,11 @@ void ti_physic_update(float delta_time) {
   g_physic.accumulator += delta_time;
 
   while (g_physic.accumulator >= TI_PHYSIC_TIME_STEP) {
-    ti_physic_step();
+    physic_step();
     g_physic.accumulator -= TI_PHYSIC_TIME_STEP;
   }
 }
-
-void ti_physic_step(void) {
+void physic_step(void) {
   JPH_PhysicsUpdateError result = JPH_PhysicsSystem_Update(g_physic.system, TI_PHYSIC_TIME_STEP, 1, g_physic.job_system);
   assert(result == JPH_PhysicsUpdateError_None);
 }

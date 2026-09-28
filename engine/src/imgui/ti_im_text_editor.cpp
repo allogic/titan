@@ -100,7 +100,6 @@ void im_text_editor_draw(void) {
     fs_script_t *script = (fs_script_t *)s_asset->instance;
 
     if (script->buffer) {
-
       TI_FREE(script->buffer);
     }
 
@@ -120,7 +119,7 @@ void im_text_editor_draw(void) {
 
   if (ImGui::Button("Compile")) {
 
-    ti_clang_compile(s_text_editor.GetText().c_str());
+    clang_compile(s_text_editor.GetText().c_str());
   }
 
   ImGui::PushStyleColor(ImGuiCol_NavCursor, IM_COL32(0, 0, 0, 0));
