@@ -3735,6 +3735,8 @@ See below for some tips on improving performance.
   is due to 64-bit file APIs not being available.
 */
 
+#pragma warning(disable : 4244)
+
 #ifndef miniaudio_h
 #define miniaudio_h
 
