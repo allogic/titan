@@ -119,7 +119,27 @@ void im_text_editor_draw(void) {
 
   if (ImGui::Button("Compile")) {
 
-    clang_compile(s_text_editor.GetText().c_str());
+    // TODO
+
+    char const *source_code = s_text_editor.GetText().c_str();
+
+    void *object_buffer = 0;
+    uint64_t object_buffer_size = 0;
+
+    clang_compile(source_code, &object_buffer, &object_buffer_size);
+    clang_load(object_buffer, object_buffer_size);
+
+    void *on_create_proc = 0;
+    void *on_play_proc = 0;
+    void *on_stop_proc = 0;
+    void *on_destroy_proc = 0;
+
+    clang_lookup("on_create", &on_create_proc);
+    clang_lookup("on_play", &on_play_proc);
+    clang_lookup("on_stop", &on_stop_proc);
+    clang_lookup("on_destroy", &on_destroy_proc);
+
+    TI_FREE(object_buffer);
   }
 
   ImGui::PushStyleColor(ImGuiCol_NavCursor, IM_COL32(0, 0, 0, 0));

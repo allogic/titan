@@ -24,6 +24,7 @@
 
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
+#include <llvm/IR/LegacyPassManager.h>
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
 #include <llvm/Support/Error.h>
@@ -31,20 +32,34 @@
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/CodeGen.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/TargetParser/Host.h>
+#include <llvm/MC/TargetRegistry.h>
+
+static clang::CompilerInstance s_compiler_instance;
+static clang::EmitLLVMOnlyAction s_emit_llvm_only_action;
 
 static std::unique_ptr<llvm::orc::LLJIT> s_jit;
 
-void clang_create(void) {
+uint8_t clang_create(void) {
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
+
+  llvm::orc::LLJITBuilder jit_builder;
+
+  if (llvm::Error error = jit_builder.create().moveInto(s_jit)) {
+
+    llvm::errs() << "failed to create LLJIT: " << llvm::toString(std::move(error)) << "\n";
+
+    return 1;
+  }
+
+  return 0;
 }
-
-void clang_compile(char const *source_code) {
-  std::string compiler_source = source_code;
-
-  std::unique_ptr<llvm::MemoryBuffer> memory_buffer = llvm::MemoryBuffer::getMemBufferCopy(compiler_source, "main.c");
-
+uint8_t clang_compile(char const *source_code, void **buffer, uint64_t *buffer_size) {
   clang::CompilerInstance compiler_instance;
 
   compiler_instance.createVirtualFileSystem();
@@ -56,8 +71,13 @@ void clang_compile(char const *source_code) {
   };
 
   if (clang::CompilerInvocation::CreateFromArgs(compiler_instance.getInvocation(), compiler_args, compiler_instance.getDiagnostics()) == false) {
-    return;
+
+    llvm::errs() << "failed to create CompilerInvocation\n";
+
+    return 1;
   }
+
+  std::unique_ptr<llvm::MemoryBuffer> memory_buffer = llvm::MemoryBuffer::getMemBufferCopy(source_code, "main.c");
 
   compiler_instance.getPreprocessorOpts().RetainRemappedFileBuffers = true;
   compiler_instance.getPreprocessorOpts().addRemappedFile("main.c", memory_buffer.get());
@@ -65,45 +85,142 @@ void clang_compile(char const *source_code) {
   clang::EmitLLVMOnlyAction emit_llvm_only_action;
 
   if (compiler_instance.ExecuteAction(emit_llvm_only_action) == false) {
-    return;
+
+    llvm::errs() << "clang compilation failed\n";
+
+    return 1;
   }
 
   std::unique_ptr<llvm::Module> module = emit_llvm_only_action.takeModule();
 
-  if (module == 0) {
-    return;
+  if (module == nullptr) {
+
+    llvm::errs() << "clang produced no LLVM module\n";
+
+    return 1;
   }
 
-  module->print(llvm::outs(), 0);
+  llvm::Triple target_triple(llvm::sys::getDefaultTargetTriple());
 
-  llvm::orc::LLJITBuilder jit_builder;
+  module->setTargetTriple(target_triple);
 
-  jit_builder.setDataLayout(module->getDataLayout());
+  std::string target_error;
 
-  if (llvm::Error error = jit_builder.create().moveInto(s_jit)) {
-    llvm::errs() << llvm::toString(std::move(error)) << "\n"; // TODO
-    return;
+  llvm::Target const *target = llvm::TargetRegistry::lookupTarget(target_triple, target_error);
+
+  if (target == nullptr) {
+
+    llvm::errs() << "failed to find target: " << target_error << "\n";
+
+    return 1;
   }
 
-  llvm::orc::ThreadSafeModule thread_safe_module(std::move(module), std::unique_ptr<llvm::LLVMContext>(emit_llvm_only_action.takeLLVMContext()));
+  llvm::TargetOptions target_options;
 
-  if (llvm::Error error = s_jit->addIRModule(std::move(thread_safe_module))) {
-    llvm::errs() << llvm::toString(std::move(error)) << "\n"; // TODO
-    return;
+  std::unique_ptr<llvm::TargetMachine> target_machine(target->createTargetMachine(
+    target_triple,
+    "generic",
+    "",
+    target_options,
+    llvm::Reloc::PIC_,
+    std::nullopt,
+    llvm::CodeGenOptLevel::Default));
+
+  if (target_machine == nullptr) {
+
+    llvm::errs() << "failed to create TargetMachine\n";
+
+    return 1;
   }
 
-  llvm::orc::ExecutorAddr symbol;
+  module->setDataLayout(target_machine->createDataLayout());
 
-  if (llvm::Error error = s_jit->lookup("add").moveInto(symbol)) {
-    llvm::errs() << llvm::toString(std::move(error)) << "\n"; // TODO
-    return;
+  llvm::SmallVector<char, 0> object_data;
+  llvm::raw_svector_ostream output(object_data);
+
+  llvm::legacy::PassManager pass_manager;
+
+  if (target_machine->addPassesToEmitFile(pass_manager, output, nullptr, llvm::CodeGenFileType::ObjectFile)) {
+
+    llvm::errs() << "target cannot emit object files\n";
+
+    return 1;
   }
 
-  int32_t (*add_proc)(int32_t, int32_t) = symbol.toPtr<int32_t (*)(int32_t, int32_t)>();
+  if (pass_manager.run(*module) == false) {
 
-  int32_t result = add_proc(100, 42);
+    llvm::errs() << "failed to generate object code\n";
+
+    return 1;
+  }
+
+  uint64_t size = object_data.size();
+
+  void *result = TI_ALLOC(size, 0, 0);
+
+  if (result == nullptr) {
+
+    llvm::errs() << "failed to allocate object buffer\n";
+
+    return 1;
+  }
+
+  std::memcpy(result, object_data.data(), size);
+
+  *buffer = result;
+  *buffer_size = size;
+
+  return 0;
 }
+uint8_t clang_load(void *buffer, uint64_t buffer_size) {
+  if (s_jit == nullptr) {
 
+    llvm::errs() << "JIT has not been created\n";
+
+    return 1;
+  }
+
+  if ((buffer == nullptr) || (buffer_size == 0)) {
+
+    llvm::errs() << "invalid object buffer\n";
+
+    return 1;
+  }
+
+  std::unique_ptr<llvm::MemoryBuffer> object = llvm::MemoryBuffer::getMemBufferCopy(llvm::StringRef((char const *)buffer, buffer_size), "jit-object");
+
+  if (llvm::Error error = s_jit->addObjectFile(std::move(object))) {
+
+    llvm::errs() << "failed to add object file to JIT: " << llvm::toString(std::move(error)) << "\n";
+
+    return 1;
+  }
+
+  return 0;
+}
+uint8_t clang_lookup(char const *symbol, void **function_ptr) {
+  if (s_jit == nullptr) {
+
+    llvm::errs() << "JIT has not been created\n";
+
+    return 1;
+  }
+
+  llvm::orc::ExecutorAddr sym;
+
+  if (llvm::Error error = s_jit->lookup(symbol).moveInto(sym)) {
+
+    llvm::errs() << "failed to find symbol \"" << symbol << "\" : " << llvm::toString(std::move(error)) << "\n ";
+
+    return 1;
+  }
+
+  *function_ptr = sym.toPtr<void *>();
+
+  return 0;
+}
 void clang_destroy(void) {
+  s_jit.reset();
+
   llvm::llvm_shutdown();
 }

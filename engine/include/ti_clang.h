@@ -5,8 +5,10 @@
 extern "C" {
 #endif
 
-void clang_create(void);
-void clang_compile(char const *source_code);
+uint8_t clang_create(void);
+uint8_t clang_compile(char const *source_code, void **buffer, uint64_t *buffer_size);
+uint8_t clang_load(void *buffer, uint64_t buffer_size);
+uint8_t clang_lookup(char const *symbol, void **function_ptr);
 void clang_destroy(void);
 
 #ifdef __cplusplus
