@@ -115,6 +115,7 @@ static VkDescriptorSetLayoutBinding s_debug_line_renderer_descriptor_set_layout_
 // };
 
 void vk_renderer_create(vk_renderer_t *renderer, char const *asset_path) {
+  renderer->is_debug_enabled = 1;
   renderer->asset.path = asset_path;
 
   fs_asset_load(&renderer->asset);

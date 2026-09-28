@@ -6,7 +6,7 @@ extern "C" {
 #endif // __cplusplus
 
 void im_inspector_draw(void);
-void im_inspector_select(im_inspector_type_t type, void *selection);
+void im_inspector_select(im_inspector_type_t type, void *data);
 void im_inspector_reset(void);
 
 #ifdef __cplusplus

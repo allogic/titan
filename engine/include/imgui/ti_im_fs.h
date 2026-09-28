@@ -5,6 +5,7 @@
 extern "C" {
 #endif // __cplusplus
 
+void im_fs_setup(void);
 void im_fs_draw(void);
 void im_fs_refresh(void);
 void im_fs_reset(void);
