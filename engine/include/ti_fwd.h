@@ -49,16 +49,17 @@ typedef struct archive_record_t {
   uint64_t global_offset;
 } archive_record_t;
 
-// TODO: assetify this entry..
 typedef struct scene_t {
-  char file_name[TI_PATH_SIZE];
-  char file_path[TI_PATH_SIZE];
+  char name[TI_PATH_SIZE];
+  uint8_t is_running;
+  uint8_t *snapshot;
   ecs_world_t *world;
   ecs_entity_t root_entity;
-  ecs_entity_t editor_camera_entity;
+  ecs_entity_t main_camera_entity;
   ecs_query_t *root_children;
 } scene_t;
 
+// TODO: further abstract this..
 typedef struct ti_physic_t {
   JPH_PhysicsSystem *system;
   JPH_BodyInterface *body_interface;

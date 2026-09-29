@@ -29,6 +29,7 @@ static const char *s_component_name[] = {
   "Material",
   "Mesh",
   "Skeleton",
+  "Script",
 };
 
 static char s_asset_path[TI_PATH_SIZE] = {0};
@@ -990,8 +991,8 @@ static void draw_entity(void) {
 
     if (ImGui::TreeNodeEx("Material", tree_node_flags)) {
 
-      ImGui::Text("Pipeline Handle %lu", material->pipeline);
-      ImGui::Text("Material Handle %lu", material->material);
+      ImGui::Text("Pipeline Handle %lu", material->pipeline_instance);
+      ImGui::Text("Material Handle %lu", material->material_instance);
 
       ImGui::TreePop();
     }
@@ -1001,7 +1002,7 @@ static void draw_entity(void) {
 
     if (ImGui::TreeNodeEx("Mesh", tree_node_flags)) {
 
-      ImGui::Text("Mesh Handle %lu", mesh->mesh);
+      ImGui::Text("Mesh Handle %lu", mesh->mesh_instance);
 
       ImGui::TreePop();
     }
@@ -1011,7 +1012,7 @@ static void draw_entity(void) {
 
     if (ImGui::TreeNodeEx("Skeleton", tree_node_flags)) {
 
-      ImGui::Text("Skeleton Handle %lu", skeleton->skeleton);
+      ImGui::Text("Skeleton Handle %lu", skeleton->skeleton_instance);
 
       ImGui::TreePop();
     }
@@ -1021,7 +1022,7 @@ static void draw_entity(void) {
 
     if (ImGui::TreeNodeEx("Script", tree_node_flags)) {
 
-      ImGui::Text("Script Handle %lu", script->script);
+      ImGui::Text("Script Handle %lu", script->module_instance);
 
       ImGui::TreePop();
     }

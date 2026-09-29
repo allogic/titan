@@ -72,7 +72,7 @@ static void reset_drag_state(void) {
 }
 
 static void draw_title(void) {
-  ImGui::SetCursorPos(ImVec2(16.0F, 12.0F));
+  ImGui::SetCursorPos(ImVec2(16.0F, 11.0F));
 
   ImGui::Text("%s %s.%s.%s (%s) - %d FPS",
               g_pl_window.title,
@@ -83,28 +83,39 @@ static void draw_title(void) {
               g_pl_window.final_fps_counter);
 }
 static void draw_scene_controls(void) {
-  // ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0F);
-  // ImGui::PushFont((ImFont *)g_im_font_symbols_18);
-  //
-  // ImVec2 cursor_position = {
-  //   (float)(g_pl_window.width >> 1) - (float)(g_pl_window.width >> 2),
-  //   5.0F,
-  // };
-  //
-  // ImGui::SetCursorPos(cursor_position);
-  //
-  // if (ImGui::Button(ICON_MS_FILE_SAVE)) {
-  //   // TODO
-  // }
-  //
-  // ImGui::SameLine();
-  //
-  // if (ImGui::Button(ICON_MS_FILE_OPEN)) {
-  //   // TODO
-  // }
-  //
-  // ImGui::PopFont();
-  // ImGui::PopStyleVar(1);
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0F);
+  ImGui::PushFont((ImFont *)g_im_font_symbols_18);
+
+  ImGui::SetCursorPos(ImVec2(350.0F, 5.0F));
+
+  if (ImGui::Button(ICON_MS_NEW_WINDOW)) {
+
+    // TODO
+  }
+
+  ImGui::SameLine();
+
+  if (ImGui::Button(ICON_MS_SAVE)) {
+
+    // TODO
+  }
+
+  ImGui::SameLine();
+
+  if (ImGui::Button(ICON_MS_PLAY_ARROW)) {
+
+    scene_play(&g_scene);
+  }
+
+  ImGui::SameLine();
+
+  if (ImGui::Button(ICON_MS_STOP)) {
+
+    scene_stop(&g_scene);
+  }
+
+  ImGui::PopFont();
+  ImGui::PopStyleVar(1);
 }
 static void draw_panel_controls(void) {
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0F);

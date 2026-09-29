@@ -1,12 +1,13 @@
 #include <ti_pch.h>
 
-// TODO: Check all VkImageMemoryBarrier's and remove double transitions depending on current renderpass (VkAttachmentDescription)
-// TODO: Rename functions with their proper module name..
+// TODO: check all VkImageMemoryBarrier's and remove double transitions depending on current renderpass (VkAttachmentDescription)
+// TODO: rename functions with their proper module name..
 // TODO: refactor sound studio..
 // TODO: refactor physic studio..
 // TODO: make folder specifically for GLSLang..
 // TODO: resolve asset references inside the gui and display it via TreeNodeEx..
 // TODO: fix sound importer..
+// TODO: check ECS transients for async asset loading..
 
 static void import_default_assets(void);
 static void create_default_assets(void);

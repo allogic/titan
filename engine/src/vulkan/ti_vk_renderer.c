@@ -441,10 +441,10 @@ static void update_debug_line_descriptor_set(vk_renderer_t *renderer) {
   vkUpdateDescriptorSets(g_vk_instance.device, TI_ARRAY_COUNT(write_descriptor_set), write_descriptor_set, 0, 0);
 }
 static void update_coherent_buffer(vk_renderer_t *renderer) {
-  if (g_scene.editor_camera_entity) {
+  if (g_scene.main_camera_entity) {
 
-    cp_transform_t const *transform = ecs_get(g_scene.world, g_scene.editor_camera_entity, cp_transform_t);
-    cp_camera_t const *camera = ecs_get(g_scene.world, g_scene.editor_camera_entity, cp_camera_t);
+    cp_transform_t const *transform = ecs_get(g_scene.world, g_scene.main_camera_entity, cp_transform_t);
+    cp_camera_t const *camera = ecs_get(g_scene.world, g_scene.main_camera_entity, cp_camera_t);
 
     if (transform && camera) {
 
