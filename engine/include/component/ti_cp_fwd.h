@@ -28,6 +28,7 @@ typedef enum cp_component_type_t {
   CP_COMPONENT_TYPE_MATERIAL,
   CP_COMPONENT_TYPE_MESH,
   CP_COMPONENT_TYPE_SKELETON,
+  CP_COMPONENT_TYPE_SCRIPT,
   CP_COMPONENT_TYPE_COUNT,
 } cp_component_type_t;
 
@@ -36,6 +37,12 @@ ECS_STRUCT_TYPE(cp_camera_t, TI_CP_CAMERA_DECL);
 ECS_STRUCT_TYPE(cp_material_t, TI_CP_MATERIAL_DECL);
 ECS_STRUCT_TYPE(cp_mesh_t, TI_CP_MESH_DECL);
 ECS_STRUCT_TYPE(cp_skeleton_t, TI_CP_SKELETON_DECL);
+ECS_STRUCT_TYPE(cp_script_t, TI_CP_SCRIPT_DECL);
+
+ECS_STRUCT_TYPE(cp_material_ref_t, TI_CP_MATERIAL_REF_DECL);
+ECS_STRUCT_TYPE(cp_mesh_ref_t, TI_CP_MESH_REF_DECL);
+ECS_STRUCT_TYPE(cp_skeleton_ref_t, TI_CP_SKELETON_REF_DECL);
+ECS_STRUCT_TYPE(cp_script_ref_t, TI_CP_SCRIPT_REF_DECL);
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,6 +53,12 @@ extern ECS_COMPONENT_DECLARE(cp_camera_t);
 extern ECS_COMPONENT_DECLARE(cp_material_t);
 extern ECS_COMPONENT_DECLARE(cp_mesh_t);
 extern ECS_COMPONENT_DECLARE(cp_skeleton_t);
+extern ECS_COMPONENT_DECLARE(cp_script_t);
+
+extern ECS_COMPONENT_DECLARE(cp_material_ref_t);
+extern ECS_COMPONENT_DECLARE(cp_mesh_ref_t);
+extern ECS_COMPONENT_DECLARE(cp_skeleton_ref_t);
+extern ECS_COMPONENT_DECLARE(cp_script_ref_t);
 
 #ifdef __cplusplus
 }

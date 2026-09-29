@@ -6,5 +6,6 @@
 #include <component/ti_cp_material.h>
 #include <component/ti_cp_mesh.h>
 #include <component/ti_cp_skeleton.h>
+#include <component/ti_cp_script.h>
 
 #endif // TI_CP_H

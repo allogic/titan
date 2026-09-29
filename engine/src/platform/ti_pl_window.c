@@ -30,15 +30,15 @@ void pl_window_create(pl_window_t *window) {
 
   INT screen_width = GetSystemMetrics(SM_CXSCREEN);
   INT screen_height = GetSystemMetrics(SM_CYSCREEN);
-  INT window_position_x = (screen_width - window->window_width) / 2;
-  INT window_position_y = (screen_height - window->window_height) / 2;
+  INT window_position_x = (screen_width - window->width) / 2;
+  INT window_position_y = (screen_height - window->height) / 2;
 
   window->window_handle = CreateWindowExA(
     0,
-    s_window_class, window->window_title,
+    s_window_class, window->title,
     WS_POPUP | WS_THICKFRAME,
     window_position_x, window_position_y,
-    window->window_width, window->window_height,
+    window->width, window->height,
     0,
     0,
     window->module_handle,
@@ -52,15 +52,7 @@ void pl_window_run(pl_window_t *window) {
   QueryPerformanceFrequency(&window->time_freq);
   QueryPerformanceCounter(&window->time_prev);
 
-  // TODO: refactor this as well..
-
-  g_vk_main_framebuffer.width = 1;
-  g_vk_main_framebuffer.height = 1;
-
-  g_vk_imgui_framebuffer.width = g_pl_window.window_width;
-  g_vk_imgui_framebuffer.height = g_pl_window.window_height;
-
-  im_viewport_update(); // TODO: remove this and create a clear viewport API!
+  im_viewport_update(&g_vk_viewport);
 
   while (window->is_running) {
 
@@ -106,9 +98,9 @@ void pl_window_run(pl_window_t *window) {
     audio_update();
 
     fvec3_t center = {0.0F, 0.0F, 0.0F};
-    fvec3_t right = {10.0F, 0.0F, 0.0F};
-    fvec3_t up = {0.0F, 10.0F, 0.0F};
-    fvec3_t forward = {0.0F, 0.0F, 10.0F};
+    fvec3_t right = {1.0F, 0.0F, 0.0F};
+    fvec3_t up = {0.0F, 1.0F, 0.0F};
+    fvec3_t forward = {0.0F, 0.0F, 1.0F};
     fvec4_t red = {1.0F, 0.0F, 0.0F, 1.0F};
     fvec4_t green = {0.0F, 1.0F, 0.0F, 1.0F};
     fvec4_t blue = {0.0F, 0.0F, 1.0F, 1.0F};
@@ -129,9 +121,9 @@ void pl_window_run(pl_window_t *window) {
       TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance.present_queue));
 
       vk_framebuffer_destroy(&g_vk_main_framebuffer);
-      vk_framebuffer_create(&g_vk_main_framebuffer, &g_vk_main_renderpass, "asset/framebuffer/main.pak");
+      vk_framebuffer_create(&g_vk_main_framebuffer, &g_vk_main_renderpass, g_vk_viewport.width, g_vk_viewport.height, "asset/framebuffer/main.pak");
 
-      im_viewport_update(); // TODO
+      im_viewport_update(&g_vk_viewport);
     }
 
     if (g_vk_swapchain.is_dirty) {
@@ -159,13 +151,10 @@ void pl_window_run(pl_window_t *window) {
 
       vk_renderer_create(&g_vk_renderer, "asset/renderer/main.pak");
 
-      g_vk_imgui_framebuffer.width = g_pl_window.window_width;
-      g_vk_imgui_framebuffer.height = g_pl_window.window_height;
+      vk_framebuffer_create(&g_vk_main_framebuffer, &g_vk_main_renderpass, g_vk_viewport.width, g_vk_viewport.height, "asset/framebuffer/main.pak");
+      vk_framebuffer_create(&g_vk_imgui_framebuffer, &g_vk_imgui_renderpass, g_pl_window.width, g_pl_window.height, "asset/framebuffer/imgui.pak");
 
-      vk_framebuffer_create(&g_vk_main_framebuffer, &g_vk_main_renderpass, "asset/framebuffer/main.pak");
-      vk_framebuffer_create(&g_vk_imgui_framebuffer, &g_vk_imgui_renderpass, "asset/framebuffer/imgui.pak");
-
-      im_viewport_update(); // TODO
+      im_viewport_update(&g_vk_viewport);
     }
 
     double time_freq = (double)window->time_freq.QuadPart;
@@ -177,31 +166,15 @@ void pl_window_run(pl_window_t *window) {
     delta_time = clampf(delta_time, 0.0F, TI_WINDOW_MAX_DELTA_TIME);
 
     window->delta_time = delta_time;
-
     window->time_prev = window->time_curr;
-
     window->time += delta_time;
     window->elapsed_time_since_fps_count_update += delta_time;
-
     window->fps_counter++;
-
-    g_vk_instance.frame_index++; // TODO: move this into vulkan instance..
 
     if ((window->elapsed_time_since_fps_count_update > 1.0F) || (window->is_first_frame)) {
 
-      static char title_buffer[0x400] = {0};
-
-      snprintf(title_buffer, sizeof(title_buffer), "%s %s.%s.%s (%s) - %d FPS",
-               window->window_title,
-               VERSION_MAJOR,
-               VERSION_MINOR,
-               VERSION_PATCH,
-               GIT_VERSION_HASH,
-               window->fps_counter);
-
-      SetWindowTextA(window->window_handle, title_buffer);
-
       window->elapsed_time_since_fps_count_update = 0.0F;
+      window->final_fps_counter = window->fps_counter;
       window->fps_counter = 0;
     }
 

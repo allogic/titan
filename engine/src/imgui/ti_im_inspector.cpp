@@ -142,7 +142,6 @@ static void draw_asset(void) {
 
       fs_model_t *model = (fs_model_t *)s_selected_asset->instance;
 
-      ImGui::Text("%s", model->name);
       ImGui::Text("Mesh Count: %llu", model->mesh_count);
 
       uint64_t mesh_index = 0;
@@ -926,6 +925,7 @@ static void draw_entity(void) {
   cp_material_t *material = ecs_get_mut(g_scene.world, s_selected_entity, cp_material_t);
   cp_mesh_t *mesh = ecs_get_mut(g_scene.world, s_selected_entity, cp_mesh_t);
   cp_skeleton_t *skeleton = ecs_get_mut(g_scene.world, s_selected_entity, cp_skeleton_t);
+  cp_script_t *script = ecs_get_mut(g_scene.world, s_selected_entity, cp_script_t);
 
   if (transform) {
 
@@ -990,12 +990,8 @@ static void draw_entity(void) {
 
     if (ImGui::TreeNodeEx("Material", tree_node_flags)) {
 
-      if (ImGui::InputText("Pipeline", material->pipeline, TI_PATH_SIZE)) {
-        // TODO
-      }
-      if (ImGui::InputText("Material", material->material, TI_PATH_SIZE)) {
-        // TODO
-      }
+      ImGui::Text("Pipeline Handle %lu", material->pipeline);
+      ImGui::Text("Material Handle %lu", material->material);
 
       ImGui::TreePop();
     }
@@ -1005,9 +1001,7 @@ static void draw_entity(void) {
 
     if (ImGui::TreeNodeEx("Mesh", tree_node_flags)) {
 
-      if (ImGui::InputText("Mesh", mesh->mesh, TI_PATH_SIZE)) {
-        // TODO
-      }
+      ImGui::Text("Mesh Handle %lu", mesh->mesh);
 
       ImGui::TreePop();
     }
@@ -1017,9 +1011,17 @@ static void draw_entity(void) {
 
     if (ImGui::TreeNodeEx("Skeleton", tree_node_flags)) {
 
-      if (ImGui::InputText("Skeleton", skeleton->skeleton, TI_PATH_SIZE)) {
-        // TODO
-      }
+      ImGui::Text("Skeleton Handle %lu", skeleton->skeleton);
+
+      ImGui::TreePop();
+    }
+  }
+
+  if (script) {
+
+    if (ImGui::TreeNodeEx("Script", tree_node_flags)) {
+
+      ImGui::Text("Script Handle %lu", script->script);
 
       ImGui::TreePop();
     }

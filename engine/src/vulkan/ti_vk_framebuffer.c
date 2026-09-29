@@ -1,6 +1,6 @@
 #include <ti_pch.h>
 
-void vk_framebuffer_create(vk_framebuffer_t *framebuffer, vk_renderpass_t *renderpass, char const *asset_path) {
+void vk_framebuffer_create(vk_framebuffer_t *framebuffer, vk_renderpass_t *renderpass, uint32_t width, uint32_t height, char const *asset_path) {
   framebuffer->asset.path = asset_path;
 
   fs_asset_load(&framebuffer->asset);
@@ -23,14 +23,14 @@ void vk_framebuffer_create(vk_framebuffer_t *framebuffer, vk_renderpass_t *rende
 
     while (attachment_index < attachment_count) {
 
-      vk_image_create(&framebuffer->color_attachment[image_index][attachment_index], framebuffer->width, framebuffer->height, 1, config->color_attachment[attachment_index].reference_path);
+      vk_image_create(&framebuffer->color_attachment[image_index][attachment_index], width, height, 1, config->color_attachment[attachment_index].reference_path);
 
       final_image_attachment_views[attachment_index] = framebuffer->color_attachment[image_index][attachment_index].image_view;
 
       attachment_index++;
     }
 
-    vk_image_create(&framebuffer->depth_attachment[image_index], framebuffer->width, framebuffer->height, 1, config->depth_attachment.reference_path);
+    vk_image_create(&framebuffer->depth_attachment[image_index], width, height, 1, config->depth_attachment.reference_path);
 
     final_image_attachment_views[final_image_attachment_view_count - 1] = framebuffer->depth_attachment[image_index].image_view;
 
@@ -39,8 +39,8 @@ void vk_framebuffer_create(vk_framebuffer_t *framebuffer, vk_renderpass_t *rende
       .renderPass = renderpass->handle,
       .pAttachments = final_image_attachment_views,
       .attachmentCount = (uint32_t)final_image_attachment_view_count,
-      .width = framebuffer->width,
-      .height = framebuffer->height,
+      .width = width,
+      .height = height,
       .layers = 1,
     };
 

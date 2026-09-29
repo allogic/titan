@@ -81,6 +81,10 @@ VkPhysicalDeviceMeshShaderFeaturesEXT g_physical_device_mesh_shader_features = {
 vk_instance_t g_vk_instance = {0};
 vk_swapchain_t g_vk_swapchain = {0};
 vk_renderer_t g_vk_renderer = {0};
+vk_viewport_t g_vk_viewport = {
+  .width = 1,
+  .height = 1,
+};
 
 vk_renderpass_t g_vk_main_renderpass = {0};
 vk_renderpass_t g_vk_imgui_renderpass = {0};
@@ -144,14 +148,8 @@ void vk_create(void) {
 
   vk_renderer_create(&g_vk_renderer, "asset/renderer/main.pak");
 
-  g_vk_main_framebuffer.width = 1;
-  g_vk_main_framebuffer.height = 1;
-
-  g_vk_imgui_framebuffer.width = g_pl_window.window_width;
-  g_vk_imgui_framebuffer.height = g_pl_window.window_height;
-
-  vk_framebuffer_create(&g_vk_main_framebuffer, &g_vk_main_renderpass, "asset/framebuffer/main.pak");
-  vk_framebuffer_create(&g_vk_imgui_framebuffer, &g_vk_imgui_renderpass, "asset/framebuffer/imgui.pak");
+  vk_framebuffer_create(&g_vk_main_framebuffer, &g_vk_main_renderpass, g_vk_viewport.width, g_vk_viewport.height, "asset/framebuffer/main.pak");
+  vk_framebuffer_create(&g_vk_imgui_framebuffer, &g_vk_imgui_renderpass, g_pl_window.width, g_pl_window.height, "asset/framebuffer/imgui.pak");
 
   im_create();
 }
@@ -185,8 +183,8 @@ void vk_destroy(void) {
 void vk_update_surface_capabilities(void) {
   TI_VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(g_vk_instance.physical_device, g_vk_instance.surface, &g_vk_instance.surface_capabilities));
 
-  g_pl_window.window_width = g_vk_instance.surface_capabilities.currentExtent.width;
-  g_pl_window.window_height = g_vk_instance.surface_capabilities.currentExtent.height;
+  g_pl_window.width = g_vk_instance.surface_capabilities.currentExtent.width;
+  g_pl_window.height = g_vk_instance.surface_capabilities.currentExtent.height;
 
   g_vk_instance.min_image_count = g_vk_instance.surface_capabilities.minImageCount;
   g_vk_instance.max_image_count = g_vk_instance.surface_capabilities.maxImageCount;

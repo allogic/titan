@@ -5,13 +5,10 @@
 extern "C" {
 #endif // __cplusplus
 
-extern uint32_t g_viewport_width;
-extern uint32_t g_viewport_height;
-
-void im_viewport_update(void);
-void im_viewport_draw(void);
-void im_viewport_refresh(void);
-void im_viewport_reset(void);
+void im_viewport_update(vk_viewport_t *viewport);
+void im_viewport_draw(vk_viewport_t *viewport);
+void im_viewport_refresh(vk_viewport_t *viewport);
+void im_viewport_reset(vk_viewport_t *viewport);
 
 #ifdef __cplusplus
 }

@@ -73,9 +73,9 @@ void im_text_editor_open(char const *asset_path) {
 
       // TODO: find clean way without the need of if statements..
 
-      if (script->c_buffer_size) {
+      if (script->source_buffer_size) {
 
-        s_text_editor.SetText((char *)script->c_buffer);
+        s_text_editor.SetText((char *)script->source_buffer);
       }
 
       break;
@@ -98,18 +98,18 @@ void im_text_editor_draw(void) {
 
     fs_script_t *script = (fs_script_t *)s_asset->instance;
 
-    if (script->c_buffer) {
-      TI_FREE(script->c_buffer);
+    if (script->source_buffer) {
+      TI_FREE(script->source_buffer);
     }
 
     std::string source = s_text_editor.GetText();
 
-    script->c_buffer_size = source.size() + 1;
-    script->c_buffer = TI_ALLOC(script->c_buffer_size, 0, 0);
+    script->source_buffer_size = source.size() + 1;
+    script->source_buffer = TI_ALLOC(script->source_buffer_size, 0, 0);
 
-    memcpy(script->c_buffer, source.c_str(), script->c_buffer_size);
+    memcpy(script->source_buffer, source.c_str(), script->source_buffer_size);
 
-    ((char *)script->c_buffer)[script->c_buffer_size - 1] = 0;
+    ((char *)script->source_buffer)[script->source_buffer_size - 1] = 0;
 
     fs_asset_store(s_asset);
   }
@@ -120,11 +120,11 @@ void im_text_editor_draw(void) {
 
     fs_script_t *script = (fs_script_t *)s_asset->instance;
 
-    if (script->obj_buffer) {
-      TI_FREE(script->obj_buffer);
+    if (script->object_buffer) {
+      TI_FREE(script->object_buffer);
     }
 
-    cl_compiler_compile((char const *)script->c_buffer, &script->obj_buffer, &script->obj_buffer_size);
+    cl_compiler_compile((char const *)script->source_buffer, &script->object_buffer, &script->object_buffer_size);
 
     fs_asset_store(s_asset);
   }
@@ -137,7 +137,7 @@ void im_text_editor_draw(void) {
 
     cl_module_t module = {0};
 
-    cl_compiler_load(&module, script->obj_buffer, script->obj_buffer_size);
+    cl_compiler_load(&module, script->object_buffer, script->object_buffer_size);
 
     module.on_create_proc();
     module.on_play_proc();

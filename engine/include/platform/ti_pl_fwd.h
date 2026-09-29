@@ -125,7 +125,7 @@ typedef enum pl_mouse_key_t {
 } pl_mouse_key_t;
 
 typedef struct pl_window_t {
-  char const *window_title;
+  char const *title;
   HMODULE module_handle;
   HWND window_handle;
   LARGE_INTEGER time_freq;
@@ -138,8 +138,8 @@ typedef struct pl_window_t {
   uint8_t is_first_frame;
   uint8_t is_running;
   uint8_t is_maximized;
-  uint32_t window_width;
-  uint32_t window_height;
+  uint32_t width;
+  uint32_t height;
   uint32_t h_border_padding;
   uint32_t v_border_padding;
   uint32_t titlebar_height;
@@ -148,6 +148,7 @@ typedef struct pl_window_t {
   uint32_t mouse_position_y;
   uint32_t mouse_wheel_delta;
   uint32_t fps_counter;
+  uint32_t final_fps_counter;
   pl_key_state_t keyboard_key_states[KEYBOARD_KEY_COUNT];
   pl_key_state_t mouse_key_states[MOUSE_KEY_COUNT];
 } pl_window_t;

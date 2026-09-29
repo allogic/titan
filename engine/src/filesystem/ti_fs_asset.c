@@ -99,8 +99,8 @@ void fs_asset_create(fs_asset_t *asset) {
 
       fs_script_t *script = (fs_script_t *)asset->instance;
 
-      script->c_buffer_size = TI_ARRAY_COUNT(s_default_source_code);
-      script->c_buffer = TI_ALLOC(script->c_buffer_size, 0, s_default_source_code);
+      script->source_buffer_size = TI_ARRAY_COUNT(s_default_source_code);
+      script->source_buffer = TI_ALLOC(script->source_buffer_size, 0, s_default_source_code);
 
       break;
     }

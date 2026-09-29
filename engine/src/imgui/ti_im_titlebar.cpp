@@ -4,6 +4,7 @@
 
 static void reset_drag_state(void);
 
+static void draw_title(void);
 static void draw_scene_controls(void);
 static void draw_panel_controls(void);
 static void draw_window_controls(void);
@@ -11,10 +12,10 @@ static void draw_window_controls(void);
 void im_titlebar_draw(void) {
   if (g_pl_window.is_maximized) {
     ImGui::SetNextWindowPos(ImVec2((float)g_pl_window.h_border_padding, (float)g_pl_window.v_border_padding));
-    ImGui::SetNextWindowSize(ImVec2((float)g_pl_window.window_width - (float)g_pl_window.h_border_padding * 2, (float)g_pl_window.titlebar_height - (float)g_pl_window.v_border_padding));
+    ImGui::SetNextWindowSize(ImVec2((float)g_pl_window.width - (float)g_pl_window.h_border_padding * 2, (float)g_pl_window.titlebar_height - (float)g_pl_window.v_border_padding));
   } else {
     ImGui::SetNextWindowPos(ImVec2(0.0F, 0.0F));
-    ImGui::SetNextWindowSize(ImVec2((float)g_pl_window.window_width, (float)g_pl_window.titlebar_height));
+    ImGui::SetNextWindowSize(ImVec2((float)g_pl_window.width, (float)g_pl_window.titlebar_height));
   }
 
   ImGui::PushStyleColor(ImGuiCol_WindowBg, TI_LIGHT_GREY);
@@ -42,6 +43,8 @@ void im_titlebar_draw(void) {
   // ImGui::Text(ICON_MS_CIRCLE);
   // ImGui::PopFont();
 
+  draw_title();
+
   draw_scene_controls();
   draw_panel_controls();
   draw_window_controls();
@@ -68,33 +71,49 @@ static void reset_drag_state(void) {
   ImGui::GetIO().MouseDown[0] = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
 }
 
+static void draw_title(void) {
+  ImGui::SetCursorPos(ImVec2(16.0F, 12.0F));
+
+  ImGui::Text("%s %s.%s.%s (%s) - %d FPS",
+              g_pl_window.title,
+              VERSION_MAJOR,
+              VERSION_MINOR,
+              VERSION_PATCH,
+              GIT_VERSION_HASH,
+              g_pl_window.final_fps_counter);
+}
 static void draw_scene_controls(void) {
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0F);
-  ImGui::PushFont((ImFont *)g_im_font_symbols_18);
-
-  ImGui::SetCursorPos(ImVec2(5.0F, 5.0F));
-
-  if (ImGui::Button(ICON_MS_FILE_SAVE)) {
-    // TODO
-  }
-
-  ImGui::SameLine();
-
-  if (ImGui::Button(ICON_MS_FILE_OPEN)) {
-    // TODO
-  }
-
-  ImGui::PopFont();
-  ImGui::PopStyleVar(1);
+  // ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0F);
+  // ImGui::PushFont((ImFont *)g_im_font_symbols_18);
+  //
+  // ImVec2 cursor_position = {
+  //   (float)(g_pl_window.width >> 1) - (float)(g_pl_window.width >> 2),
+  //   5.0F,
+  // };
+  //
+  // ImGui::SetCursorPos(cursor_position);
+  //
+  // if (ImGui::Button(ICON_MS_FILE_SAVE)) {
+  //   // TODO
+  // }
+  //
+  // ImGui::SameLine();
+  //
+  // if (ImGui::Button(ICON_MS_FILE_OPEN)) {
+  //   // TODO
+  // }
+  //
+  // ImGui::PopFont();
+  // ImGui::PopStyleVar(1);
 }
 static void draw_panel_controls(void) {
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0F);
   ImGui::PushFont((ImFont *)g_im_font_symbols_18);
 
   if (g_pl_window.is_maximized) {
-    ImGui::SetCursorPos(ImVec2((float)g_pl_window.window_width - ((float)g_pl_window.h_border_padding * 2) - 200.0F, 5.0F));
+    ImGui::SetCursorPos(ImVec2((float)g_pl_window.width - ((float)g_pl_window.h_border_padding * 2) - 200.0F, 5.0F));
   } else {
-    ImGui::SetCursorPos(ImVec2((float)g_pl_window.window_width - 200.0F, 5.0F));
+    ImGui::SetCursorPos(ImVec2((float)g_pl_window.width - 200.0F, 5.0F));
   }
 
   if (ImGui::Button(ICON_MS_DOCK_TO_RIGHT)) {
@@ -112,9 +131,9 @@ static void draw_panel_controls(void) {
 }
 static void draw_window_controls(void) {
   if (g_pl_window.is_maximized) {
-    ImGui::SetCursorPos(ImVec2((float)g_pl_window.window_width - ((float)g_pl_window.h_border_padding * 2) - 89.0F, 5.0F));
+    ImGui::SetCursorPos(ImVec2((float)g_pl_window.width - ((float)g_pl_window.h_border_padding * 2) - 89.0F, 5.0F));
   } else {
-    ImGui::SetCursorPos(ImVec2((float)g_pl_window.window_width - 89.0F, 5.0F));
+    ImGui::SetCursorPos(ImVec2((float)g_pl_window.width - 89.0F, 5.0F));
   }
 
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0F);

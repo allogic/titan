@@ -32,60 +32,59 @@ static uint64_t count_spirv_descriptor_bindings(SpvReflectShaderModule *module);
 static uint8_t convert_spirv_input_variables(fs_asset_t *asset, fs_pipeline_t *pipeline, uint64_t *input_variable_offset, SpvReflectShaderModule *module);
 static uint8_t convert_spirv_descriptor_bindings(fs_asset_t *asset, fs_pipeline_t *pipeline, uint64_t *descriptor_binding_offset, SpvReflectShaderModule *module);
 
-uint8_t fs_import_sound(fs_asset_t *asset, char const *file_path, uint8_t stereo) {
-  void *file_data = 0;
-  size_t file_size = 0;
-  void *samples = 0;
-  ma_uint64 frame_count = 0;
-  ma_decoder_config config = ma_decoder_config_init(ma_format_s16, stereo, 0);
-  fs_sound_t imported = {0};
-  uint8_t result = 1;
+uint8_t fs_import_script(fs_asset_t *asset, char const *script_file) {
+  uint8_t status = 0;
 
-  if (fs_file_open_and_read(g_fs, file_path, FS_FORMAT_BINARY, &file_data, &file_size) != FS_SUCCESS) {
-    goto cleanup;
+  fs_script_t *script = (fs_script_t *)asset->instance;
+
+  void *source_buffer = 0;
+  uint64_t source_buffer_size = 0;
+
+  LARGE_INTEGER freq = {0};
+  LARGE_INTEGER t0 = {0};
+  LARGE_INTEGER t1 = {0};
+  LARGE_INTEGER t2 = {0};
+
+  QueryPerformanceFrequency(&freq);
+  QueryPerformanceCounter(&t0);
+
+  if (fs_file_open_and_read(g_fs, script_file, FS_FORMAT_TEXT, &source_buffer, &source_buffer_size) != FS_SUCCESS) {
+
+    status = 1;
+
+    goto error;
   }
 
-  if (ma_decode_memory(file_data, file_size, &config, &frame_count, &samples) != MA_SUCCESS) {
-    goto cleanup;
+  QueryPerformanceCounter(&t1);
+
+  script->source_buffer_size = source_buffer_size + 1;
+  script->source_buffer = TI_ALLOC(script->source_buffer_size, 0, source_buffer);
+  ((char *)script->source_buffer)[script->source_buffer_size - 1] = 0;
+
+  QueryPerformanceCounter(&t2);
+
+  LONGLONG d0 = ((t1.QuadPart - t0.QuadPart) * 1000) / freq.QuadPart;
+  LONGLONG d1 = ((t2.QuadPart - t1.QuadPart) * 1000) / freq.QuadPart;
+  LONGLONG dt = d0 + d1;
+
+  printf("Importing %s\n", asset->path);
+  printf("  Load file        %8lld ms\n", d0);
+  printf("  Copy file        %8lld ms\n", d1);
+  printf("  Total            %8llu ms\n", dt);
+  printf("\n");
+
+error:
+
+  if (source_buffer) {
+    fs_free(source_buffer, 0);
   }
 
-  if (frame_count == 0 || (config.channels != 1 && config.channels != 2) ||
-      config.sampleRate == 0 || config.sampleRate > INT_MAX ||
-      frame_count > INT_MAX / (config.channels * sizeof(int16_t))) {
-    goto cleanup;
-  }
-
-  imported.channel_count = config.channels;
-  imported.sample_rate = config.sampleRate;
-  imported.buffer_size = frame_count * config.channels * sizeof(int16_t);
-  imported.buffer = TI_ALLOC(imported.buffer_size, 0, 0);
-
-  if (imported.buffer == 0) {
-    goto cleanup;
-  }
-
-  memcpy(imported.buffer, samples, imported.buffer_size);
-  fs_sound_destroy(asset->instance);
-  *(fs_sound_t *)asset->instance = imported;
-  imported = (fs_sound_t){0};
-  result = 0;
-
-cleanup:
-  fs_sound_destroy(&imported);
-  ma_free(samples, &config.allocationCallbacks);
-  fs_free(file_data, fs_get_allocation_callbacks(g_fs));
-
-  return result;
+  return status;
 }
 uint8_t fs_import_model(fs_asset_t *asset, char const *model_file) {
   uint8_t status = 0;
 
   fs_model_t *model = (fs_model_t *)asset->instance;
-
-  uint64_t path_size = strlen(asset->path);
-
-  const char *file_name = fs_path_file_name(asset->path, path_size);
-  const char *file_ext = fs_path_extension(asset->path, path_size);
 
   void *gltf_buffer = 0;
   uint64_t gltf_buffer_size = 0;
@@ -140,12 +139,6 @@ uint8_t fs_import_model(fs_asset_t *asset, char const *model_file) {
 
   QueryPerformanceCounter(&t4);
 
-  if (file_name && file_ext) {
-    memcpy(model->name, file_name, file_ext - file_name - 1);
-  } else {
-    snprintf(model->name, TI_PATH_SIZE, "<unnamed>");
-  }
-
   convert_gltf_model(model, gltf_data);
 
   QueryPerformanceCounter(&t5);
@@ -183,13 +176,8 @@ uint8_t fs_import_font(fs_asset_t *asset, char const *font_file) {
 
   fs_font_t *font = (fs_font_t *)asset->instance;
 
-  uint64_t path_size = strlen(asset->path);
-
-  const char *file_name = fs_path_file_name(asset->path, path_size);
-  const char *file_ext = fs_path_extension(asset->path, path_size);
-
-  void *buffer = 0;
-  uint64_t buffer_size = 0;
+  void *font_buffer = 0;
+  uint64_t font_buffer_size = 0;
 
   LARGE_INTEGER freq = {0};
   LARGE_INTEGER t0 = {0};
@@ -199,7 +187,7 @@ uint8_t fs_import_font(fs_asset_t *asset, char const *font_file) {
   QueryPerformanceFrequency(&freq);
   QueryPerformanceCounter(&t0);
 
-  if (fs_file_open_and_read(g_fs, font_file, FS_FORMAT_BINARY, &buffer, &buffer_size) != FS_SUCCESS) {
+  if (fs_file_open_and_read(g_fs, font_file, FS_FORMAT_BINARY, &font_buffer, &font_buffer_size) != FS_SUCCESS) {
 
     status = 1;
 
@@ -208,7 +196,7 @@ uint8_t fs_import_font(fs_asset_t *asset, char const *font_file) {
 
   QueryPerformanceCounter(&t1);
 
-  convert_ttf_font(font, buffer, buffer_size);
+  convert_ttf_font(font, font_buffer, font_buffer_size);
 
   QueryPerformanceCounter(&t2);
 
@@ -224,11 +212,58 @@ uint8_t fs_import_font(fs_asset_t *asset, char const *font_file) {
 
 error:
 
-  if (buffer) {
-    fs_free(buffer, 0);
+  if (font_buffer) {
+    fs_free(font_buffer, 0);
   }
 
   return status;
+}
+uint8_t fs_import_sound(fs_asset_t *asset, char const *sound_file, uint8_t stereo) {
+  // TODO: refactor all of this..
+
+  void *file_data = 0;
+  size_t file_size = 0;
+  void *samples = 0;
+  ma_uint64 frame_count = 0;
+  ma_decoder_config config = ma_decoder_config_init(ma_format_s16, stereo, 0);
+  fs_sound_t imported = {0};
+  uint8_t result = 1;
+
+  if (fs_file_open_and_read(g_fs, sound_file, FS_FORMAT_BINARY, &file_data, &file_size) != FS_SUCCESS) {
+    goto cleanup;
+  }
+
+  if (ma_decode_memory(file_data, file_size, &config, &frame_count, &samples) != MA_SUCCESS) {
+    goto cleanup;
+  }
+
+  if (frame_count == 0 || (config.channels != 1 && config.channels != 2) ||
+      config.sampleRate == 0 || config.sampleRate > INT_MAX ||
+      frame_count > INT_MAX / (config.channels * sizeof(int16_t))) {
+    goto cleanup;
+  }
+
+  imported.channel_count = config.channels;
+  imported.sample_rate = config.sampleRate;
+  imported.buffer_size = frame_count * config.channels * sizeof(int16_t);
+  imported.buffer = TI_ALLOC(imported.buffer_size, 0, 0);
+
+  if (imported.buffer == 0) {
+    goto cleanup;
+  }
+
+  memcpy(imported.buffer, samples, imported.buffer_size);
+  fs_sound_destroy(asset->instance);
+  *(fs_sound_t *)asset->instance = imported;
+  imported = (fs_sound_t){0};
+  result = 0;
+
+cleanup:
+  fs_sound_destroy(&imported);
+  ma_free(samples, &config.allocationCallbacks);
+  fs_free(file_data, fs_get_allocation_callbacks(g_fs));
+
+  return result;
 }
 uint8_t fs_import_pipeline(fs_asset_t *asset, fs_pipeline_type_t pipeline_type,
                            char const *vertex_file,

@@ -10,7 +10,6 @@ typedef struct vk_enum_record_t {
 typedef struct vk_instance_t {
   uint32_t min_image_count;
   uint32_t max_image_count;
-  uint32_t frame_index;
   uint32_t primary_queue_index;
   uint32_t present_queue_index;
   VkInstance instance;
@@ -105,8 +104,6 @@ typedef struct vk_image_t {
 typedef struct vk_framebuffer_t {
   fs_asset_t asset;
   uint8_t is_dirty;
-  uint32_t width;
-  uint32_t height;
   vk_image_t *color_attachment[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
   vk_image_t depth_attachment[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
   VkFramebuffer handle[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
@@ -176,5 +173,13 @@ typedef struct vk_renderer_t {
   vk_buffer_t full_screen_index_buffer;
   vk_pipeline_t debug_line_pipeline;
 } vk_renderer_t;
+typedef struct vk_viewport_t {
+  uint32_t width;
+  uint32_t height;
+  uint32_t mouse_position_x;
+  uint32_t mouse_position_y;
+  VkDescriptorSet *color_attachment;
+  VkDescriptorSet *depth_attachment;
+} vk_viewport_t;
 
 #endif // TI_VK_FWD_H

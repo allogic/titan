@@ -12,6 +12,7 @@
 #include <vulkan/ti_vk_font.h>
 #include <vulkan/ti_vk_descriptor_binding.h>
 #include <vulkan/ti_vk_renderer.h>
+#include <vulkan/ti_vk_viewport.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,6 +31,7 @@ extern VkPhysicalDeviceMeshShaderFeaturesEXT g_physical_device_mesh_shader_featu
 extern vk_instance_t g_vk_instance;
 extern vk_swapchain_t g_vk_swapchain;
 extern vk_renderer_t g_vk_renderer;
+extern vk_viewport_t g_vk_viewport;
 
 extern vk_renderpass_t g_vk_main_renderpass;
 extern vk_renderpass_t g_vk_imgui_renderpass;

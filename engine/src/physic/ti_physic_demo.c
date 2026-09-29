@@ -252,7 +252,7 @@ void ti_physic_demo_draw(void) {
 
   JPH_Vec3 room_size = g_physic_demo.room_size;
   float radius = 0.5F * sqrtf((room_size.x + 2.0F) * (room_size.x + 2.0F) + (room_size.y + 2.0F) * (room_size.y + 2.0F) + (room_size.z + 2.0F) * (room_size.z + 2.0F));
-  float aspect_ratio = (float)g_vk_main_framebuffer.width / g_vk_main_framebuffer.height;
+  float aspect_ratio = 1.0F; // (float)g_vk_main_framebuffer.width / g_vk_main_framebuffer.height;
   float half_fov = atanf(tanf(deg_to_rad(22.5F)) * fminf(aspect_ratio, 1.0F));
   float distance = radius / sinf(half_fov) * 1.05F;
   fvec3_t camera_target = {0.0F, room_size.y * 0.5F, 0.0F};

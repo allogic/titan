@@ -379,8 +379,8 @@ static void create_default_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *re
   VkViewport viewport = {
     .x = 0.0F,
     .y = 0.0F,
-    .width = (float)g_pl_window.window_width,   // TODO
-    .height = (float)g_pl_window.window_height, // TODO
+    .width = (float)g_pl_window.width,   // TODO
+    .height = (float)g_pl_window.height, // TODO
     .minDepth = 0.0F,
     .maxDepth = 1.0F,
   };
@@ -389,8 +389,8 @@ static void create_default_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *re
     .offset.x = 0,
     .offset.y = 0,
     .extent = {
-      .width = g_pl_window.window_width,   // TODO
-      .height = g_pl_window.window_height, // TODO
+      .width = g_pl_window.width,   // TODO
+      .height = g_pl_window.height, // TODO
     },
   };
 
@@ -579,8 +579,8 @@ static void create_mesh_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *rende
   VkViewport viewport = {
     .x = 0.0F,
     .y = 0.0F,
-    .width = (float)g_pl_window.window_width,   // TODO
-    .height = (float)g_pl_window.window_height, // TODO
+    .width = (float)g_pl_window.width,   // TODO
+    .height = (float)g_pl_window.height, // TODO
     .minDepth = 0.0F,
     .maxDepth = 1.0F,
   };
@@ -589,8 +589,8 @@ static void create_mesh_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *rende
     .offset.x = 0,
     .offset.y = 0,
     .extent = {
-      .width = g_pl_window.window_width,   // TODO
-      .height = g_pl_window.window_height, // TODO
+      .width = g_pl_window.width,   // TODO
+      .height = g_pl_window.height, // TODO
     },
   };
 

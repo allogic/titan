@@ -6,9 +6,10 @@
 // TODO: refactor physic studio..
 // TODO: make folder specifically for GLSLang..
 // TODO: resolve asset references inside the gui and display it via TreeNodeEx..
+// TODO: fix sound importer..
 
-static void import_dflt_assets(void);
-static void create_dflt_assets(void);
+static void import_default_assets(void);
+static void create_default_assets(void);
 
 int32_t main(int32_t argc, char **argv) {
   srand(GetTickCount()); // TODO
@@ -24,8 +25,8 @@ int32_t main(int32_t argc, char **argv) {
     physic_create();
     scene_create(&g_scene, "test", "asset/scene/test.pak");
 
-    import_dflt_assets();
-    create_dflt_assets();
+    import_default_assets();
+    create_default_assets();
 
     pl_window_create(&g_pl_window);
     pl_window_run(&g_pl_window);
@@ -49,7 +50,8 @@ int32_t main(int32_t argc, char **argv) {
   return 0;
 }
 
-static void import_dflt_assets(void) {
+static void import_default_assets(void) {
+  // Sounds
   {
     uint32_t sound_index = 1;
 
@@ -81,6 +83,8 @@ static void import_dflt_assets(void) {
       sound_index++;
     }
   }
+
+  // Models
   {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
@@ -355,6 +359,7 @@ static void import_dflt_assets(void) {
     }
   }
 
+  // Pipelines
   {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
@@ -461,6 +466,7 @@ static void import_dflt_assets(void) {
     }
   }
 
+  // Fonts
   {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
@@ -503,18 +509,23 @@ static void import_dflt_assets(void) {
       fs_asset_destroy(&asset);
     }
   }
+
+  // Scripts
   {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
-      .type = FS_ASSET_TYPE_FONT,
-      .path = "asset/font/material_symbols_antigravity.pak",
+      .type = FS_ASSET_TYPE_SCRIPT,
+      .path = "asset/script/camera_controller.pak",
     };
 
     if (fs_asset_exists(&asset) == 0) {
 
       fs_asset_create(&asset);
 
-      if (fs_import_font(&asset, "static/font/material_symbols_antigravity.ttf") == 0) {
+      if (fs_import_script(&asset, "static/script/camera_controller.c") == 0) {
+
+        fs_script_t *script = (fs_script_t *)asset.instance;
+
         fs_asset_store(&asset);
       }
 
@@ -522,7 +533,8 @@ static void import_dflt_assets(void) {
     }
   }
 }
-static void create_dflt_assets(void) {
+static void create_default_assets(void) {
+  // Globals instances
   {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
@@ -565,6 +577,7 @@ static void create_dflt_assets(void) {
     }
   }
 
+  // Renderpasses
   {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
@@ -610,6 +623,7 @@ static void create_dflt_assets(void) {
     }
   }
 
+  // Framebuffer
   {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
@@ -657,6 +671,7 @@ static void create_dflt_assets(void) {
     }
   }
 
+  // Global buffer
   {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
@@ -750,6 +765,7 @@ static void create_dflt_assets(void) {
     }
   }
 
+  // Main framebuffer attachments
   {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
@@ -813,6 +829,7 @@ static void create_dflt_assets(void) {
     }
   }
 
+  // Imgui framebuffer attachments
   {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,
@@ -876,6 +893,7 @@ static void create_dflt_assets(void) {
     }
   }
 
+  // Renderer buffer
   {
     fs_asset_t asset = {
       .magic = TI_FS_ASSET_MAGIC,

@@ -175,8 +175,8 @@ void vk_renderer_draw(vk_renderer_t *renderer) {
       .z = 0,
     },
     .extent = {
-      .width = g_pl_window.window_width,
-      .height = g_pl_window.window_height,
+      .width = g_pl_window.width,
+      .height = g_pl_window.height,
       .depth = 1,
     },
   };
@@ -456,7 +456,7 @@ static void update_coherent_buffer(vk_renderer_t *renderer) {
       time_info->time = g_pl_window.time;
       time_info->delta_time = g_pl_window.delta_time;
 
-      screen_info->resolution = (ivec2_t){g_pl_window.window_width, g_pl_window.window_height};
+      screen_info->resolution = (ivec2_t){g_pl_window.width, g_pl_window.height};
 
       mouse_info->position = (ivec2_t){g_pl_window.mouse_position_x, g_pl_window.mouse_position_y};
 
@@ -467,16 +467,16 @@ static void update_coherent_buffer(vk_renderer_t *renderer) {
 
       fvec3_t up = {0.0F, 1.0F, 0.0F};
 
-      float aspect_ratio = (float)g_pl_window.window_width / (float)g_pl_window.window_height;
+      float aspect_ratio = (float)g_pl_window.width / (float)g_pl_window.height;
 
       camera_info->position = (fvec4_t){camera_position.x, camera_position.y, camera_position.z, 0.0F};
       camera_info->direction = (fvec4_t){camera_direction.x, camera_direction.y, camera_direction.z};
-      camera_info->view = fmat4x4_look_at(camera_position, fvec3_add(camera_position, camera_direction), up);         // g_player.camera.view;
-      camera_info->view_inv = fmat4x4_inverse(camera_info->view);                                                     // g_player.camera.view_inv;
-      camera_info->projection = fmat4x4_persp(deg_to_rad(-camera->fov), aspect_ratio, camera->near_z, camera->far_z); // g_player.camera.projection;
-      camera_info->projection_inv = fmat4x4_inverse(camera_info->projection);                                         // g_player.camera.projection_inv;
-      camera_info->view_projection = fmat4x4_mul(camera_info->view, camera_info->projection);                         // g_player.camera.view_projection;
-      camera_info->view_projection_inv = fmat4x4_inverse(camera_info->view_projection);                               // g_player.camera.view_projection_inv;
+      camera_info->view = fmat4x4_look_at(camera_position, fvec3_add(camera_position, camera_direction), up);
+      camera_info->view_inv = fmat4x4_inverse(camera_info->view);
+      camera_info->projection = fmat4x4_persp(deg_to_rad(-camera->fov), aspect_ratio, camera->near_z, camera->far_z);
+      camera_info->projection_inv = fmat4x4_inverse(camera_info->projection);
+      camera_info->view_projection = fmat4x4_mul(camera_info->view, camera_info->projection);
+      camera_info->view_projection_inv = fmat4x4_inverse(camera_info->view_projection);
     }
   }
 }
@@ -524,8 +524,8 @@ static void record_main_pass(vk_renderer_t *renderer) {
       .offset.x = 0,
       .offset.y = 0,
       .extent = {
-        .width = g_vk_main_framebuffer.width,
-        .height = g_vk_main_framebuffer.height,
+        .width = g_vk_viewport.width,
+        .height = g_vk_viewport.height,
       },
     },
     .pClearValues = clear_values,
@@ -537,8 +537,8 @@ static void record_main_pass(vk_renderer_t *renderer) {
   VkViewport viewport = {
     .x = 0.0F,
     .y = 0.0F,
-    .width = (float)g_vk_main_framebuffer.width,
-    .height = (float)g_vk_main_framebuffer.height,
+    .width = (float)g_vk_viewport.width,
+    .height = (float)g_vk_viewport.height,
     .minDepth = 0.0F,
     .maxDepth = 1.0F,
   };
@@ -549,8 +549,8 @@ static void record_main_pass(vk_renderer_t *renderer) {
     .offset.x = 0,
     .offset.y = 0,
     .extent = {
-      .width = g_vk_main_framebuffer.width,
-      .height = g_vk_main_framebuffer.height,
+      .width = g_vk_viewport.width,
+      .height = g_vk_viewport.height,
     },
   };
 
@@ -750,8 +750,8 @@ static void record_imgui_pass(vk_renderer_t *renderer) {
       .offset.x = 0,
       .offset.y = 0,
       .extent = {
-        .width = g_vk_imgui_framebuffer.width,
-        .height = g_vk_imgui_framebuffer.height,
+        .width = g_pl_window.width,
+        .height = g_pl_window.height,
       },
     },
     .pClearValues = clear_values,
@@ -763,8 +763,8 @@ static void record_imgui_pass(vk_renderer_t *renderer) {
   VkViewport viewport = {
     .x = 0.0F,
     .y = 0.0F,
-    .width = (float)g_vk_imgui_framebuffer.width,
-    .height = (float)g_vk_imgui_framebuffer.height,
+    .width = (float)g_pl_window.width,
+    .height = (float)g_pl_window.height,
     .minDepth = 0.0F,
     .maxDepth = 1.0F,
   };
@@ -775,8 +775,8 @@ static void record_imgui_pass(vk_renderer_t *renderer) {
     .offset.x = 0,
     .offset.y = 0,
     .extent = {
-      .width = g_vk_imgui_framebuffer.width,
-      .height = g_vk_imgui_framebuffer.height,
+      .width = g_pl_window.width,
+      .height = g_pl_window.height,
     },
   };
 

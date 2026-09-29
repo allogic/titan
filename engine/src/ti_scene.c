@@ -9,6 +9,11 @@ ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_camera_t, TI_CP_CAMERA_DESC);
 ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_material_t, TI_CP_MATERIAL_DESC);
 ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_mesh_t, TI_CP_MESH_DESC);
 ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_skeleton_t, TI_CP_SKELETON_DESC);
+ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_script_t, TI_CP_SCRIPT_DESC);
+ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_material_ref_t, TI_CP_MATERIAL_REF_DESC);
+ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_mesh_ref_t, TI_CP_MESH_REF_DESC);
+ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_skeleton_ref_t, TI_CP_SKELETON_REF_DESC);
+ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_script_ref_t, TI_CP_SCRIPT_REF_DESC);
 
 void scene_create(scene_t *scene, char const *file_name, char const *file_path) {
   strcpy(scene->file_name, file_name);
@@ -21,12 +26,22 @@ void scene_create(scene_t *scene, char const *file_name, char const *file_path) 
   ECS_COMPONENT_DEFINE(scene->world, cp_material_t);
   ECS_COMPONENT_DEFINE(scene->world, cp_mesh_t);
   ECS_COMPONENT_DEFINE(scene->world, cp_skeleton_t);
+  ECS_COMPONENT_DEFINE(scene->world, cp_script_t);
+  ECS_COMPONENT_DEFINE(scene->world, cp_material_ref_t);
+  ECS_COMPONENT_DEFINE(scene->world, cp_mesh_ref_t);
+  ECS_COMPONENT_DEFINE(scene->world, cp_skeleton_ref_t);
+  ECS_COMPONENT_DEFINE(scene->world, cp_script_ref_t);
 
   ecs_meta_from_desc(scene->world, ecs_id(cp_transform_t), EcsStructType, TI_CP_TRANSFORM_DESC);
   ecs_meta_from_desc(scene->world, ecs_id(cp_camera_t), EcsStructType, TI_CP_CAMERA_DESC);
   ecs_meta_from_desc(scene->world, ecs_id(cp_material_t), EcsStructType, TI_CP_MATERIAL_DESC);
   ecs_meta_from_desc(scene->world, ecs_id(cp_mesh_t), EcsStructType, TI_CP_MESH_DESC);
   ecs_meta_from_desc(scene->world, ecs_id(cp_skeleton_t), EcsStructType, TI_CP_SKELETON_DESC);
+  ecs_meta_from_desc(scene->world, ecs_id(cp_script_t), EcsStructType, TI_CP_SCRIPT_DESC);
+  ecs_meta_from_desc(scene->world, ecs_id(cp_material_ref_t), EcsStructType, TI_CP_MATERIAL_REF_DESC);
+  ecs_meta_from_desc(scene->world, ecs_id(cp_mesh_ref_t), EcsStructType, TI_CP_MESH_REF_DESC);
+  ecs_meta_from_desc(scene->world, ecs_id(cp_skeleton_ref_t), EcsStructType, TI_CP_SKELETON_REF_DESC);
+  ecs_meta_from_desc(scene->world, ecs_id(cp_script_ref_t), EcsStructType, TI_CP_SCRIPT_REF_DESC);
 
   scene->root_entity = ecs_entity(scene->world, {
                                                   .name = "root",
@@ -40,16 +55,18 @@ void scene_create(scene_t *scene, char const *file_name, char const *file_path) 
 
   ecs_add(scene->world, scene->editor_camera_entity, cp_transform_t);
   ecs_add(scene->world, scene->editor_camera_entity, cp_camera_t);
+  ecs_add(scene->world, scene->editor_camera_entity, cp_script_ref_t);
 
   cp_transform_t *transform = ecs_get_mut(scene->world, scene->editor_camera_entity, cp_transform_t);
+  cp_camera_t *camera = ecs_get_mut(scene->world, scene->editor_camera_entity, cp_camera_t);
+  cp_script_ref_t *script_ref = ecs_get_mut(scene->world, scene->editor_camera_entity, cp_script_ref_t);
 
   cp_transform_init(transform);
+  cp_camera_init(camera);
 
   transform->position_z = -10.0F;
 
-  cp_camera_t *camera = ecs_get_mut(scene->world, scene->editor_camera_entity, cp_camera_t);
-
-  cp_camera_init(camera);
+  strcpy(script_ref->script, "asset/script/camera_controller.pak");
 }
 void scene_load(scene_t *scene) {
   uint8_t *buffer = 0;
@@ -136,18 +153,7 @@ static resolve_all_links(scene_t *scene) {
 
       ecs_entity_t child_entity = root_it.entities[entity_index];
 
-      cp_transform_t const *transform = ecs_get(scene->world, child_entity, cp_transform_t);
-      cp_camera_t const *camera = ecs_get(scene->world, child_entity, cp_camera_t);
-      cp_material_t const *material = ecs_get(scene->world, child_entity, cp_material_t);
-      cp_mesh_t const *mesh = ecs_get(scene->world, child_entity, cp_mesh_t);
-      cp_skeleton_t const *skeleton = ecs_get(scene->world, child_entity, cp_skeleton_t);
-
       // TODO
-
-      if (material) {
-
-        // fs_pipeline(material->pipeline);
-      }
 
       entity_index++;
     }

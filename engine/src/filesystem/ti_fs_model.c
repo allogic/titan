@@ -3,7 +3,6 @@
 void fs_model_load(fs_model_t *model, fs_file *file) {
   memset(model, 0, sizeof(fs_model_t));
 
-  fs_file_read(file, model->name, TI_PATH_SIZE, 0);
   fs_file_read(file, &model->mesh_count, sizeof(uint64_t), 0);
 
   model->meshes = (fs_mesh_t *)TI_ALLOC(sizeof(fs_mesh_t) * model->mesh_count, 0, 0);
@@ -33,7 +32,6 @@ void fs_model_load(fs_model_t *model, fs_file *file) {
   }
 }
 void fs_model_store(fs_model_t *model, fs_file *file) {
-  fs_file_write(file, model->name, TI_PATH_SIZE, 0);
   fs_file_write(file, &model->mesh_count, sizeof(uint64_t), 0);
 
   uint64_t mesh_index = 0;

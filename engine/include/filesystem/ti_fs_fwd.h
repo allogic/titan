@@ -69,7 +69,6 @@ typedef struct fs_skin_t {
   fs_joint_t *root_joint;
 } fs_skin_t;
 typedef struct fs_model_t {
-  char name[TI_PATH_SIZE];
   uint64_t mesh_count;
   fs_mesh_t *meshes;
   uint64_t skin_count;
@@ -225,10 +224,10 @@ typedef struct fs_renderer_t {
   fs_asset_reference_t full_screen_index_buffer;
 } fs_renderer_t;
 typedef struct fs_script_t {
-  uint64_t c_buffer_size;
-  uint64_t obj_buffer_size;
-  void *c_buffer;
-  void *obj_buffer;
+  uint64_t source_buffer_size;
+  uint64_t object_buffer_size;
+  void *source_buffer;
+  void *object_buffer;
 } fs_script_t;
 typedef struct fs_sound_t {
   uint32_t channel_count;
