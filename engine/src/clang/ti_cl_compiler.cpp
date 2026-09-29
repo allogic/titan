@@ -8,7 +8,6 @@
 #pragma warning(disable : 4996)
 
 #include <ti_pch.h>
-#include <ti_clang.h>
 
 #undef VERSION_MAJOR
 #undef VERSION_MINOR
@@ -38,12 +37,17 @@
 #include <llvm/TargetParser/Host.h>
 #include <llvm/MC/TargetRegistry.h>
 
+static void *lookup_symbol(char const *symbol_name);
+
 static clang::CompilerInstance s_compiler_instance;
 static clang::EmitLLVMOnlyAction s_emit_llvm_only_action;
+static llvm::orc::ResourceTrackerSP s_resource_tracker; // TODO: assoc to module somehow..
 
 static std::unique_ptr<llvm::orc::LLJIT> s_jit;
 
-uint8_t clang_create(void) {
+map_t g_cl_loaded_modules = {0}; // TODO
+
+uint8_t cl_compiler_create(void) {
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
   llvm::InitializeNativeTargetAsmParser();
@@ -59,7 +63,7 @@ uint8_t clang_create(void) {
 
   return 0;
 }
-uint8_t clang_compile(char const *source_code, void **buffer, uint64_t *buffer_size) {
+uint8_t cl_compiler_compile(char const *source_code, void **buffer, uint64_t *buffer_size) {
   clang::CompilerInstance compiler_instance;
 
   compiler_instance.createVirtualFileSystem();
@@ -67,6 +71,28 @@ uint8_t clang_compile(char const *source_code, void **buffer, uint64_t *buffer_s
 
   char const *compiler_args[] = {
     "-std=c23",
+    "-fms-extensions",
+
+    // TODO
+    "-I",
+    ROOT_DIR,
+
+    // TODO
+    "-I"
+    "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.26100.0\\ucrt",
+
+    // TODO
+    "-I"
+    "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.26100.0\\shared",
+
+    // TODO
+    "-I"
+    "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.26100.0\\um",
+
+    // TODO
+    "-I"
+    "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.51.36231\\include",
+
     "main.c",
   };
 
@@ -172,14 +198,7 @@ uint8_t clang_compile(char const *source_code, void **buffer, uint64_t *buffer_s
 
   return 0;
 }
-uint8_t clang_load(void *buffer, uint64_t buffer_size) {
-  if (s_jit == nullptr) {
-
-    llvm::errs() << "JIT has not been created\n";
-
-    return 1;
-  }
-
+uint8_t cl_compiler_load(cl_module_t *module, void *buffer, uint64_t buffer_size) {
   if ((buffer == nullptr) || (buffer_size == 0)) {
 
     llvm::errs() << "invalid object buffer\n";
@@ -189,38 +208,52 @@ uint8_t clang_load(void *buffer, uint64_t buffer_size) {
 
   std::unique_ptr<llvm::MemoryBuffer> object = llvm::MemoryBuffer::getMemBufferCopy(llvm::StringRef((char const *)buffer, buffer_size), "jit-object");
 
-  if (llvm::Error error = s_jit->addObjectFile(std::move(object))) {
+  s_resource_tracker = s_jit->getMainJITDylib().createResourceTracker();
+
+  if (llvm::Error error = s_jit->addObjectFile(s_resource_tracker, std::move(object))) {
 
     llvm::errs() << "failed to add object file to JIT: " << llvm::toString(std::move(error)) << "\n";
 
+    s_resource_tracker.reset();
+
     return 1;
   }
+
+  module->on_create_proc = (on_create_proc_t)lookup_symbol("on_create");
+  module->on_play_proc = (on_play_proc_t)lookup_symbol("on_play");
+  module->on_stop_proc = (on_stop_proc_t)lookup_symbol("on_stop");
+  module->on_destroy_proc = (on_destroy_proc_t)lookup_symbol("on_destroy");
 
   return 0;
 }
-uint8_t clang_lookup(char const *symbol, void **function_ptr) {
-  if (s_jit == nullptr) {
+uint8_t cl_compiler_unload(cl_module_t *module) {
 
-    llvm::errs() << "JIT has not been created\n";
+  if (llvm::Error error = s_resource_tracker->remove()) {
 
-    return 1;
-  }
-
-  llvm::orc::ExecutorAddr sym;
-
-  if (llvm::Error error = s_jit->lookup(symbol).moveInto(sym)) {
-
-    llvm::errs() << "failed to find symbol \"" << symbol << "\" : " << llvm::toString(std::move(error)) << "\n ";
+    llvm::errs() << "failed to unload object\n";
 
     return 1;
   }
 
-  *function_ptr = sym.toPtr<void *>();
+  s_resource_tracker.reset();
 
   return 0;
 }
-void clang_destroy(void) {
+void cl_compiler_destroy(void) {
   s_jit.reset();
 
   llvm::llvm_shutdown();
+}
+
+static void *lookup_symbol(char const *symbol_name) {
+  llvm::orc::ExecutorAddr symbol;
+
+  if (llvm::Error error = s_jit->lookup(symbol_name).moveInto(symbol)) {
+
+    llvm::errs() << "failed to find symbol \"" << symbol_name << "\" : " << llvm::toString(std::move(error)) << "\n ";
+
+    return 0;
+  }
+
+  return symbol.toPtr<void *>();
 }

@@ -135,7 +135,7 @@ typedef struct vk_camera_info_t {
   fmat4x4_t projection_inv;
   fmat4x4_t view_projection;
   fmat4x4_t view_projection_inv;
-  fvec4_t frustum_plane[FRUSTUM_PLANE_COUNT];
+  fvec4_t frustum_plane[CP_FRUSTUM_PLANE_COUNT];
 } vk_camera_info_t;
 
 TI_STATIC_ASSERT(TI_ALIGN_OF(vk_time_info_t) == 4);

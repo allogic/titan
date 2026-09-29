@@ -44,19 +44,20 @@
 #include <ti_const.h>
 #include <math/ti_math_const.h>
 #include <physic/ti_physic_const.h>
-#include <comp/ti_comp_const.h>
+#include <component/ti_cp_const.h>
 #include <vulkan/ti_vk_const.h>
-#include <fs/ti_fs_const.h>
+#include <filesystem/ti_fs_const.h>
 #include <imgui/ti_im_const.h>
 
 #include <ti_fwd.h>
 #include <math/ti_math_fwd.h>
 #include <physic/ti_physic_fwd.h>
-#include <comp/ti_comp_fwd.h>
+#include <component/ti_cp_fwd.h>
 #include <platform/ti_pl_fwd.h>
-#include <fs/ti_fs_fwd.h>
+#include <filesystem/ti_fs_fwd.h>
 #include <vulkan/ti_vk_fwd.h>
 #include <imgui/ti_im_fwd.h>
+#include <clang/ti_cl_fwd.h>
 
 // TODO: remember to swap dmalloc for release builds..
 
@@ -74,15 +75,15 @@
 
 #include <math/ti_math.h>
 #include <physic/ti_physic.h>
-#include <comp/ti_comp.h>
+#include <component/ti_cp.h>
 #include <platform/ti_pl.h>
 #include <vulkan/ti_vk.h>
-#include <fs/ti_fs.h>
+#include <filesystem/ti_fs.h>
 #include <imgui/ti_im.h>
+#include <clang/ti_cl.h>
 
 #include <ti_scene.h>
 #include <ti_audio.h>
 #include <ti_audio_demo.h>
-#include <ti_clang.h>
 
 #endif // TI_PCH_H

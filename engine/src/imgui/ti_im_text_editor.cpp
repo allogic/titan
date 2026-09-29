@@ -1,5 +1,4 @@
 #include <ti_pch.h>
-#include <ti_clang.h>
 
 #include <imgui.h>
 #include <TextEditor.h>
@@ -74,9 +73,9 @@ void im_text_editor_open(char const *asset_path) {
 
       // TODO: find clean way without the need of if statements..
 
-      if (script->buffer_size) {
+      if (script->c_buffer_size) {
 
-        s_text_editor.SetText((char *)script->buffer);
+        s_text_editor.SetText((char *)script->c_buffer);
       }
 
       break;
@@ -99,18 +98,18 @@ void im_text_editor_draw(void) {
 
     fs_script_t *script = (fs_script_t *)s_asset->instance;
 
-    if (script->buffer) {
-      TI_FREE(script->buffer);
+    if (script->c_buffer) {
+      TI_FREE(script->c_buffer);
     }
 
     std::string source = s_text_editor.GetText();
 
-    script->buffer_size = source.size() + 1;
-    script->buffer = TI_ALLOC(script->buffer_size, 0, 0);
+    script->c_buffer_size = source.size() + 1;
+    script->c_buffer = TI_ALLOC(script->c_buffer_size, 0, 0);
 
-    memcpy(script->buffer, source.c_str(), script->buffer_size);
+    memcpy(script->c_buffer, source.c_str(), script->c_buffer_size);
 
-    ((char *)script->buffer)[script->buffer_size - 1] = 0;
+    ((char *)script->c_buffer)[script->c_buffer_size - 1] = 0;
 
     fs_asset_store(s_asset);
   }
@@ -119,27 +118,33 @@ void im_text_editor_draw(void) {
 
   if (ImGui::Button("Compile")) {
 
-    // TODO
+    fs_script_t *script = (fs_script_t *)s_asset->instance;
 
-    char const *source_code = s_text_editor.GetText().c_str();
+    if (script->obj_buffer) {
+      TI_FREE(script->obj_buffer);
+    }
 
-    void *object_buffer = 0;
-    uint64_t object_buffer_size = 0;
+    cl_compiler_compile((char const *)script->c_buffer, &script->obj_buffer, &script->obj_buffer_size);
 
-    clang_compile(source_code, &object_buffer, &object_buffer_size);
-    clang_load(object_buffer, object_buffer_size);
+    fs_asset_store(s_asset);
+  }
 
-    void *on_create_proc = 0;
-    void *on_play_proc = 0;
-    void *on_stop_proc = 0;
-    void *on_destroy_proc = 0;
+  ImGui::SameLine();
 
-    clang_lookup("on_create", &on_create_proc);
-    clang_lookup("on_play", &on_play_proc);
-    clang_lookup("on_stop", &on_stop_proc);
-    clang_lookup("on_destroy", &on_destroy_proc);
+  if (ImGui::Button("Execute")) {
 
-    TI_FREE(object_buffer);
+    fs_script_t *script = (fs_script_t *)s_asset->instance;
+
+    cl_module_t module = {0};
+
+    cl_compiler_load(&module, script->obj_buffer, script->obj_buffer_size);
+
+    module.on_create_proc();
+    module.on_play_proc();
+    module.on_stop_proc();
+    module.on_destroy_proc();
+
+    cl_compiler_unload(&module);
   }
 
   ImGui::PushStyleColor(ImGuiCol_NavCursor, IM_COL32(0, 0, 0, 0));

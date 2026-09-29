@@ -192,8 +192,10 @@ typedef struct fs_renderer_t {
   fs_asset_reference_t full_screen_index_buffer;
 } fs_renderer_t;
 typedef struct fs_script_t {
-  uint64_t buffer_size;
-  void *buffer;
+  uint64_t c_buffer_size;
+  uint64_t obj_buffer_size;
+  void *c_buffer;
+  void *obj_buffer;
 } fs_script_t;
 typedef struct fs_sound_t {
   uint32_t channel_count;

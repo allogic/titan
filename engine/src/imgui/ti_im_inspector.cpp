@@ -18,7 +18,7 @@ static bool draw_cull_mode_flags(VkCullModeFlags *flags);
 static bool draw_vulkan_enum_dropdown(char const *label, uint64_t *selected_index, vk_enum_record_t *table, uint64_t table_count);
 
 static im_inspector_type_t s_selected_type = IM_INSPECTOR_TYPE_NONE;
-static comp_type_t s_selected_comp = COMP_TYPE_TRANSFORM;
+static cp_component_type_t s_selected_comp = CP_COMPONENT_TYPE_TRANSFORM;
 static ecs_entity_t s_selected_entity = 0;
 static fs_asset_t *s_selected_asset = 0;
 
@@ -101,7 +101,7 @@ void im_inspector_reset(void) {
   s_asset_path[0] = 0;
 
   s_selected_type = IM_INSPECTOR_TYPE_NONE;
-  s_selected_comp = COMP_TYPE_TRANSFORM;
+  s_selected_comp = CP_COMPONENT_TYPE_TRANSFORM;
   s_selected_entity = 0;
   s_selected_asset = 0;
 }
@@ -508,7 +508,7 @@ static void draw_entity_controls(void) {
       bool selected = (comp_index == s_selected_comp);
 
       if (ImGui::Selectable(s_component_name[comp_index], selected)) {
-        s_selected_comp = (comp_type_t)comp_index;
+        s_selected_comp = (cp_component_type_t)comp_index;
       }
 
       if (selected) {
@@ -527,53 +527,53 @@ static void draw_entity_controls(void) {
 
     switch (s_selected_comp) {
 
-      case COMP_TYPE_TRANSFORM: {
+      case CP_COMPONENT_TYPE_TRANSFORM: {
 
-        ecs_add(g_scene.world, s_selected_entity, transform_t);
+        ecs_add(g_scene.world, s_selected_entity, cp_transform_t);
 
-        transform_t *transform = ecs_get_mut(g_scene.world, s_selected_entity, transform_t);
+        cp_transform_t *transform = ecs_get_mut(g_scene.world, s_selected_entity, cp_transform_t);
 
-        transform_init(transform);
-
-        break;
-      }
-      case COMP_TYPE_CAMERA: {
-
-        ecs_add(g_scene.world, s_selected_entity, camera_t);
-
-        camera_t *camera = ecs_get_mut(g_scene.world, s_selected_entity, camera_t);
-
-        camera_init(camera);
+        cp_transform_init(transform);
 
         break;
       }
-      case COMP_TYPE_MATERIAL: {
+      case CP_COMPONENT_TYPE_CAMERA: {
 
-        ecs_add(g_scene.world, s_selected_entity, material_t);
+        ecs_add(g_scene.world, s_selected_entity, cp_camera_t);
 
-        material_t *material = ecs_get_mut(g_scene.world, s_selected_entity, material_t);
+        cp_camera_t *camera = ecs_get_mut(g_scene.world, s_selected_entity, cp_camera_t);
 
-        material_init(material);
-
-        break;
-      }
-      case COMP_TYPE_MESH: {
-
-        ecs_add(g_scene.world, s_selected_entity, mesh_t);
-
-        mesh_t *mesh = ecs_get_mut(g_scene.world, s_selected_entity, mesh_t);
-
-        mesh_init(mesh);
+        cp_camera_init(camera);
 
         break;
       }
-      case COMP_TYPE_SKELETON: {
+      case CP_COMPONENT_TYPE_MATERIAL: {
 
-        ecs_add(g_scene.world, s_selected_entity, skeleton_t);
+        ecs_add(g_scene.world, s_selected_entity, cp_material_t);
 
-        skeleton_t *skeleton = ecs_get_mut(g_scene.world, s_selected_entity, skeleton_t);
+        cp_material_t *material = ecs_get_mut(g_scene.world, s_selected_entity, cp_material_t);
 
-        skeleton_init(skeleton);
+        cp_material_init(material);
+
+        break;
+      }
+      case CP_COMPONENT_TYPE_MESH: {
+
+        ecs_add(g_scene.world, s_selected_entity, cp_mesh_t);
+
+        cp_mesh_t *mesh = ecs_get_mut(g_scene.world, s_selected_entity, cp_mesh_t);
+
+        cp_mesh_init(mesh);
+
+        break;
+      }
+      case CP_COMPONENT_TYPE_SKELETON: {
+
+        ecs_add(g_scene.world, s_selected_entity, cp_skeleton_t);
+
+        cp_skeleton_t *skeleton = ecs_get_mut(g_scene.world, s_selected_entity, cp_skeleton_t);
+
+        cp_skeleton_init(skeleton);
 
         break;
       }
@@ -586,33 +586,33 @@ static void draw_entity_controls(void) {
 
     switch (s_selected_comp) {
 
-      case COMP_TYPE_TRANSFORM: {
+      case CP_COMPONENT_TYPE_TRANSFORM: {
 
-        ecs_remove(g_scene.world, s_selected_entity, transform_t);
-
-        break;
-      }
-      case COMP_TYPE_CAMERA: {
-
-        ecs_remove(g_scene.world, s_selected_entity, camera_t);
+        ecs_remove(g_scene.world, s_selected_entity, cp_transform_t);
 
         break;
       }
-      case COMP_TYPE_MATERIAL: {
+      case CP_COMPONENT_TYPE_CAMERA: {
 
-        ecs_remove(g_scene.world, s_selected_entity, material_t);
-
-        break;
-      }
-      case COMP_TYPE_MESH: {
-
-        ecs_remove(g_scene.world, s_selected_entity, mesh_t);
+        ecs_remove(g_scene.world, s_selected_entity, cp_camera_t);
 
         break;
       }
-      case COMP_TYPE_SKELETON: {
+      case CP_COMPONENT_TYPE_MATERIAL: {
 
-        ecs_remove(g_scene.world, s_selected_entity, skeleton_t);
+        ecs_remove(g_scene.world, s_selected_entity, cp_material_t);
+
+        break;
+      }
+      case CP_COMPONENT_TYPE_MESH: {
+
+        ecs_remove(g_scene.world, s_selected_entity, cp_mesh_t);
+
+        break;
+      }
+      case CP_COMPONENT_TYPE_SKELETON: {
+
+        ecs_remove(g_scene.world, s_selected_entity, cp_skeleton_t);
 
         break;
       }
@@ -624,11 +624,11 @@ static void draw_entity(void) {
                                        ImGuiTreeNodeFlags_SpanFullWidth |
                                        ImGuiTreeNodeFlags_FramePadding;
 
-  transform_t *transform = ecs_get_mut(g_scene.world, s_selected_entity, transform_t);
-  camera_t *camera = ecs_get_mut(g_scene.world, s_selected_entity, camera_t);
-  material_t *material = ecs_get_mut(g_scene.world, s_selected_entity, material_t);
-  mesh_t *mesh = ecs_get_mut(g_scene.world, s_selected_entity, mesh_t);
-  skeleton_t *skeleton = ecs_get_mut(g_scene.world, s_selected_entity, skeleton_t);
+  cp_transform_t *transform = ecs_get_mut(g_scene.world, s_selected_entity, cp_transform_t);
+  cp_camera_t *camera = ecs_get_mut(g_scene.world, s_selected_entity, cp_camera_t);
+  cp_material_t *material = ecs_get_mut(g_scene.world, s_selected_entity, cp_material_t);
+  cp_mesh_t *mesh = ecs_get_mut(g_scene.world, s_selected_entity, cp_mesh_t);
+  cp_skeleton_t *skeleton = ecs_get_mut(g_scene.world, s_selected_entity, cp_skeleton_t);
 
   if (transform) {
 

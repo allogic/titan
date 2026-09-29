@@ -4,11 +4,11 @@ static resolve_all_links(scene_t *scene);
 
 scene_t g_scene = {0};
 
-ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, transform_t, TI_TRANSFORM_DESC);
-ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, camera_t, TI_CAMERA_DESC);
-ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, material_t, TI_MATERIAL_DESC);
-ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, mesh_t, TI_MESH_DESC);
-ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, skeleton_t, TI_SKELETON_DESC);
+ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_transform_t, TI_CP_TRANSFORM_DESC);
+ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_camera_t, TI_CP_CAMERA_DESC);
+ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_material_t, TI_CP_MATERIAL_DESC);
+ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_mesh_t, TI_CP_MESH_DESC);
+ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_skeleton_t, TI_CP_SKELETON_DESC);
 
 void scene_create(scene_t *scene, char const *file_name, char const *file_path) {
   strcpy(scene->file_name, file_name);
@@ -16,17 +16,17 @@ void scene_create(scene_t *scene, char const *file_name, char const *file_path) 
 
   scene->world = ecs_init();
 
-  ECS_COMPONENT_DEFINE(scene->world, transform_t);
-  ECS_COMPONENT_DEFINE(scene->world, camera_t);
-  ECS_COMPONENT_DEFINE(scene->world, material_t);
-  ECS_COMPONENT_DEFINE(scene->world, mesh_t);
-  ECS_COMPONENT_DEFINE(scene->world, skeleton_t);
+  ECS_COMPONENT_DEFINE(scene->world, cp_transform_t);
+  ECS_COMPONENT_DEFINE(scene->world, cp_camera_t);
+  ECS_COMPONENT_DEFINE(scene->world, cp_material_t);
+  ECS_COMPONENT_DEFINE(scene->world, cp_mesh_t);
+  ECS_COMPONENT_DEFINE(scene->world, cp_skeleton_t);
 
-  ecs_meta_from_desc(scene->world, ecs_id(transform_t), EcsStructType, TI_TRANSFORM_DESC);
-  ecs_meta_from_desc(scene->world, ecs_id(camera_t), EcsStructType, TI_CAMERA_DESC);
-  ecs_meta_from_desc(scene->world, ecs_id(material_t), EcsStructType, TI_MATERIAL_DESC);
-  ecs_meta_from_desc(scene->world, ecs_id(mesh_t), EcsStructType, TI_MESH_DESC);
-  ecs_meta_from_desc(scene->world, ecs_id(skeleton_t), EcsStructType, TI_SKELETON_DESC);
+  ecs_meta_from_desc(scene->world, ecs_id(cp_transform_t), EcsStructType, TI_CP_TRANSFORM_DESC);
+  ecs_meta_from_desc(scene->world, ecs_id(cp_camera_t), EcsStructType, TI_CP_CAMERA_DESC);
+  ecs_meta_from_desc(scene->world, ecs_id(cp_material_t), EcsStructType, TI_CP_MATERIAL_DESC);
+  ecs_meta_from_desc(scene->world, ecs_id(cp_mesh_t), EcsStructType, TI_CP_MESH_DESC);
+  ecs_meta_from_desc(scene->world, ecs_id(cp_skeleton_t), EcsStructType, TI_CP_SKELETON_DESC);
 
   scene->root_entity = ecs_entity(scene->world, {
                                                   .name = "root",
@@ -118,11 +118,11 @@ static resolve_all_links(scene_t *scene) {
 
       ecs_entity_t child_entity = root_it.entities[entity_index];
 
-      transform_t const *transform = ecs_get(scene->world, child_entity, transform_t);
-      camera_t const *camera = ecs_get(scene->world, child_entity, camera_t);
-      material_t const *material = ecs_get(scene->world, child_entity, material_t);
-      mesh_t const *mesh = ecs_get(scene->world, child_entity, mesh_t);
-      skeleton_t const *skeleton = ecs_get(scene->world, child_entity, skeleton_t);
+      cp_transform_t const *transform = ecs_get(scene->world, child_entity, cp_transform_t);
+      cp_camera_t const *camera = ecs_get(scene->world, child_entity, cp_camera_t);
+      cp_material_t const *material = ecs_get(scene->world, child_entity, cp_material_t);
+      cp_mesh_t const *mesh = ecs_get(scene->world, child_entity, cp_mesh_t);
+      cp_skeleton_t const *skeleton = ecs_get(scene->world, child_entity, cp_skeleton_t);
 
       // TODO
 

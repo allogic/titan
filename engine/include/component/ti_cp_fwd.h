@@ -1,0 +1,54 @@
+#ifndef TI_CP_FWD_H
+#define TI_CP_FWD_H
+
+typedef enum cp_frustum_plane_t {
+  CP_FRUSTUM_PLANE_LEFT = 0,
+  CP_FRUSTUM_PLANE_RIGHT,
+  CP_FRUSTUM_PLANE_BOTTOM,
+  CP_FRUSTUM_PLANE_TOP,
+  CP_FRUSTUM_PLANE_NEAR,
+  CP_FRUSTUM_PLANE_FAR,
+  CP_FRUSTUM_PLANE_COUNT,
+} cp_frustum_plane_t;
+typedef enum cp_frustum_corner_t {
+  CP_FRUSTUM_CORNER_NEAR_V0 = 0,
+  CP_FRUSTUM_CORNER_NEAR_V1,
+  CP_FRUSTUM_CORNER_NEAR_V2,
+  CP_FRUSTUM_CORNER_NEAR_V3,
+  CP_FRUSTUM_CORNER_FAR_V0,
+  CP_FRUSTUM_CORNER_FAR_V1,
+  CP_FRUSTUM_CORNER_FAR_V2,
+  CP_FRUSTUM_CORNER_FAR_V3,
+  CP_FRUSTUM_CORNER_COUNT,
+} cp_frustum_corner_t;
+
+typedef enum cp_component_type_t {
+  CP_COMPONENT_TYPE_TRANSFORM = 0,
+  CP_COMPONENT_TYPE_CAMERA,
+  CP_COMPONENT_TYPE_MATERIAL,
+  CP_COMPONENT_TYPE_MESH,
+  CP_COMPONENT_TYPE_SKELETON,
+  CP_COMPONENT_TYPE_COUNT,
+} cp_component_type_t;
+
+ECS_STRUCT_TYPE(cp_transform_t, TI_CP_TRANSFORM_DECL);
+ECS_STRUCT_TYPE(cp_camera_t, TI_CP_CAMERA_DECL);
+ECS_STRUCT_TYPE(cp_material_t, TI_CP_MATERIAL_DECL);
+ECS_STRUCT_TYPE(cp_mesh_t, TI_CP_MESH_DECL);
+ECS_STRUCT_TYPE(cp_skeleton_t, TI_CP_SKELETON_DECL);
+
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
+extern ECS_COMPONENT_DECLARE(cp_transform_t);
+extern ECS_COMPONENT_DECLARE(cp_camera_t);
+extern ECS_COMPONENT_DECLARE(cp_material_t);
+extern ECS_COMPONENT_DECLARE(cp_mesh_t);
+extern ECS_COMPONENT_DECLARE(cp_skeleton_t);
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
+
+#endif // TI_CP_FWD_H

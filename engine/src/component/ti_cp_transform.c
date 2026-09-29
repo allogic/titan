@@ -1,6 +1,6 @@
 #include <ti_pch.h>
 
-void transform_init(transform_t *transform) {
+void cp_transform_init(cp_transform_t *transform) {
   transform->position_x = 0.0F;
   transform->position_y = 0.0F;
   transform->position_z = 0.0F;

@@ -4,6 +4,8 @@
 // TODO: Rename functions with their proper module name..
 // TODO: refactor sound studio..
 // TODO: refactor physic studio..
+// TODO: make folder specifically for GLSLang..
+// TODO: rename im_fs_ to im_filesystem..
 
 static void import_dflt_assets(void);
 static void create_dflt_assets(void);
@@ -16,7 +18,7 @@ int32_t main(int32_t argc, char **argv) {
   __try {
 
     fs_create(ROOT_DIR "/static", ROOT_DIR "/asset");
-    clang_create();
+    cl_compiler_create();
     audio_create();
     // TODO: Add missing ti_audio_demo_create()
     physic_create();
@@ -34,7 +36,7 @@ int32_t main(int32_t argc, char **argv) {
     physic_destroy();
     ti_audio_demo_destroy(); // TODO
     audio_destroy();
-    clang_destroy();
+    cl_compiler_destroy();
     fs_destroy();
 
   } __except (EXCEPTION_EXECUTE_HANDLER) {

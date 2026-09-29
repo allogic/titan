@@ -1,19 +1,19 @@
-__forceinline fvec3_t transform_local_right(transform_t const *transform) {
+__forceinline fvec3_t cp_transform_local_right(cp_transform_t const *transform) {
   return fquat_right((fquat_t){transform->rotation_x, transform->rotation_y, transform->rotation_z, transform->rotation_w});
 }
-__forceinline fvec3_t transform_local_up(transform_t const *transform) {
+__forceinline fvec3_t cp_transform_local_up(cp_transform_t const *transform) {
   return fquat_up((fquat_t){transform->rotation_x, transform->rotation_y, transform->rotation_z, transform->rotation_w});
 }
-__forceinline fvec3_t transform_local_front(transform_t const *transform) {
+__forceinline fvec3_t cp_transform_local_front(cp_transform_t const *transform) {
   return fquat_front((fquat_t){transform->rotation_x, transform->rotation_y, transform->rotation_z, transform->rotation_w});
 }
-__forceinline fvec3_t transform_local_left(transform_t const *transform) {
+__forceinline fvec3_t cp_transform_local_left(cp_transform_t const *transform) {
   return fvec3_negate(fquat_right((fquat_t){transform->rotation_x, transform->rotation_y, transform->rotation_z, transform->rotation_w}));
 }
-__forceinline fvec3_t transform_local_down(transform_t const *transform) {
+__forceinline fvec3_t cp_transform_local_down(cp_transform_t const *transform) {
   return fvec3_negate(fquat_up((fquat_t){transform->rotation_x, transform->rotation_y, transform->rotation_z, transform->rotation_w}));
 }
-__forceinline fvec3_t transform_local_back(transform_t const *transform) {
+__forceinline fvec3_t cp_transform_local_back(cp_transform_t const *transform) {
   return fvec3_negate(fquat_front((fquat_t){transform->rotation_x, transform->rotation_y, transform->rotation_z, transform->rotation_w}));
 }
 
@@ -36,7 +36,7 @@ __forceinline fvec3_t transform_local_back(transform_t const *transform) {
 //   transform->local_position.z = reference->world_position.z + z;
 // }
 
-void transform_set_rotation(transform_t *transform, fquat_t rotation) {
+void cp_transform_set_rotation(cp_transform_t *transform, fquat_t rotation) {
   fquat_t q = fquat_norm(rotation);
 
   transform->rotation_x = q.x;
@@ -44,7 +44,7 @@ void transform_set_rotation(transform_t *transform, fquat_t rotation) {
   transform->rotation_z = q.z;
   transform->rotation_w = q.w;
 }
-void transform_set_rotation_xyzw(transform_t *transform, float x, float y, float z, float w) {
+void cp_transform_set_rotation_xyzw(cp_transform_t *transform, float x, float y, float z, float w) {
   fquat_t q = fquat_norm((fquat_t){x, y, z, w});
 
   transform->rotation_x = q.x;
@@ -59,7 +59,7 @@ void transform_set_rotation_xyzw(transform_t *transform, float x, float y, float
 //   transform->rotation = fquat_norm(fquat_mul(reference->world_rotation, (fquat_t){x, y, z, w}));
 // }
 
-void transform_set_euler_angles(transform_t *transform, fvec3_t euler_angles) {
+void cp_transform_set_euler_angles(cp_transform_t *transform, fvec3_t euler_angles) {
   fquat_t qx = fquat_angle_axis(euler_angles.x, fvec3_right());
   fquat_t qy = fquat_angle_axis(euler_angles.y, fvec3_up());
   fquat_t qz = fquat_angle_axis(euler_angles.z, fvec3_front());
@@ -71,7 +71,7 @@ void transform_set_euler_angles(transform_t *transform, fvec3_t euler_angles) {
   transform->rotation_z = q.z;
   transform->rotation_w = q.w;
 }
-void transform_set_euler_angles_pyr(transform_t *transform, float p, float y, float r) {
+void cp_transform_set_euler_angles_pyr(cp_transform_t *transform, float p, float y, float r) {
   fquat_t qx = fquat_angle_axis(p, fvec3_right());
   fquat_t qy = fquat_angle_axis(y, fvec3_up());
   fquat_t qz = fquat_angle_axis(r, fvec3_front());

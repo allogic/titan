@@ -1,5 +1,27 @@
 #include <ti_pch.h>
 
+// TODO: find a dedicated spot for these default resources..
+static char s_default_source_code[] = {
+  "#include <stdio.h>\n"
+  "\n"
+  "void on_create(void) {\n"
+  "\tprintf(\"on_create called\\n\");\n"
+  "}\n"
+  "\n"
+  "void on_play(void) {\n"
+  "\tprintf(\"on_play called\\n\");\n"
+  "}\n"
+  "\n"
+  "void on_stop(void) {\n"
+  "\tprintf(\"on_stop called\\n\");\n"
+  "}\n"
+  "\n"
+  "void on_destroy(void) {\n"
+  "\tprintf(\"on_destroy called\\n\");\n"
+  "}\n"
+  "\n",
+};
+
 void fs_asset_create(fs_asset_t *asset) {
   asset->magic = TI_FS_ASSET_MAGIC;
 
@@ -74,6 +96,11 @@ void fs_asset_create(fs_asset_t *asset) {
     case FS_ASSET_TYPE_SCRIPT: {
 
       asset->instance = TI_ALLOC(sizeof(fs_script_t), 1, 0);
+
+      fs_script_t *script = (fs_script_t *)asset->instance;
+
+      script->c_buffer_size = TI_ARRAY_COUNT(s_default_source_code);
+      script->c_buffer = TI_ALLOC(script->c_buffer_size, 0, s_default_source_code);
 
       break;
     }
