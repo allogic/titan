@@ -61,20 +61,20 @@ typedef struct vk_pipeline_t {
   char const *ray_intersect_shader;
   char const *fragment_shader;
   char const *compute_shader;
+  uint32_t push_constant_range_count; // TODO
   uint32_t vertex_input_binding_description_count;
   uint32_t vertex_input_attribute_description_count;
-  uint32_t push_constant_range_count;
   uint32_t descriptor_pool_size_count;
   uint32_t descriptor_set_layout_binding_count;
+  VkPushConstantRange *push_constant_range; // TODO
   VkVertexInputBindingDescription *vertex_input_binding_description;
   VkVertexInputAttributeDescription *vertex_input_attribute_description;
-  VkPushConstantRange *push_constant_range;
   VkDescriptorPoolSize *descriptor_pool_size;
   VkDescriptorSetLayoutBinding *descriptor_set_layout_binding;
-  VkDescriptorPool descriptor_pool;
-  VkDescriptorSetLayout descriptor_set_layout_base;
   VkDescriptorSetLayout *descriptor_set_layout;
   VkDescriptorSet *descriptor_set;
+  VkDescriptorPool descriptor_pool;
+  VkDescriptorSetLayout descriptor_set_layout_base;
   VkPipelineLayout pipeline_layout;
   VkPipeline pipeline_handle;
   VkBuffer sbt_buffer_handle;

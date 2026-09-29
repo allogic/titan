@@ -125,6 +125,16 @@ void vk_create(void) {
   create_command_pool();
   create_command_buffer();
 
+  vk_buffer_create(&g_vk_time_info_buffer, "asset/buffer/time_info.pak");
+  vk_buffer_create(&g_vk_screen_info_buffer, "asset/buffer/screen_info.pak");
+  vk_buffer_create(&g_vk_mouse_info_buffer, "asset/buffer/mouse_info.pak");
+  vk_buffer_create(&g_vk_camera_info_buffer, "asset/buffer/camera_info.pak");
+
+  vk_buffer_map(&g_vk_time_info_buffer);
+  vk_buffer_map(&g_vk_screen_info_buffer);
+  vk_buffer_map(&g_vk_mouse_info_buffer);
+  vk_buffer_map(&g_vk_camera_info_buffer);
+
   vk_update_surface_capabilities();
 
   vk_swapchain_create(&g_vk_swapchain, "asset/swapchain/main.pak");
@@ -143,16 +153,6 @@ void vk_create(void) {
   vk_framebuffer_create(&g_vk_main_framebuffer, &g_vk_main_renderpass, "asset/framebuffer/main.pak");
   vk_framebuffer_create(&g_vk_imgui_framebuffer, &g_vk_imgui_renderpass, "asset/framebuffer/imgui.pak");
 
-  vk_buffer_create(&g_vk_time_info_buffer, "asset/buffer/time_info.pak");
-  vk_buffer_create(&g_vk_screen_info_buffer, "asset/buffer/screen_info.pak");
-  vk_buffer_create(&g_vk_mouse_info_buffer, "asset/buffer/mouse_info.pak");
-  vk_buffer_create(&g_vk_camera_info_buffer, "asset/buffer/camera_info.pak");
-
-  vk_buffer_map(&g_vk_time_info_buffer);
-  vk_buffer_map(&g_vk_screen_info_buffer);
-  vk_buffer_map(&g_vk_mouse_info_buffer);
-  vk_buffer_map(&g_vk_camera_info_buffer);
-
   im_create();
 }
 void vk_destroy(void) {
@@ -160,11 +160,6 @@ void vk_destroy(void) {
   TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance.present_queue));
 
   im_destroy();
-
-  vk_buffer_unmap(&g_vk_time_info_buffer);
-  vk_buffer_unmap(&g_vk_screen_info_buffer);
-  vk_buffer_unmap(&g_vk_mouse_info_buffer);
-  vk_buffer_unmap(&g_vk_camera_info_buffer);
 
   vk_buffer_destroy(&g_vk_time_info_buffer);
   vk_buffer_destroy(&g_vk_screen_info_buffer);

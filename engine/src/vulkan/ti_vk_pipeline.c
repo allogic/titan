@@ -64,6 +64,13 @@ void vk_pipeline_destroy(vk_pipeline_t *pipeline) {
 
   switch (config->pipeline_type) {
 
+    case FS_PIPELINE_TYPE_DEFAULT: {
+
+      TI_FREE(pipeline->vertex_input_binding_description);
+      TI_FREE(pipeline->vertex_input_attribute_description);
+
+      break;
+    }
     case FS_PIPELINE_TYPE_RAY_TRACING: {
 
       destroy_sbt_buffer(pipeline);
@@ -77,6 +84,8 @@ void vk_pipeline_destroy(vk_pipeline_t *pipeline) {
   vkDestroyPipelineLayout(g_vk_instance.device, pipeline->pipeline_layout, 0);
   vkDestroyPipeline(g_vk_instance.device, pipeline->pipeline_handle, 0);
 
+  TI_FREE(pipeline->descriptor_set_layout_binding);
+  TI_FREE(pipeline->descriptor_pool_size);
   TI_FREE(pipeline->descriptor_set_layout);
   TI_FREE(pipeline->descriptor_set);
 
@@ -86,12 +95,21 @@ void vk_pipeline_destroy(vk_pipeline_t *pipeline) {
 static void create_descriptor_pool(vk_pipeline_t *pipeline) {
   fs_pipeline_t *config = (fs_pipeline_t *)pipeline->asset.instance;
 
-  uint32_t descriptor_pool_index = 0;
-  uint32_t descriptor_pool_count = pipeline->descriptor_pool_size_count;
+  pipeline->descriptor_pool_size_count = (uint32_t)config->descriptor_pool_size_count;
+  pipeline->descriptor_pool_size = (VkDescriptorPoolSize *)TI_ALLOC(sizeof(VkDescriptorPoolSize) * pipeline->descriptor_pool_size_count, 1, 0);
+
+  uint64_t descriptor_pool_index = 0;
+  uint64_t descriptor_pool_count = pipeline->descriptor_pool_size_count;
 
   while (descriptor_pool_index < descriptor_pool_count) {
 
-    pipeline->descriptor_pool_size[descriptor_pool_index].descriptorCount *= config->descriptor_set_count;
+    fs_descriptor_pool_size_t *fs_descriptor_pool_size = &config->descriptor_pool_size[descriptor_pool_index];
+    VkDescriptorPoolSize *vk_descriptor_pool_size = &pipeline->descriptor_pool_size[descriptor_pool_index];
+
+    vk_descriptor_pool_size->type = g_vk_descriptor_type_table[fs_descriptor_pool_size->type_index].value;
+    vk_descriptor_pool_size->descriptorCount = fs_descriptor_pool_size->descriptor_count;
+
+    vk_descriptor_pool_size->descriptorCount *= config->descriptor_set_count;
 
     descriptor_pool_index++;
   }
@@ -106,6 +124,28 @@ static void create_descriptor_pool(vk_pipeline_t *pipeline) {
   TI_VK_CHECK(vkCreateDescriptorPool(g_vk_instance.device, &descriptor_pool_create_info, 0, &pipeline->descriptor_pool));
 }
 static void create_descriptor_set_layout(vk_pipeline_t *pipeline) {
+  fs_pipeline_t *config = (fs_pipeline_t *)pipeline->asset.instance;
+
+  pipeline->descriptor_set_layout_binding_count = (uint32_t)config->descriptor_set_layout_binding_count;
+  pipeline->descriptor_set_layout_binding = (VkDescriptorSetLayoutBinding *)TI_ALLOC(sizeof(VkDescriptorSetLayoutBinding) * pipeline->descriptor_set_layout_binding_count, 1, 0);
+
+  uint64_t descriptor_set_layout_binding_index = 0;
+  uint64_t descriptor_set_layout_binding_count = pipeline->descriptor_set_layout_binding_count;
+
+  while (descriptor_set_layout_binding_index < descriptor_set_layout_binding_count) {
+
+    fs_descriptor_set_layout_binding_t *fs_descriptor_set_layout_binding = &config->descriptor_set_layout_binding[descriptor_set_layout_binding_index];
+    VkDescriptorSetLayoutBinding *vk_descriptor_set_layout_binding = &pipeline->descriptor_set_layout_binding[descriptor_set_layout_binding_index];
+
+    vk_descriptor_set_layout_binding->binding = fs_descriptor_set_layout_binding->binding;
+    vk_descriptor_set_layout_binding->descriptorType = fs_descriptor_set_layout_binding->descriptor_type_index;
+    vk_descriptor_set_layout_binding->descriptorCount = fs_descriptor_set_layout_binding->descriptor_count;
+    vk_descriptor_set_layout_binding->stageFlags = fs_descriptor_set_layout_binding->stage_flags;
+    vk_descriptor_set_layout_binding->pImmutableSamplers = 0; // TODO
+
+    descriptor_set_layout_binding_index++;
+  }
+
   VkDescriptorSetLayoutCreateInfo descriptor_set_layout_create_info = {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
     .pBindings = pipeline->descriptor_set_layout_binding,
@@ -285,6 +325,42 @@ static void create_default_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *re
       .pName = "main",
     },
   };
+
+  pipeline->vertex_input_binding_description_count = (uint32_t)config->vertex_input_binding_description_count;
+  pipeline->vertex_input_attribute_description_count = (uint32_t)config->vertex_input_attribute_description_count;
+  pipeline->vertex_input_binding_description = (VkVertexInputBindingDescription *)TI_ALLOC(sizeof(VkVertexInputBindingDescription) * pipeline->vertex_input_binding_description_count, 1, 0);
+  pipeline->vertex_input_attribute_description = (VkVertexInputAttributeDescription *)TI_ALLOC(sizeof(VkVertexInputAttributeDescription) * pipeline->vertex_input_attribute_description_count, 1, 0);
+
+  uint64_t vertex_input_binding_description_index = 0;
+  uint64_t vertex_input_binding_description_count = pipeline->vertex_input_binding_description_count;
+
+  while (vertex_input_binding_description_index < vertex_input_binding_description_count) {
+
+    fs_vertex_input_binding_description_t *fs_vertex_input_binding_description = &config->vertex_input_binding_description[vertex_input_binding_description_index];
+    VkVertexInputBindingDescription *vk_vertex_input_binding_description = &pipeline->vertex_input_binding_description[vertex_input_binding_description_index];
+
+    vk_vertex_input_binding_description->binding = fs_vertex_input_binding_description->binding;
+    vk_vertex_input_binding_description->stride = fs_vertex_input_binding_description->stride;
+    vk_vertex_input_binding_description->inputRate = g_vk_vertex_input_rate_table[fs_vertex_input_binding_description->input_rate_index].value;
+
+    vertex_input_binding_description_index++;
+  }
+
+  uint64_t vertex_input_attribute_description_index = 0;
+  uint64_t vertex_input_attribute_description_count = pipeline->vertex_input_attribute_description_count;
+
+  while (vertex_input_attribute_description_index < vertex_input_attribute_description_count) {
+
+    fs_vertex_input_attribute_description_t *fs_vertex_input_attribute_description = &config->vertex_input_attribute_description[vertex_input_attribute_description_index];
+    VkVertexInputAttributeDescription *vk_vertex_input_attribute_description = &pipeline->vertex_input_attribute_description[vertex_input_attribute_description_index];
+
+    vk_vertex_input_attribute_description->location = fs_vertex_input_attribute_description->location;
+    vk_vertex_input_attribute_description->binding = fs_vertex_input_attribute_description->binding;
+    vk_vertex_input_attribute_description->format = g_vk_format_table[fs_vertex_input_attribute_description->format_index].value;
+    vk_vertex_input_attribute_description->offset = fs_vertex_input_attribute_description->offset;
+
+    vertex_input_attribute_description_index++;
+  }
 
   VkPipelineVertexInputStateCreateInfo pipeline_vertex_input_state_create_info = {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,

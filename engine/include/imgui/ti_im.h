@@ -2,7 +2,7 @@
 #define TI_IM_H
 
 #include <imgui/ti_im_symbol.h>
-#include <imgui/ti_im_fs.h>
+#include <imgui/ti_im_filesystem.h>
 #include <imgui/ti_im_hierarchy.h>
 #include <imgui/ti_im_viewport.h>
 #include <imgui/ti_im_inspector.h>

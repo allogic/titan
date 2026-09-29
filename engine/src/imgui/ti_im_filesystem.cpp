@@ -21,7 +21,7 @@ static fs_asset_type_t s_new_asset_type = FS_ASSET_TYPE_NONE;
 static im_file_type_t s_new_file_type = IM_FILE_TYPE_NONE;
 static char s_new_file_name[TI_PATH_SIZE] = {0};
 
-void im_fs_draw(void) {
+void im_filesystem_draw(void) {
   if (s_refresh_entries) {
 
     s_refresh_entries = 0;
@@ -59,10 +59,10 @@ void im_fs_draw(void) {
 
   ImGui::End();
 }
-void im_fs_refresh(void) {
+void im_filesystem_refresh(void) {
   s_refresh_entries = 1;
 }
-void im_fs_reset(void) {
+void im_filesystem_reset(void) {
   im_inspector_select(IM_INSPECTOR_TYPE_NONE, 0);
 
   if (s_root_file) {
@@ -369,19 +369,19 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
 
           // TODO
 
-          im_fs_refresh();
+          im_filesystem_refresh();
         }
         if (ImGui::MenuItem("Pipeline")) {
 
           // TODO
 
-          im_fs_refresh();
+          im_filesystem_refresh();
         }
         if (ImGui::MenuItem("Font")) {
 
           // TODO
 
-          im_fs_refresh();
+          im_filesystem_refresh();
         }
         if (ImGui::MenuItem("Image")) {
 
@@ -404,7 +404,7 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
 
     if (ImGui::MenuItem("Refresh")) {
 
-      im_fs_refresh();
+      im_filesystem_refresh();
     }
 
     ImGui::Separator();
@@ -426,7 +426,7 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
 
         im_inspector_select(IM_INSPECTOR_TYPE_NONE, 0);
 
-        im_fs_refresh();
+        im_filesystem_refresh();
       }
     }
 
@@ -491,7 +491,7 @@ static void draw_text_input(im_file_entry_t *file_entry) {
     }
   }
 
-  im_fs_refresh();
+  im_filesystem_refresh();
 }
 
 static void collect_children(im_file_entry_t *file_entry) {

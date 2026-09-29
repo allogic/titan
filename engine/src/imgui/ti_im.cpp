@@ -201,8 +201,13 @@ void im_draw(void) {
   im_titlebar_draw();
   im_sidebar_draw();
 
-  ImGui::SetNextWindowPos(ImVec2((float)g_pl_window.sidebar_width, (float)g_pl_window.titlebar_height));
-  ImGui::SetNextWindowSize(ImVec2((float)g_pl_window.window_width - (float)g_pl_window.sidebar_width, (float)g_pl_window.window_height - g_pl_window.titlebar_height));
+  if (g_pl_window.is_maximized) {
+    ImGui::SetNextWindowPos(ImVec2((float)g_pl_window.sidebar_width + (float)g_pl_window.h_border_padding, (float)g_pl_window.titlebar_height + (float)g_pl_window.v_border_padding));
+    ImGui::SetNextWindowSize(ImVec2((float)g_pl_window.window_width - (float)g_pl_window.sidebar_width - (float)g_pl_window.h_border_padding * 2, (float)g_pl_window.window_height - (float)g_pl_window.titlebar_height - (float)g_pl_window.v_border_padding * 2));
+  } else {
+    ImGui::SetNextWindowPos(ImVec2((float)g_pl_window.sidebar_width, (float)g_pl_window.titlebar_height));
+    ImGui::SetNextWindowSize(ImVec2((float)g_pl_window.window_width - (float)g_pl_window.sidebar_width, (float)g_pl_window.window_height - (float)g_pl_window.titlebar_height));
+  }
 
   ImGuiWindowFlags window_flags =
     ImGuiWindowFlags_NoDocking |
@@ -240,7 +245,7 @@ void im_draw(void) {
       }
       case IM_SIDEBAR_TAB_FILESYSTEM: {
 
-        im_fs_draw();
+        im_filesystem_draw();
 
         break;
       }
@@ -284,8 +289,10 @@ void im_draw(void) {
   ImGui::PopStyleVar(1);
 
   ImGui::End();
+
   // ImGui::ShowDemoWindow();
   // ImGui::ShowStyleEditor();
+
   ImGui::Render();
 
   ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), g_vk_instance.command_buffer);
@@ -294,7 +301,7 @@ void im_message(HWND window_handle, UINT window_message, WPARAM w_param, LPARAM 
   ImGui_ImplWin32_WndProcHandler(window_handle, window_message, w_param, l_param);
 }
 void im_destroy(void) {
-  im_fs_reset();
+  im_filesystem_reset();
   im_handle_reset();
   im_text_editor_reset();
   im_sound_studio_reset();

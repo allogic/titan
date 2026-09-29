@@ -99,7 +99,7 @@ typedef struct fs_image_t {
 } fs_image_t;
 typedef struct fs_framebuffer_t {
   uint64_t color_attachment_count;
-  fs_asset_reference_t *color_attachments;
+  fs_asset_reference_t *color_attachment;
   fs_asset_reference_t depth_attachment;
 } fs_framebuffer_t;
 typedef struct fs_block_variable_t {
@@ -122,6 +122,31 @@ typedef struct fs_input_variable_t {
   uint8_t is_built_in;
   uint64_t format_index;
 } fs_input_variable_t;
+typedef struct fs_vertex_input_binding_description_t {
+  char name[TI_PATH_SIZE];
+  uint32_t binding;
+  uint32_t stride;
+  uint64_t input_rate_index;
+} fs_vertex_input_binding_description_t;
+typedef struct fs_vertex_input_attribute_description_t {
+  char name[TI_PATH_SIZE];
+  uint32_t location;
+  uint32_t binding;
+  uint32_t offset;
+  uint64_t format_index;
+} fs_vertex_input_attribute_description_t;
+typedef struct fs_descriptor_pool_size_t {
+  char name[TI_PATH_SIZE];
+  uint64_t type_index;
+  uint32_t descriptor_count;
+} fs_descriptor_pool_size_t;
+typedef struct fs_descriptor_set_layout_binding_t {
+  char name[TI_PATH_SIZE];
+  uint32_t binding;
+  uint32_t descriptor_count;
+  uint64_t descriptor_type_index;
+  VkShaderStageFlags stage_flags;
+} fs_descriptor_set_layout_binding_t;
 typedef struct fs_pipeline_t {
   fs_pipeline_type_t pipeline_type;
   uint8_t enable_blending;
@@ -130,6 +155,10 @@ typedef struct fs_pipeline_t {
   uint32_t descriptor_set_count;
   uint64_t input_variable_count;
   uint64_t descriptor_binding_count;
+  uint64_t vertex_input_binding_description_count;
+  uint64_t vertex_input_attribute_description_count;
+  uint64_t descriptor_pool_size_count;
+  uint64_t descriptor_set_layout_binding_count;
   uint64_t primitive_topology_index;
   uint64_t polygon_mode_index;
   uint64_t spirv_vertex_word_count;
@@ -169,8 +198,12 @@ typedef struct fs_pipeline_t {
   void *glsl_ray_closest_hit_shader;
   void *glsl_compute_shader;
   VkCullModeFlags cull_mode_flags;
-  fs_asset_reference_t *input_variables;
-  fs_asset_reference_t *descriptor_bindings;
+  fs_asset_reference_t *input_variable;
+  fs_asset_reference_t *descriptor_binding;
+  fs_vertex_input_binding_description_t *vertex_input_binding_description;
+  fs_vertex_input_attribute_description_t *vertex_input_attribute_description;
+  fs_descriptor_pool_size_t *descriptor_pool_size;
+  fs_descriptor_set_layout_binding_t *descriptor_set_layout_binding;
 } fs_pipeline_t;
 typedef struct fs_font_t {
   void *buffer;

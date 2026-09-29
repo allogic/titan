@@ -84,7 +84,7 @@ void im_sound_studio_draw(void) {
 
       if (fs_import_sound(&asset, s_source_path, s_mono) == 0) {
         fs_asset_store(&asset);
-        im_fs_refresh();
+        im_filesystem_refresh();
       } else {
         s_error = "Could not import:";
         snprintf(s_error_path, TI_PATH_SIZE, "%s", s_source_path);

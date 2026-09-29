@@ -2,7 +2,6 @@
 
 #include <miniaudio.h>
 
-
 #define CGLTF_IMPLEMENTATION
 #include <cgltf.h>
 
@@ -310,10 +309,10 @@ uint8_t fs_import_pipeline(fs_asset_t *asset, fs_pipeline_type_t pipeline_type,
       descriptor_binding_count += count_spirv_descriptor_bindings(&fragment_module);
 
       pipeline->input_variable_count = input_variable_count;
-      pipeline->input_variables = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * input_variable_count, 0, 0);
+      pipeline->input_variable = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * input_variable_count, 0, 0);
 
       pipeline->descriptor_binding_count = descriptor_binding_count;
-      pipeline->descriptor_bindings = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * descriptor_binding_count, 0, 0);
+      pipeline->descriptor_binding = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * descriptor_binding_count, 0, 0);
 
       convert_spirv_input_variables(asset, pipeline, &input_variable_offset, &vertex_module);
 
@@ -378,8 +377,8 @@ uint8_t fs_import_pipeline(fs_asset_t *asset, fs_pipeline_type_t pipeline_type,
       pipeline->input_variable_count = input_variable_count;
       pipeline->descriptor_binding_count = descriptor_binding_count;
 
-      pipeline->input_variables = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * input_variable_count, 0, 0);
-      pipeline->descriptor_bindings = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * descriptor_binding_count, 0, 0);
+      pipeline->input_variable = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * input_variable_count, 0, 0);
+      pipeline->descriptor_binding = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * descriptor_binding_count, 0, 0);
 
       convert_spirv_descriptor_bindings(asset, pipeline, &descriptor_binding_offset, &task_module);
       convert_spirv_descriptor_bindings(asset, pipeline, &descriptor_binding_offset, &mesh_module);
@@ -456,8 +455,8 @@ uint8_t fs_import_pipeline(fs_asset_t *asset, fs_pipeline_type_t pipeline_type,
       pipeline->input_variable_count = input_variable_count;
       pipeline->descriptor_binding_count = descriptor_binding_count;
 
-      pipeline->input_variables = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * input_variable_count, 0, 0);
-      pipeline->descriptor_bindings = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * descriptor_binding_count, 0, 0);
+      pipeline->input_variable = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * input_variable_count, 0, 0);
+      pipeline->descriptor_binding = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * descriptor_binding_count, 0, 0);
 
       convert_spirv_descriptor_bindings(asset, pipeline, &descriptor_binding_offset, &ray_gen_module);
       convert_spirv_descriptor_bindings(asset, pipeline, &descriptor_binding_offset, &ray_miss_module);
@@ -496,8 +495,8 @@ uint8_t fs_import_pipeline(fs_asset_t *asset, fs_pipeline_type_t pipeline_type,
       pipeline->input_variable_count = input_variable_count;
       pipeline->descriptor_binding_count = descriptor_binding_count;
 
-      pipeline->input_variables = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * input_variable_count, 0, 0);
-      pipeline->descriptor_bindings = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * descriptor_binding_count, 0, 0);
+      pipeline->input_variable = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * input_variable_count, 0, 0);
+      pipeline->descriptor_binding = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * descriptor_binding_count, 0, 0);
 
       convert_spirv_descriptor_bindings(asset, pipeline, &descriptor_binding_offset, &compute_module);
 
@@ -1171,7 +1170,7 @@ static uint8_t convert_spirv_input_variables(fs_asset_t *asset, fs_pipeline_t *p
 
     snprintf(input_variable_file_path, TI_PATH_SIZE, "%s/input_variable/%s.pak", input_variable_file_path, spirv_input_variable->name);
 
-    strcpy(pipeline->input_variables[(*input_variable_offset) + input_variable_index].reference_path, input_variable_file_path);
+    strcpy(pipeline->input_variable[(*input_variable_offset) + input_variable_index].reference_path, input_variable_file_path);
 
     fs_asset_t input_variable_asset = {
       .magic = TI_FS_ASSET_MAGIC,
@@ -1246,7 +1245,7 @@ static uint8_t convert_spirv_descriptor_bindings(fs_asset_t *asset, fs_pipeline_
 
     snprintf(descriptor_binding_file_path, TI_PATH_SIZE, "%s/descriptor_binding/%s.pak", descriptor_binding_file_path, spriv_descriptor_binding->name);
 
-    strcpy(pipeline->descriptor_bindings[(*descriptor_binding_offset) + descriptor_binding_index].reference_path, descriptor_binding_file_path);
+    strcpy(pipeline->descriptor_binding[(*descriptor_binding_offset) + descriptor_binding_index].reference_path, descriptor_binding_file_path);
 
     fs_asset_t descriptor_binding_asset = {
       .magic = TI_FS_ASSET_MAGIC,

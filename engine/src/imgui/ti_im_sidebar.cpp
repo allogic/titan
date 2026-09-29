@@ -7,8 +7,13 @@ static void draw_button(ImVec2 position, im_sidebar_tab_t current_tab, char cons
 im_sidebar_tab_t g_sidebar_tab = IM_SIDEBAR_TAB_FILESYSTEM;
 
 void im_sidebar_draw(void) {
-  ImGui::SetNextWindowPos(ImVec2(0.0F, (float)g_pl_window.titlebar_height));
-  ImGui::SetNextWindowSize(ImVec2((float)g_pl_window.sidebar_width, (float)g_pl_window.window_height - (float)g_pl_window.titlebar_height));
+  if (g_pl_window.is_maximized) {
+    ImGui::SetNextWindowPos(ImVec2((float)g_pl_window.h_border_padding, (float)g_pl_window.titlebar_height + (float)g_pl_window.v_border_padding));
+    ImGui::SetNextWindowSize(ImVec2((float)g_pl_window.sidebar_width, (float)g_pl_window.window_height - (float)g_pl_window.titlebar_height - (float)g_pl_window.v_border_padding * 2));
+  } else {
+    ImGui::SetNextWindowPos(ImVec2(0.0F, (float)g_pl_window.titlebar_height));
+    ImGui::SetNextWindowSize(ImVec2((float)g_pl_window.sidebar_width, (float)g_pl_window.window_height - (float)g_pl_window.titlebar_height));
+  }
 
   ImGui::PushStyleColor(ImGuiCol_WindowBg, TI_LIGHT_GREY);
   ImGui::PushStyleColor(ImGuiCol_Button, TI_LIGHT_GREY);

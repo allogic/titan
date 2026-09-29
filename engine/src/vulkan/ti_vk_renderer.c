@@ -1,10 +1,10 @@
 #include <ti_pch.h>
 
 static void create_sync_object(vk_renderer_t *renderer);
-static void create_descriptor_info(vk_renderer_t *renderer);
 static void create_debug_line_buffer(vk_renderer_t *renderer);
 static void create_full_screen_buffer(vk_renderer_t *renderer);
 
+static void update_descriptor_info(vk_renderer_t *renderer);
 static void update_debug_line_descriptor_set(vk_renderer_t *renderer);
 static void update_coherent_buffer(vk_renderer_t *renderer);
 
@@ -28,7 +28,7 @@ static void destroy_sync_object(vk_renderer_t *renderer);
 static void destroy_buffer(vk_renderer_t *renderer);
 
 // TODO: refactor all of this!
-
+/*
 static vk_full_screen_vertex_t s_full_screen_vertices[] = {
   {-1.0F, -1.0F, 0.0F, 1.0F},
   {1.0F, -1.0F, 0.0F, 1.0F},
@@ -43,78 +43,7 @@ static vk_full_screen_index_t s_full_screen_indices[] = {
   2,
   1,
 };
-
-static VkVertexInputBindingDescription s_full_screen_vertex_input_binding_description[] = {
-  {
-    .binding = 0,
-    .stride = sizeof(vk_full_screen_vertex_t),
-    .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
-  },
-};
-static VkVertexInputBindingDescription s_debug_line_vertex_input_binding_description[] = {
-  {
-    .binding = 0,
-    .stride = sizeof(vk_debug_line_vertex_t),
-    .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
-  },
-};
-
-static VkVertexInputAttributeDescription s_full_screen_vertex_input_attribute_description[] = {
-  {
-    .location = 0,
-    .binding = 0,
-    .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-    .offset = 0,
-  },
-};
-static VkVertexInputAttributeDescription s_debug_line_vertex_input_attribute_description[] = {
-  {
-    .location = 0,
-    .binding = 0,
-    .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-    .offset = 0,
-  },
-  {
-    .location = 1,
-    .binding = 0,
-    .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-    .offset = TI_OFFSET_OF(vk_debug_line_vertex_t, color),
-  },
-};
-
-static VkDescriptorPoolSize s_debug_line_renderer_descriptor_pool_size[] = {
-  {
-    .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-  },
-};
-
-static VkDescriptorSetLayoutBinding s_debug_line_renderer_descriptor_set_layout_binding[] = {
-  {
-    .binding = 0,
-    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-    .descriptorCount = 1,
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-    .pImmutableSamplers = 0,
-  },
-};
-
-// TODO: remove this stuff..
-// static pipeline_t s_debug_line_renderer_pipeline = {
-//
-//   .vertex_input_binding_description = s_debug_line_vertex_input_binding_description,
-//   .vertex_input_binding_description_count = TI_ARRAY_COUNT(s_debug_line_vertex_input_binding_description),
-// 
-//   .vertex_input_attribute_description = s_debug_line_vertex_input_attribute_description,
-//   .vertex_input_attribute_description_count = TI_ARRAY_COUNT(s_debug_line_vertex_input_attribute_description),
-//
-//   .descriptor_pool_size = s_debug_line_renderer_descriptor_pool_size,
-//   .descriptor_pool_size_count = TI_ARRAY_COUNT(s_debug_line_renderer_descriptor_pool_size),
-// 
-//   .descriptor_set_layout_binding = s_debug_line_renderer_descriptor_set_layout_binding,
-//   .descriptor_set_layout_binding_count = TI_ARRAY_COUNT(s_debug_line_renderer_descriptor_set_layout_binding),
-//
-// };
+*/
 
 void vk_renderer_create(vk_renderer_t *renderer, char const *asset_path) {
   renderer->is_debug_enabled = 1;
@@ -125,12 +54,12 @@ void vk_renderer_create(vk_renderer_t *renderer, char const *asset_path) {
   fs_renderer_t *config = (fs_renderer_t *)renderer->asset.instance;
 
   create_sync_object(renderer);
-  create_descriptor_info(renderer);
   create_debug_line_buffer(renderer);
   create_full_screen_buffer(renderer);
 
-  // vk_pipeline_create(&renderer->debug_line_pipeline, &g_vk_main_renderpass, "asset/pipeline/debug/line.pak");
+  vk_pipeline_create(&renderer->debug_line_pipeline, &g_vk_main_renderpass, "asset/pipeline/debug_line/main.pak");
 
+  update_descriptor_info(renderer);
   update_debug_line_descriptor_set(renderer);
 }
 void vk_renderer_draw(vk_renderer_t *renderer) {
@@ -341,7 +270,7 @@ void vk_renderer_draw(vk_renderer_t *renderer) {
   }
 }
 void vk_renderer_destroy(vk_renderer_t *renderer) {
-  // vk_pipeline_destroy(&renderer->debug_line_pipeline);
+  vk_pipeline_destroy(&renderer->debug_line_pipeline);
 
   destroy_buffer(renderer);
   destroy_sync_object(renderer);
@@ -460,23 +389,6 @@ static void create_sync_object(vk_renderer_t *renderer) {
   TI_VK_CHECK(vkCreateSemaphore(g_vk_instance.device, &semaphore_create_info, 0, &renderer->image_available_semaphore));
   TI_VK_CHECK(vkCreateFence(g_vk_instance.device, &fence_create_info, 0, &renderer->frame_fence));
 }
-static void create_descriptor_info(vk_renderer_t *renderer) {
-  renderer->time_info_descriptor_buffer_info.offset = 0;
-  renderer->time_info_descriptor_buffer_info.buffer = g_vk_time_info_buffer.buffer_handle;
-  renderer->time_info_descriptor_buffer_info.range = VK_WHOLE_SIZE;
-
-  renderer->screen_info_descriptor_buffer_info.offset = 0;
-  renderer->screen_info_descriptor_buffer_info.buffer = g_vk_screen_info_buffer.buffer_handle;
-  renderer->screen_info_descriptor_buffer_info.range = VK_WHOLE_SIZE;
-
-  renderer->mouse_info_descriptor_buffer_info.offset = 0;
-  renderer->mouse_info_descriptor_buffer_info.buffer = g_vk_mouse_info_buffer.buffer_handle;
-  renderer->mouse_info_descriptor_buffer_info.range = VK_WHOLE_SIZE;
-
-  renderer->camera_info_descriptor_buffer_info.offset = 0;
-  renderer->camera_info_descriptor_buffer_info.buffer = g_vk_camera_info_buffer.buffer_handle;
-  renderer->camera_info_descriptor_buffer_info.range = VK_WHOLE_SIZE;
-}
 static void create_debug_line_buffer(vk_renderer_t *renderer) {
   fs_renderer_t *config = (fs_renderer_t *)renderer->asset.instance;
 
@@ -493,49 +405,80 @@ static void create_full_screen_buffer(vk_renderer_t *renderer) {
   vk_buffer_create(&renderer->full_screen_index_buffer, config->full_screen_index_buffer.reference_path);
 }
 
+static void update_descriptor_info(vk_renderer_t *renderer) {
+  renderer->time_info_descriptor_buffer_info.offset = 0;
+  renderer->time_info_descriptor_buffer_info.buffer = g_vk_time_info_buffer.buffer_handle;
+  renderer->time_info_descriptor_buffer_info.range = VK_WHOLE_SIZE;
+
+  renderer->screen_info_descriptor_buffer_info.offset = 0;
+  renderer->screen_info_descriptor_buffer_info.buffer = g_vk_screen_info_buffer.buffer_handle;
+  renderer->screen_info_descriptor_buffer_info.range = VK_WHOLE_SIZE;
+
+  renderer->mouse_info_descriptor_buffer_info.offset = 0;
+  renderer->mouse_info_descriptor_buffer_info.buffer = g_vk_mouse_info_buffer.buffer_handle;
+  renderer->mouse_info_descriptor_buffer_info.range = VK_WHOLE_SIZE;
+
+  renderer->camera_info_descriptor_buffer_info.offset = 0;
+  renderer->camera_info_descriptor_buffer_info.buffer = g_vk_camera_info_buffer.buffer_handle;
+  renderer->camera_info_descriptor_buffer_info.range = VK_WHOLE_SIZE;
+}
 static void update_debug_line_descriptor_set(vk_renderer_t *renderer) {
-  // TODO
-  // VkWriteDescriptorSet write_descriptor_set[] = {
-  //   {
-  //     .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-  //     .pNext = 0,
-  //     .dstSet = s_debug_line_renderer_pipeline.descriptor_set[0],
-  //     .dstBinding = 0,
-  //     .dstArrayElement = 0,
-  //     .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-  //     .descriptorCount = 1,
-  //     .pImageInfo = 0,
-  //     .pBufferInfo = &renderer->camera_info_descriptor_buffer_info,
-  //     .pTexelBufferView = 0,
-  //   },
-  // };
-  //
-  // vkUpdateDescriptorSets(g_pl_window.device, TI_ARRAY_COUNT(write_descriptor_set), write_descriptor_set, 0, 0);
+  VkWriteDescriptorSet write_descriptor_set[] = {
+    {
+      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+      .pNext = 0,
+      .dstSet = renderer->debug_line_pipeline.descriptor_set[0],
+      .dstBinding = 0,
+      .dstArrayElement = 0,
+      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+      .descriptorCount = 1,
+      .pImageInfo = 0,
+      .pBufferInfo = &renderer->camera_info_descriptor_buffer_info,
+      .pTexelBufferView = 0,
+    },
+  };
+
+  vkUpdateDescriptorSets(g_vk_instance.device, TI_ARRAY_COUNT(write_descriptor_set), write_descriptor_set, 0, 0);
 }
 static void update_coherent_buffer(vk_renderer_t *renderer) {
-  vk_time_info_t *time_info = (vk_time_info_t *)g_vk_time_info_buffer.device_data;
-  vk_screen_info_t *screen_info = (vk_screen_info_t *)g_vk_screen_info_buffer.device_data;
-  vk_mouse_info_t *mouse_info = (vk_mouse_info_t *)g_vk_mouse_info_buffer.device_data;
-  vk_camera_info_t *camera_info = (vk_camera_info_t *)g_vk_camera_info_buffer.device_data;
+  if (g_scene.editor_camera_entity) {
 
-  time_info->time = g_pl_window.time;
-  time_info->delta_time = g_pl_window.delta_time;
+    cp_transform_t const *transform = ecs_get(g_scene.world, g_scene.editor_camera_entity, cp_transform_t);
+    cp_camera_t const *camera = ecs_get(g_scene.world, g_scene.editor_camera_entity, cp_camera_t);
 
-  screen_info->resolution = (ivec2_t){g_pl_window.window_width, g_pl_window.window_height};
+    if (transform && camera) {
 
-  mouse_info->position = (ivec2_t){g_pl_window.mouse_position_x, g_pl_window.mouse_position_y};
+      vk_time_info_t *time_info = (vk_time_info_t *)g_vk_time_info_buffer.device_data;
+      vk_screen_info_t *screen_info = (vk_screen_info_t *)g_vk_screen_info_buffer.device_data;
+      vk_mouse_info_t *mouse_info = (vk_mouse_info_t *)g_vk_mouse_info_buffer.device_data;
+      vk_camera_info_t *camera_info = (vk_camera_info_t *)g_vk_camera_info_buffer.device_data;
 
-  fvec3_t camera_position = {0.0F, 0.0F, -10.0F}; // g_player.transform.world_position;
-  fvec3_t camera_direction = {0.0F, 0.0F, 1.0F};  // quaternion_front(g_player.transform.world_rotation);
+      time_info->time = g_pl_window.time;
+      time_info->delta_time = g_pl_window.delta_time;
 
-  camera_info->position = (fvec4_t){camera_position.x, camera_position.y, camera_position.z, 0.0F};
-  camera_info->direction = (fvec4_t){camera_direction.x, camera_direction.y, camera_direction.z, 0.0F};
-  camera_info->view = fmat4x4_identity();                // g_player.camera.view;
-  camera_info->view_inv = fmat4x4_identity();            // g_player.camera.view_inv;
-  camera_info->projection = fmat4x4_identity();          // g_player.camera.projection;
-  camera_info->projection_inv = fmat4x4_identity();      // g_player.camera.projection_inv;
-  camera_info->view_projection = fmat4x4_identity();     // g_player.camera.view_projection;
-  camera_info->view_projection_inv = fmat4x4_identity(); // g_player.camera.view_projection_inv;
+      screen_info->resolution = (ivec2_t){g_pl_window.window_width, g_pl_window.window_height};
+
+      mouse_info->position = (ivec2_t){g_pl_window.mouse_position_x, g_pl_window.mouse_position_y};
+
+      fvec3_t camera_position = {transform->position_x, transform->position_y, transform->position_z};
+      fquat_t camera_rotation = {transform->rotation_x, transform->rotation_y, transform->rotation_z, transform->rotation_w};
+
+      fvec3_t camera_direction = fquat_front(camera_rotation);
+
+      fvec3_t up = {0.0F, 1.0F, 0.0F};
+
+      float aspect_ratio = (float)g_pl_window.window_width / (float)g_pl_window.window_height;
+
+      camera_info->position = (fvec4_t){camera_position.x, camera_position.y, camera_position.z, 0.0F};
+      camera_info->direction = (fvec4_t){camera_direction.x, camera_direction.y, camera_direction.z};
+      camera_info->view = fmat4x4_look_at(camera_position, fvec3_add(camera_position, camera_direction), up);         // g_player.camera.view;
+      camera_info->view_inv = fmat4x4_inverse(camera_info->view);                                                     // g_player.camera.view_inv;
+      camera_info->projection = fmat4x4_persp(deg_to_rad(-camera->fov), aspect_ratio, camera->near_z, camera->far_z); // g_player.camera.projection;
+      camera_info->projection_inv = fmat4x4_inverse(camera_info->projection);                                         // g_player.camera.projection_inv;
+      camera_info->view_projection = fmat4x4_mul(camera_info->view, camera_info->projection);                         // g_player.camera.view_projection;
+      camera_info->view_projection_inv = fmat4x4_inverse(camera_info->view_projection);                               // g_player.camera.view_projection_inv;
+    }
+  }
 }
 
 static void record_pre_compute_pass(vk_renderer_t *renderer) {
@@ -617,12 +560,16 @@ static void record_main_pass(vk_renderer_t *renderer) {
 
     VkDeviceSize vertex_offset = 0;
 
-    // TODO
-    // vkCmdBindPipeline(g_vk_instance.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, s_debug_line_renderer_pipeline.pipeline_handle);
-    // vkCmdBindVertexBuffers(g_vk_instance.command_buffer, 0, 1, &s_debug_line_vertex_buffer.buffer_handle, &vertex_offset);
-    // vkCmdBindIndexBuffer(g_vk_instance.command_buffer, s_debug_line_index_buffer.buffer_handle, 0, VK_INDEX_TYPE_UINT32);
-    // vkCmdBindDescriptorSets(g_vk_instance.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, s_debug_line_renderer_pipeline.pipeline_layout, 0, 1, &s_debug_line_renderer_pipeline.descriptor_set[0], 0, 0);
-    // vkCmdDrawIndexed(g_vk_instance.command_buffer, s_debug_line_index_offset, 1, 0, 0, 0);
+    // TODO: abstract this even more..
+
+    VkBuffer vertex_buffer = renderer->debug_line_vertex_buffer.buffer_handle;
+    VkBuffer index_buffer = renderer->debug_line_index_buffer.buffer_handle;
+
+    vkCmdBindPipeline(g_vk_instance.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->debug_line_pipeline.pipeline_handle);
+    vkCmdBindVertexBuffers(g_vk_instance.command_buffer, 0, 1, &vertex_buffer, &vertex_offset);
+    vkCmdBindIndexBuffer(g_vk_instance.command_buffer, index_buffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindDescriptorSets(g_vk_instance.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, renderer->debug_line_pipeline.pipeline_layout, 0, 1, &renderer->debug_line_pipeline.descriptor_set[0], 0, 0);
+    vkCmdDrawIndexed(g_vk_instance.command_buffer, renderer->debug_line_index_offset, 1, 0, 0, 0);
 
     renderer->debug_line_vertex_offset = 0;
     renderer->debug_line_index_offset = 0;
@@ -776,9 +723,9 @@ static void record_pre_imgui_pass(vk_renderer_t *renderer) {
 static void record_imgui_pass(vk_renderer_t *renderer) {
   VkClearValue color_clear_value = {
     .color.float32 = {
-      0.0F,
-      0.0F,
-      0.0F,
+      0.2352941176470588F, // 60 / 255
+      0.2352941176470588F, // 60 / 255
+      0.2352941176470588F, // 60 / 255
       1.0F,
     },
   };

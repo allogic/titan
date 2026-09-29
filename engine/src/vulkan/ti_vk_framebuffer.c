@@ -23,7 +23,7 @@ void vk_framebuffer_create(vk_framebuffer_t *framebuffer, vk_renderpass_t *rende
 
     while (attachment_index < attachment_count) {
 
-      vk_image_create(&framebuffer->color_attachment[image_index][attachment_index], framebuffer->width, framebuffer->height, 1, config->color_attachments[attachment_index].reference_path);
+      vk_image_create(&framebuffer->color_attachment[image_index][attachment_index], framebuffer->width, framebuffer->height, 1, config->color_attachment[attachment_index].reference_path);
 
       final_image_attachment_views[attachment_index] = framebuffer->color_attachment[image_index][attachment_index].image_view;
 

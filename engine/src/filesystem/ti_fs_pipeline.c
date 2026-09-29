@@ -14,6 +14,16 @@ void fs_pipeline_load(fs_pipeline_t *pipeline, fs_file *file) {
 
   read_descriptor_bindings(pipeline, file);
 
+  // TODO
+
+  fs_file_read(file, &pipeline->descriptor_pool_size_count, sizeof(uint64_t), 0);
+  pipeline->descriptor_pool_size = TI_ALLOC(sizeof(fs_descriptor_pool_size_t) * pipeline->descriptor_pool_size_count, 0, 0);
+  fs_file_read(file, pipeline->descriptor_pool_size, sizeof(fs_descriptor_pool_size_t) * pipeline->descriptor_pool_size_count, 0);
+
+  fs_file_read(file, &pipeline->descriptor_set_layout_binding_count, sizeof(uint64_t), 0);
+  pipeline->descriptor_set_layout_binding = TI_ALLOC(sizeof(fs_descriptor_set_layout_binding_t) * pipeline->descriptor_set_layout_binding_count, 0, 0);
+  fs_file_read(file, pipeline->descriptor_set_layout_binding, sizeof(fs_descriptor_set_layout_binding_t) * pipeline->descriptor_set_layout_binding_count, 0);
+
   switch (pipeline->pipeline_type) {
 
     case FS_PIPELINE_TYPE_DEFAULT: {
@@ -43,6 +53,14 @@ void fs_pipeline_load(fs_pipeline_t *pipeline, fs_file *file) {
       fs_file_read(file, &pipeline->glsl_fragment_shader_size, sizeof(uint64_t), 0);
       pipeline->glsl_fragment_shader = TI_ALLOC(pipeline->glsl_fragment_shader_size, 0, 0);
       fs_file_read(file, pipeline->glsl_fragment_shader, pipeline->glsl_fragment_shader_size, 0);
+
+      fs_file_read(file, &pipeline->vertex_input_binding_description_count, sizeof(uint64_t), 0);
+      pipeline->vertex_input_binding_description = TI_ALLOC(sizeof(fs_vertex_input_binding_description_t) * pipeline->vertex_input_binding_description_count, 0, 0);
+      fs_file_read(file, pipeline->vertex_input_binding_description, sizeof(fs_vertex_input_binding_description_t) * pipeline->vertex_input_binding_description_count, 0);
+
+      fs_file_read(file, &pipeline->vertex_input_attribute_description_count, sizeof(uint64_t), 0);
+      pipeline->vertex_input_attribute_description = TI_ALLOC(sizeof(fs_vertex_input_attribute_description_t) * pipeline->vertex_input_attribute_description_count, 0, 0);
+      fs_file_read(file, pipeline->vertex_input_attribute_description, sizeof(fs_vertex_input_attribute_description_t) * pipeline->vertex_input_attribute_description_count, 0);
 
       break;
     }
@@ -130,6 +148,14 @@ void fs_pipeline_store(fs_pipeline_t *pipeline, fs_file *file) {
 
   write_descriptor_bindings(pipeline, file);
 
+  // TODO
+
+  fs_file_write(file, &pipeline->descriptor_pool_size_count, sizeof(uint64_t), 0);
+  fs_file_write(file, pipeline->descriptor_pool_size, sizeof(fs_descriptor_pool_size_t) * pipeline->descriptor_pool_size_count, 0);
+
+  fs_file_write(file, &pipeline->descriptor_set_layout_binding_count, sizeof(uint64_t), 0);
+  fs_file_write(file, pipeline->descriptor_set_layout_binding, sizeof(fs_descriptor_set_layout_binding_t) * pipeline->descriptor_set_layout_binding_count, 0);
+
   switch (pipeline->pipeline_type) {
 
     case FS_PIPELINE_TYPE_DEFAULT: {
@@ -155,6 +181,12 @@ void fs_pipeline_store(fs_pipeline_t *pipeline, fs_file *file) {
 
       fs_file_write(file, &pipeline->glsl_fragment_shader_size, sizeof(uint64_t), 0);
       fs_file_write(file, pipeline->glsl_fragment_shader, pipeline->glsl_fragment_shader_size, 0);
+
+      fs_file_write(file, &pipeline->vertex_input_binding_description_count, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->vertex_input_binding_description, sizeof(fs_vertex_input_binding_description_t) * pipeline->vertex_input_binding_description_count, 0);
+
+      fs_file_write(file, &pipeline->vertex_input_attribute_description_count, sizeof(uint64_t), 0);
+      fs_file_write(file, pipeline->vertex_input_attribute_description, sizeof(fs_vertex_input_attribute_description_t) * pipeline->vertex_input_attribute_description_count, 0);
 
       break;
     }
@@ -221,19 +253,24 @@ void fs_pipeline_store(fs_pipeline_t *pipeline, fs_file *file) {
   }
 }
 void fs_pipeline_destroy(fs_pipeline_t *pipeline) {
-  TI_FREE(pipeline->descriptor_bindings);
+  TI_FREE(pipeline->descriptor_binding);
+  TI_FREE(pipeline->descriptor_pool_size);
+  TI_FREE(pipeline->descriptor_set_layout_binding);
 
   switch (pipeline->pipeline_type) {
 
     case FS_PIPELINE_TYPE_DEFAULT: {
 
-      TI_FREE(pipeline->input_variables);
+      TI_FREE(pipeline->input_variable);
 
       TI_FREE(pipeline->spirv_vertex_words);
       TI_FREE(pipeline->spirv_fragment_words);
 
       TI_FREE(pipeline->glsl_vertex_shader);
       TI_FREE(pipeline->glsl_fragment_shader);
+
+      TI_FREE(pipeline->vertex_input_binding_description);
+      TI_FREE(pipeline->vertex_input_attribute_description);
 
       break;
     }
@@ -277,14 +314,14 @@ void fs_pipeline_destroy(fs_pipeline_t *pipeline) {
 static void read_input_variables(fs_pipeline_t *pipeline, fs_file *file) {
   fs_file_read(file, &pipeline->input_variable_count, sizeof(uint64_t), 0);
 
-  pipeline->input_variables = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * pipeline->input_variable_count, 0, 0);
+  pipeline->input_variable = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * pipeline->input_variable_count, 0, 0);
 
   uint64_t input_variable_index = 0;
   uint64_t input_variable_count = pipeline->input_variable_count;
 
   while (input_variable_index < input_variable_count) {
 
-    fs_asset_reference_t *input_variable = &pipeline->input_variables[input_variable_index];
+    fs_asset_reference_t *input_variable = &pipeline->input_variable[input_variable_index];
 
     fs_file_read(file, input_variable->reference_path, TI_PATH_SIZE, 0);
 
@@ -294,14 +331,14 @@ static void read_input_variables(fs_pipeline_t *pipeline, fs_file *file) {
 static void read_descriptor_bindings(fs_pipeline_t *pipeline, fs_file *file) {
   fs_file_read(file, &pipeline->descriptor_binding_count, sizeof(uint64_t), 0);
 
-  pipeline->descriptor_bindings = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * pipeline->descriptor_binding_count, 0, 0);
+  pipeline->descriptor_binding = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * pipeline->descriptor_binding_count, 0, 0);
 
   uint64_t descriptor_binding_index = 0;
   uint64_t descriptor_binding_count = pipeline->descriptor_binding_count;
 
   while (descriptor_binding_index < descriptor_binding_count) {
 
-    fs_asset_reference_t *descriptor_binding = &pipeline->descriptor_bindings[descriptor_binding_index];
+    fs_asset_reference_t *descriptor_binding = &pipeline->descriptor_binding[descriptor_binding_index];
 
     fs_file_read(file, descriptor_binding->reference_path, TI_PATH_SIZE, 0);
 
@@ -317,7 +354,7 @@ static void write_input_variables(fs_pipeline_t *pipeline, fs_file *file) {
 
   while (input_variable_index < input_variable_count) {
 
-    fs_asset_reference_t *input_variable = &pipeline->input_variables[input_variable_index];
+    fs_asset_reference_t *input_variable = &pipeline->input_variable[input_variable_index];
 
     fs_file_write(file, input_variable->reference_path, TI_PATH_SIZE, 0);
 
@@ -332,7 +369,7 @@ static void write_descriptor_bindings(fs_pipeline_t *pipeline, fs_file *file) {
 
   while (descriptor_binding_index < descriptor_binding_count) {
 
-    fs_asset_reference_t *descriptor_binding = &pipeline->descriptor_bindings[descriptor_binding_index];
+    fs_asset_reference_t *descriptor_binding = &pipeline->descriptor_binding[descriptor_binding_index];
 
     fs_file_write(file, descriptor_binding->reference_path, TI_PATH_SIZE, 0);
 

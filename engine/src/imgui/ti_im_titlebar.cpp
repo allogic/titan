@@ -9,8 +9,13 @@ static void draw_panel_controls(void);
 static void draw_window_controls(void);
 
 void im_titlebar_draw(void) {
-  ImGui::SetNextWindowPos(ImVec2(0.0F, 0.0F));
-  ImGui::SetNextWindowSize(ImVec2((float)g_pl_window.window_width, (float)g_pl_window.titlebar_height));
+  if (g_pl_window.is_maximized) {
+    ImGui::SetNextWindowPos(ImVec2((float)g_pl_window.h_border_padding, (float)g_pl_window.v_border_padding));
+    ImGui::SetNextWindowSize(ImVec2((float)g_pl_window.window_width - (float)g_pl_window.h_border_padding * 2, (float)g_pl_window.titlebar_height - (float)g_pl_window.v_border_padding));
+  } else {
+    ImGui::SetNextWindowPos(ImVec2(0.0F, 0.0F));
+    ImGui::SetNextWindowSize(ImVec2((float)g_pl_window.window_width, (float)g_pl_window.titlebar_height));
+  }
 
   ImGui::PushStyleColor(ImGuiCol_WindowBg, TI_LIGHT_GREY);
   ImGui::PushStyleColor(ImGuiCol_Button, TI_LIGHT_GREY);
@@ -86,7 +91,11 @@ static void draw_panel_controls(void) {
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0F);
   ImGui::PushFont((ImFont *)g_im_font_symbols_18);
 
-  ImGui::SetCursorPos(ImVec2((float)g_pl_window.window_width - 200.0F, 5.0F));
+  if (g_pl_window.is_maximized) {
+    ImGui::SetCursorPos(ImVec2((float)g_pl_window.window_width - ((float)g_pl_window.h_border_padding * 2) - 200.0F, 5.0F));
+  } else {
+    ImGui::SetCursorPos(ImVec2((float)g_pl_window.window_width - 200.0F, 5.0F));
+  }
 
   if (ImGui::Button(ICON_MS_DOCK_TO_RIGHT)) {
     g_im_show_left_panel = !g_im_show_left_panel;
@@ -102,7 +111,11 @@ static void draw_panel_controls(void) {
   ImGui::PopStyleVar(1);
 }
 static void draw_window_controls(void) {
-  ImGui::SetCursorPos(ImVec2((float)g_pl_window.window_width - 89.0F, 5.0F));
+  if (g_pl_window.is_maximized) {
+    ImGui::SetCursorPos(ImVec2((float)g_pl_window.window_width - ((float)g_pl_window.h_border_padding * 2) - 89.0F, 5.0F));
+  } else {
+    ImGui::SetCursorPos(ImVec2((float)g_pl_window.window_width - 89.0F, 5.0F));
+  }
 
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0F);
   ImGui::PushFont((ImFont *)g_im_font_symbols_18);
@@ -114,15 +127,14 @@ static void draw_window_controls(void) {
   ImGui::SameLine();
 
   if (ImGui::Button(ICON_MS_RECTANGLE)) {
-    static uint8_t is_maximized = 0;
 
-    if (is_maximized) {
+    if (g_pl_window.is_maximized) {
       ShowWindow(g_pl_window.window_handle, SW_RESTORE);
     } else {
       ShowWindow(g_pl_window.window_handle, SW_MAXIMIZE);
     }
 
-    is_maximized = !is_maximized;
+    g_pl_window.is_maximized = !g_pl_window.is_maximized;
   }
 
   ImGui::SameLine();

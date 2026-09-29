@@ -5,7 +5,7 @@
 // TODO: refactor sound studio..
 // TODO: refactor physic studio..
 // TODO: make folder specifically for GLSLang..
-// TODO: rename im_fs_ to im_filesystem..
+// TODO: resolve asset references inside the gui and display it via TreeNodeEx..
 
 static void import_dflt_assets(void);
 static void create_dflt_assets(void);
@@ -382,6 +382,12 @@ static void import_dflt_assets(void) {
         pipeline->enable_depth_write = 1;
         pipeline->descriptor_set_count = 1;
 
+        // TODO: create missing default BRDF pipeline..
+        //         VkVertexInputBindingDescription
+        //         VkVertexInputAttributeDescription
+        //         VkDescriptorPoolSize
+        //         VkDescriptorSetLayoutBinding
+
         fs_asset_store(&asset);
       }
 
@@ -414,6 +420,39 @@ static void import_dflt_assets(void) {
         pipeline->enable_depth_test = 1;
         pipeline->enable_depth_write = 1;
         pipeline->descriptor_set_count = 1;
+
+        pipeline->vertex_input_binding_description_count = 1;
+        pipeline->vertex_input_binding_description = (fs_vertex_input_binding_description_t *)TI_ALLOC(sizeof(fs_vertex_input_binding_description_t) * pipeline->vertex_input_binding_description_count, 1, 0);
+        strcpy(pipeline->vertex_input_binding_description[0].name, "default");
+        pipeline->vertex_input_binding_description[0].binding = 0;
+        pipeline->vertex_input_binding_description[0].stride = sizeof(vk_debug_line_vertex_t); // TODO: remove this ref..
+        pipeline->vertex_input_binding_description[0].input_rate_index = vk_find_vertex_input_rate_index(VK_VERTEX_INPUT_RATE_VERTEX);
+
+        pipeline->vertex_input_attribute_description_count = 2;
+        pipeline->vertex_input_attribute_description = (fs_vertex_input_attribute_description_t *)TI_ALLOC(sizeof(fs_vertex_input_attribute_description_t) * pipeline->vertex_input_attribute_description_count, 1, 0);
+        strcpy(pipeline->vertex_input_attribute_description[0].name, "default");
+        pipeline->vertex_input_attribute_description[0].location = 0;
+        pipeline->vertex_input_attribute_description[0].binding = 0;
+        pipeline->vertex_input_attribute_description[0].format_index = vk_find_format_index(VK_FORMAT_R32G32B32A32_SFLOAT);
+        pipeline->vertex_input_attribute_description[0].offset = 0;
+        pipeline->vertex_input_attribute_description[1].location = 1;
+        pipeline->vertex_input_attribute_description[1].binding = 0;
+        pipeline->vertex_input_attribute_description[1].format_index = vk_find_format_index(VK_FORMAT_R32G32B32A32_SFLOAT);
+        pipeline->vertex_input_attribute_description[1].offset = TI_OFFSET_OF(vk_debug_line_vertex_t, color); // TODO: remove this ref..
+
+        pipeline->descriptor_pool_size_count = 1;
+        pipeline->descriptor_pool_size = (fs_descriptor_pool_size_t *)TI_ALLOC(sizeof(fs_descriptor_pool_size_t) * pipeline->descriptor_pool_size_count, 1, 0);
+        strcpy(pipeline->descriptor_pool_size[0].name, "default");
+        pipeline->descriptor_pool_size[0].type_index = vk_find_descriptor_type_index(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+        pipeline->descriptor_pool_size[0].descriptor_count = 1;
+
+        pipeline->descriptor_set_layout_binding_count = 1;
+        pipeline->descriptor_set_layout_binding = (fs_descriptor_set_layout_binding_t *)TI_ALLOC(sizeof(fs_descriptor_set_layout_binding_t) * pipeline->descriptor_set_layout_binding_count, 1, 0);
+        strcpy(pipeline->descriptor_set_layout_binding[0].name, "default");
+        pipeline->descriptor_set_layout_binding[0].binding = 0;
+        pipeline->descriptor_set_layout_binding[0].descriptor_type_index = vk_find_descriptor_type_index(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+        pipeline->descriptor_set_layout_binding[0].descriptor_count = 1;
+        pipeline->descriptor_set_layout_binding[0].stage_flags = VK_SHADER_STAGE_VERTEX_BIT;
 
         fs_asset_store(&asset);
       }
@@ -585,9 +624,9 @@ static void create_dflt_assets(void) {
       fs_framebuffer_t *framebuffer = (fs_framebuffer_t *)asset.instance;
 
       framebuffer->color_attachment_count = 1;
-      framebuffer->color_attachments = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t), 1, 0);
+      framebuffer->color_attachment = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t), 1, 0);
 
-      strcpy(framebuffer->color_attachments[0].reference_path, "asset/framebuffer/main/attachment/color.pak");
+      strcpy(framebuffer->color_attachment[0].reference_path, "asset/framebuffer/main/attachment/color.pak");
       strcpy(framebuffer->depth_attachment.reference_path, "asset/framebuffer/main/attachment/depth.pak");
 
       fs_asset_store(&asset);
@@ -608,9 +647,9 @@ static void create_dflt_assets(void) {
       fs_framebuffer_t *framebuffer = (fs_framebuffer_t *)asset.instance;
 
       framebuffer->color_attachment_count = 1;
-      framebuffer->color_attachments = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t), 1, 0);
+      framebuffer->color_attachment = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t), 1, 0);
 
-      strcpy(framebuffer->color_attachments[0].reference_path, "asset/framebuffer/imgui/attachment/color.pak");
+      strcpy(framebuffer->color_attachment[0].reference_path, "asset/framebuffer/imgui/attachment/color.pak");
       strcpy(framebuffer->depth_attachment.reference_path, "asset/framebuffer/imgui/attachment/depth.pak");
 
       fs_asset_store(&asset);

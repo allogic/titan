@@ -462,6 +462,10 @@ vk_enum_record_t g_vk_polygon_mode_table[4] = {
   {VK_POLYGON_MODE_POINT, "VK_POLYGON_MODE_POINT"},
   {VK_POLYGON_MODE_FILL_RECTANGLE_NV, "VK_POLYGON_MODE_FILL_RECTANGLE_NV"},
 };
+vk_enum_record_t g_vk_vertex_input_rate_table[2] = {
+  {VK_VERTEX_INPUT_RATE_VERTEX, "VK_VERTEX_INPUT_RATE_VERTEX"},
+  {VK_VERTEX_INPUT_RATE_INSTANCE, "VK_VERTEX_INPUT_RATE_INSTANCE"},
+};
 
 uint64_t vk_find_format_index(VkFormat format) {
   uint64_t index = 0;
@@ -610,6 +614,26 @@ uint64_t vk_find_polygon_mode_index(VkPolygonMode polygon_mode) {
   while (index < count) {
 
     if (polygon_mode == g_vk_polygon_mode_table[index].value) {
+      return index;
+    }
+
+    index++;
+  }
+
+  // TODO: We should never reach this!
+  //       Someone has made an oopsie..
+
+  __debugbreak();
+
+  return 0;
+}
+uint64_t vk_find_vertex_input_rate_index(VkVertexInputRate vertex_input_rate) {
+  uint64_t index = 0;
+  uint64_t count = TI_ARRAY_COUNT(g_vk_vertex_input_rate_table);
+
+  while (index < count) {
+
+    if (vertex_input_rate == g_vk_vertex_input_rate_table[index].value) {
       return index;
     }
 

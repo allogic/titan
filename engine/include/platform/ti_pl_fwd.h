@@ -135,10 +135,13 @@ typedef struct pl_window_t {
   float delta_time;
   float elapsed_time_since_fps_count_update;
   int32_t window_border_width;
-  uint32_t is_first_frame;
-  uint32_t is_running;
+  uint8_t is_first_frame;
+  uint8_t is_running;
+  uint8_t is_maximized;
   uint32_t window_width;
   uint32_t window_height;
+  uint32_t h_border_padding;
+  uint32_t v_border_padding;
   uint32_t titlebar_height;
   uint32_t sidebar_width;
   uint32_t mouse_position_x;

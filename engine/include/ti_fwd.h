@@ -55,6 +55,7 @@ typedef struct scene_t {
   char file_path[TI_PATH_SIZE];
   ecs_world_t *world;
   ecs_entity_t root_entity;
+  ecs_entity_t editor_camera_entity;
   ecs_query_t *root_children;
 } scene_t;
 

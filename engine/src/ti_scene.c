@@ -32,6 +32,24 @@ void scene_create(scene_t *scene, char const *file_name, char const *file_path) 
                                                   .name = "root",
                                                   .parent = 0,
                                                 });
+
+  scene->editor_camera_entity = ecs_entity(scene->world, {
+                                                           .name = "main_camera",
+                                                           .parent = scene->root_entity,
+                                                         });
+
+  ecs_add(scene->world, scene->editor_camera_entity, cp_transform_t);
+  ecs_add(scene->world, scene->editor_camera_entity, cp_camera_t);
+
+  cp_transform_t *transform = ecs_get_mut(scene->world, scene->editor_camera_entity, cp_transform_t);
+
+  cp_transform_init(transform);
+
+  transform->position_z = -10.0F;
+
+  cp_camera_t *camera = ecs_get_mut(scene->world, scene->editor_camera_entity, cp_camera_t);
+
+  cp_camera_init(camera);
 }
 void scene_load(scene_t *scene) {
   uint8_t *buffer = 0;

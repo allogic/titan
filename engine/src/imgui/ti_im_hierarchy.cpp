@@ -67,12 +67,14 @@ static void draw_background(void) {
     ImDrawFlags_RoundCornersAll);
 }
 static void draw_controls(void) {
-  ImGui::InputText("Entity Name", s_entity_name, TI_PATH_SIZE);
-
-  if (ImGui::Button("Create Entity")) {
+  ImGui::PushFont((ImFont *)g_im_font_symbols_18);
+  if (ImGui::Button(ICON_MS_ADD)) {
 
     entity_create(&g_scene, s_entity_name, s_selected_entity);
   }
+  ImGui::PopFont();
+  ImGui::SameLine();
+  ImGui::InputText("Name", s_entity_name, TI_PATH_SIZE);
 }
 static void draw_root_entities(void) {
   ecs_defer_begin(g_scene.world);
@@ -121,6 +123,8 @@ static void draw_tree(ecs_entity_t entity) {
   if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
 
     s_selected_entity = entity;
+
+    g_im_show_right_panel = 1;
 
     im_inspector_select(IM_INSPECTOR_TYPE_ENTITY, (void *)entity);
   }

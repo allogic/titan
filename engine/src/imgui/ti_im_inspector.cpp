@@ -14,6 +14,7 @@ static bool draw_memory_allocate_flags(VkMemoryAllocateFlags *flags);
 static bool draw_image_usage_flags(VkImageUsageFlags *flags);
 static bool draw_image_aspect_flags(VkImageAspectFlags *flags);
 static bool draw_cull_mode_flags(VkCullModeFlags *flags);
+static bool draw_shader_stage_flags(VkShaderStageFlags *flags);
 
 static bool draw_vulkan_enum_dropdown(char const *label, uint64_t *selected_index, vk_enum_record_t *table, uint64_t table_count);
 
@@ -31,6 +32,11 @@ static const char *s_component_name[] = {
 };
 
 static char s_asset_path[TI_PATH_SIZE] = {0};
+
+static char s_vertex_input_binding_description_name[TI_PATH_SIZE] = {0};
+static char s_vertex_input_attribute_description_name[TI_PATH_SIZE] = {0};
+static char s_descriptor_pool_size_name[TI_PATH_SIZE] = {0};
+static char s_descriptor_set_layout_binding_name[TI_PATH_SIZE] = {0};
 
 void im_inspector_draw(void) {
   ImGui::Begin("Inspector", 0, ImGuiWindowFlags_NoDecoration);
@@ -125,6 +131,11 @@ static void draw_asset_controls(void) {
 static void draw_asset(void) {
   bool dirty = false;
 
+  ImGuiTreeNodeFlags tree_node_flags = ImGuiTreeNodeFlags_OpenOnArrow |
+                                       ImGuiTreeNodeFlags_SpanFullWidth |
+                                       ImGuiTreeNodeFlags_FramePadding |
+                                       ImGuiTreeNodeFlags_Framed;
+
   switch (s_selected_asset->type) {
 
     case FS_ASSET_TYPE_MODEL: {
@@ -133,10 +144,6 @@ static void draw_asset(void) {
 
       ImGui::Text("%s", model->name);
       ImGui::Text("Mesh Count: %llu", model->mesh_count);
-
-      ImGuiTreeNodeFlags tree_node_flags = ImGuiTreeNodeFlags_OpenOnArrow |
-                                           ImGuiTreeNodeFlags_SpanFullWidth |
-                                           ImGuiTreeNodeFlags_FramePadding;
 
       uint64_t mesh_index = 0;
       uint64_t mesh_count = model->mesh_count;
@@ -214,7 +221,7 @@ static void draw_asset(void) {
 
       while (input_variable_index < input_variable_count) {
 
-        fs_asset_reference_t *input_variable = &pipeline->input_variables[input_variable_index];
+        fs_asset_reference_t *input_variable = &pipeline->input_variable[input_variable_index];
 
         ImGui::PushID(input_variable);
 
@@ -225,6 +232,28 @@ static void draw_asset(void) {
         input_variable_index++;
       }
 
+      ImGui::PushID("Input Variables");
+      ImGui::PushFont((ImFont *)g_im_font_symbols_18);
+      if (ImGui::Button(ICON_MS_ADD)) {
+
+        uint64_t old_input_variable_count = pipeline->input_variable_count;
+        uint64_t new_input_variable_count = pipeline->input_variable_count + 1;
+
+        fs_asset_reference_t *old_input_variable = pipeline->input_variable;
+        fs_asset_reference_t *new_input_variable = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * new_input_variable_count, 0, 0);
+
+        memcpy(new_input_variable, old_input_variable, sizeof(fs_asset_reference_t) * old_input_variable_count);
+
+        TI_FREE(old_input_variable);
+
+        pipeline->input_variable_count = new_input_variable_count;
+        pipeline->input_variable = new_input_variable;
+
+        dirty = true;
+      }
+      ImGui::PopFont();
+      ImGui::PopID();
+
       ImGui::SeparatorText("Descriptor Bindings");
 
       uint64_t descriptor_binding_index = 0;
@@ -232,7 +261,7 @@ static void draw_asset(void) {
 
       while (descriptor_binding_index < descriptor_binding_count) {
 
-        fs_asset_reference_t *descriptor_binding = &pipeline->descriptor_bindings[descriptor_binding_index];
+        fs_asset_reference_t *descriptor_binding = &pipeline->descriptor_binding[descriptor_binding_index];
 
         ImGui::PushID(descriptor_binding);
 
@@ -241,6 +270,262 @@ static void draw_asset(void) {
         ImGui::PopID();
 
         descriptor_binding_index++;
+      }
+
+      ImGui::PushID("Descriptor Bindings");
+      ImGui::PushFont((ImFont *)g_im_font_symbols_18);
+      if (ImGui::Button(ICON_MS_ADD)) {
+
+        uint64_t old_descriptor_binding_count = pipeline->descriptor_binding_count;
+        uint64_t new_descriptor_binding_count = pipeline->descriptor_binding_count + 1;
+
+        fs_asset_reference_t *old_descriptor_binding = pipeline->descriptor_binding;
+        fs_asset_reference_t *new_descriptor_binding = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * new_descriptor_binding_count, 0, 0);
+
+        memcpy(new_descriptor_binding, old_descriptor_binding, sizeof(fs_asset_reference_t) * old_descriptor_binding_count);
+
+        TI_FREE(old_descriptor_binding);
+
+        pipeline->descriptor_binding_count = new_descriptor_binding_count;
+        pipeline->descriptor_binding = new_descriptor_binding;
+
+        dirty = true;
+      }
+      ImGui::PopFont();
+      ImGui::PopID();
+
+      ImGui::SeparatorText("Descriptor Pool Size");
+
+      uint64_t descriptor_pool_size_index = 0;
+      uint64_t descriptor_pool_size_count = pipeline->descriptor_pool_size_count;
+
+      while (descriptor_pool_size_index < descriptor_pool_size_count) {
+
+        fs_descriptor_pool_size_t *descriptor_pool_size = &pipeline->descriptor_pool_size[descriptor_pool_size_index];
+
+        if (descriptor_pool_size->name[0] != 0) {
+
+          ImGui::PushID(descriptor_pool_size);
+          if (ImGui::TreeNodeEx(descriptor_pool_size->name, tree_node_flags)) {
+
+            dirty |= draw_vulkan_enum_dropdown("Type", &descriptor_pool_size->type_index, g_vk_descriptor_type_table, TI_ARRAY_COUNT(g_vk_descriptor_type_table));
+
+            dirty |= ImGui::InputScalar("Descriptor Count", ImGuiDataType_U32, &descriptor_pool_size->descriptor_count, 0, 0, "%lu", ImGuiInputTextFlags_EnterReturnsTrue);
+
+            ImGui::TreePop();
+          }
+          ImGui::PopID();
+        }
+
+        descriptor_pool_size_index++;
+      }
+
+      ImGui::PushID("Descriptor Pool Size");
+      ImGui::PushFont((ImFont *)g_im_font_symbols_18);
+      if (ImGui::Button(ICON_MS_ADD)) {
+
+        if (s_descriptor_pool_size_name[0] != 0) {
+
+          uint64_t old_descriptor_pool_size_count = pipeline->descriptor_pool_size_count;
+          uint64_t new_descriptor_pool_size_count = pipeline->descriptor_pool_size_count + 1;
+
+          fs_descriptor_pool_size_t *old_descriptor_pool_size = pipeline->descriptor_pool_size;
+          fs_descriptor_pool_size_t *new_descriptor_pool_size = (fs_descriptor_pool_size_t *)TI_ALLOC(sizeof(fs_descriptor_pool_size_t) * new_descriptor_pool_size_count, 0, 0);
+
+          memcpy(new_descriptor_pool_size, old_descriptor_pool_size, sizeof(fs_descriptor_pool_size_t) * old_descriptor_pool_size_count);
+
+          TI_FREE(old_descriptor_pool_size);
+
+          pipeline->descriptor_pool_size_count = new_descriptor_pool_size_count;
+          pipeline->descriptor_pool_size = new_descriptor_pool_size;
+
+          strcpy(pipeline->descriptor_pool_size[pipeline->descriptor_pool_size_count - 1].name, s_descriptor_pool_size_name);
+
+          dirty = true;
+        }
+      }
+      ImGui::PopFont();
+      ImGui::SameLine();
+      ImGui::InputText("##Input", s_descriptor_pool_size_name, TI_PATH_SIZE);
+      ImGui::PopID();
+
+      ImGui::SeparatorText("Descriptor Set Layout Binding");
+
+      uint64_t descriptor_set_layout_binding_index = 0;
+      uint64_t descriptor_set_layout_binding_count = pipeline->descriptor_set_layout_binding_count;
+
+      while (descriptor_set_layout_binding_index < descriptor_set_layout_binding_count) {
+
+        fs_descriptor_set_layout_binding_t *descriptor_set_layout_binding = &pipeline->descriptor_set_layout_binding[descriptor_set_layout_binding_index];
+
+        if (descriptor_set_layout_binding->name[0] != 0) {
+
+          ImGui::PushID(descriptor_set_layout_binding);
+          if (ImGui::TreeNodeEx(descriptor_set_layout_binding->name, tree_node_flags)) {
+
+            dirty |= draw_vulkan_enum_dropdown("Type", &descriptor_set_layout_binding->descriptor_type_index, g_vk_descriptor_type_table, TI_ARRAY_COUNT(g_vk_descriptor_type_table));
+
+            dirty |= ImGui::InputScalar("Binding", ImGuiDataType_U32, &descriptor_set_layout_binding->binding, 0, 0, "%lu", ImGuiInputTextFlags_EnterReturnsTrue);
+            dirty |= ImGui::InputScalar("Descriptor Count", ImGuiDataType_U32, &descriptor_set_layout_binding->descriptor_count, 0, 0, "%lu", ImGuiInputTextFlags_EnterReturnsTrue);
+
+            dirty |= draw_shader_stage_flags(&descriptor_set_layout_binding->stage_flags);
+
+            ImGui::TreePop();
+          }
+          ImGui::PopID();
+        }
+
+        descriptor_set_layout_binding_index++;
+      }
+
+      ImGui::PushID("Descriptor Set Layout Binding");
+      ImGui::PushFont((ImFont *)g_im_font_symbols_18);
+      if (ImGui::Button(ICON_MS_ADD)) {
+
+        if (s_descriptor_set_layout_binding_name[0] != 0) {
+
+          uint64_t old_descriptor_set_layout_binding_count = pipeline->descriptor_set_layout_binding_count;
+          uint64_t new_descriptor_set_layout_binding_count = pipeline->descriptor_set_layout_binding_count + 1;
+
+          fs_descriptor_set_layout_binding_t *old_descriptor_set_layout_binding = pipeline->descriptor_set_layout_binding;
+          fs_descriptor_set_layout_binding_t *new_descriptor_set_layout_binding = (fs_descriptor_set_layout_binding_t *)TI_ALLOC(sizeof(fs_descriptor_set_layout_binding_t) * new_descriptor_set_layout_binding_count, 0, 0);
+
+          memcpy(new_descriptor_set_layout_binding, old_descriptor_set_layout_binding, sizeof(fs_descriptor_set_layout_binding_t) * old_descriptor_set_layout_binding_count);
+
+          TI_FREE(old_descriptor_set_layout_binding);
+
+          pipeline->descriptor_set_layout_binding_count = new_descriptor_set_layout_binding_count;
+          pipeline->descriptor_set_layout_binding = new_descriptor_set_layout_binding;
+
+          strcpy(pipeline->descriptor_set_layout_binding[pipeline->descriptor_set_layout_binding_count - 1].name, s_descriptor_set_layout_binding_name);
+
+          dirty = true;
+        }
+      }
+      ImGui::PopFont();
+      ImGui::SameLine();
+      ImGui::InputText("##Input", s_descriptor_set_layout_binding_name, TI_PATH_SIZE);
+      ImGui::PopID();
+
+      switch (pipeline->pipeline_type) {
+
+        case FS_PIPELINE_TYPE_DEFAULT: {
+
+          ImGui::SeparatorText("Vertex Input Binding Description");
+
+          uint64_t vertex_input_binding_description_index = 0;
+          uint64_t vertex_input_binding_description_count = pipeline->vertex_input_binding_description_count;
+
+          while (vertex_input_binding_description_index < vertex_input_binding_description_count) {
+
+            fs_vertex_input_binding_description_t *vertex_input_binding_description = &pipeline->vertex_input_binding_description[vertex_input_binding_description_index];
+
+            if (vertex_input_binding_description->name[0] != 0) {
+
+              ImGui::PushID(vertex_input_binding_description);
+              if (ImGui::TreeNodeEx(vertex_input_binding_description->name, tree_node_flags)) {
+
+                dirty |= ImGui::InputScalar("Binding", ImGuiDataType_U32, &vertex_input_binding_description->binding, 0, 0, "%lu", ImGuiInputTextFlags_EnterReturnsTrue);
+                dirty |= ImGui::InputScalar("Stride", ImGuiDataType_U32, &vertex_input_binding_description->stride, 0, 0, "%lu", ImGuiInputTextFlags_EnterReturnsTrue);
+
+                dirty |= draw_vulkan_enum_dropdown("Input Rate", &vertex_input_binding_description->input_rate_index, g_vk_vertex_input_rate_table, TI_ARRAY_COUNT(g_vk_vertex_input_rate_table));
+
+                ImGui::TreePop();
+              }
+              ImGui::PopID();
+            }
+
+            vertex_input_binding_description_index++;
+          }
+
+          ImGui::PushID("Vertex Input Binding Description");
+          ImGui::PushFont((ImFont *)g_im_font_symbols_18);
+          if (ImGui::Button(ICON_MS_ADD)) {
+
+            if (s_vertex_input_binding_description_name[0] != 0) {
+
+              uint64_t old_vertex_input_binding_description_count = pipeline->vertex_input_binding_description_count;
+              uint64_t new_vertex_input_binding_description_count = pipeline->vertex_input_binding_description_count + 1;
+
+              fs_vertex_input_binding_description_t *old_vertex_input_binding_description = pipeline->vertex_input_binding_description;
+              fs_vertex_input_binding_description_t *new_vertex_input_binding_description = (fs_vertex_input_binding_description_t *)TI_ALLOC(sizeof(fs_vertex_input_binding_description_t) * new_vertex_input_binding_description_count, 0, 0);
+
+              memcpy(new_vertex_input_binding_description, old_vertex_input_binding_description, sizeof(fs_vertex_input_binding_description_t) * old_vertex_input_binding_description_count);
+
+              TI_FREE(old_vertex_input_binding_description);
+
+              pipeline->vertex_input_binding_description_count = new_vertex_input_binding_description_count;
+              pipeline->vertex_input_binding_description = new_vertex_input_binding_description;
+
+              strcpy(pipeline->vertex_input_binding_description[pipeline->vertex_input_binding_description_count - 1].name, s_vertex_input_binding_description_name);
+
+              dirty = true;
+            }
+          }
+          ImGui::PopFont();
+          ImGui::SameLine();
+          ImGui::InputText("##Input", s_vertex_input_binding_description_name, TI_PATH_SIZE);
+          ImGui::PopID();
+
+          ImGui::SeparatorText("Vertex Input Attribute Description");
+
+          uint64_t vertex_input_attribute_description_index = 0;
+          uint64_t vertex_input_attribute_description_count = pipeline->vertex_input_attribute_description_count;
+
+          while (vertex_input_attribute_description_index < vertex_input_attribute_description_count) {
+
+            fs_vertex_input_attribute_description_t *vertex_input_attribute_description = &pipeline->vertex_input_attribute_description[vertex_input_attribute_description_index];
+
+            if (vertex_input_attribute_description->name[0] != 0) {
+
+              ImGui::PushID(vertex_input_attribute_description);
+              if (ImGui::TreeNodeEx(vertex_input_attribute_description->name, tree_node_flags)) {
+
+                dirty |= ImGui::InputScalar("Location", ImGuiDataType_U32, &vertex_input_attribute_description->location, 0, 0, "%lu", ImGuiInputTextFlags_EnterReturnsTrue);
+                dirty |= ImGui::InputScalar("Binding", ImGuiDataType_U32, &vertex_input_attribute_description->binding, 0, 0, "%lu", ImGuiInputTextFlags_EnterReturnsTrue);
+                dirty |= ImGui::InputScalar("Offset", ImGuiDataType_U32, &vertex_input_attribute_description->offset, 0, 0, "%lu", ImGuiInputTextFlags_EnterReturnsTrue);
+
+                dirty |= draw_vulkan_enum_dropdown("Format", &vertex_input_attribute_description->format_index, g_vk_format_table, TI_ARRAY_COUNT(g_vk_format_table));
+
+                ImGui::TreePop();
+              }
+              ImGui::PopID();
+            }
+
+            vertex_input_attribute_description_index++;
+          }
+
+          ImGui::PushID("Vertex Input Attribute Description");
+          ImGui::PushFont((ImFont *)g_im_font_symbols_18);
+          if (ImGui::Button(ICON_MS_ADD)) {
+
+            if (s_vertex_input_attribute_description_name[0] != 0) {
+
+              uint64_t old_vertex_input_attribute_description_count = pipeline->vertex_input_attribute_description_count;
+              uint64_t new_vertex_input_attribute_description_count = pipeline->vertex_input_attribute_description_count + 1;
+
+              fs_vertex_input_attribute_description_t *old_vertex_input_attribute_description = pipeline->vertex_input_attribute_description;
+              fs_vertex_input_attribute_description_t *new_vertex_input_attribute_description = (fs_vertex_input_attribute_description_t *)TI_ALLOC(sizeof(fs_vertex_input_attribute_description_t) * new_vertex_input_attribute_description_count, 0, 0);
+
+              memcpy(new_vertex_input_attribute_description, old_vertex_input_attribute_description, sizeof(fs_vertex_input_attribute_description_t) * old_vertex_input_attribute_description_count);
+
+              TI_FREE(old_vertex_input_attribute_description);
+
+              pipeline->vertex_input_attribute_description_count = new_vertex_input_attribute_description_count;
+              pipeline->vertex_input_attribute_description = new_vertex_input_attribute_description;
+
+              strcpy(pipeline->vertex_input_attribute_description[pipeline->vertex_input_attribute_description_count - 1].name, s_vertex_input_attribute_description_name);
+
+              dirty = true;
+            }
+          }
+          ImGui::PopFont();
+          ImGui::SameLine();
+          ImGui::InputText("##Input", s_vertex_input_attribute_description_name, TI_PATH_SIZE);
+          ImGui::PopID();
+
+          break;
+        }
       }
 
       break;
@@ -326,7 +611,7 @@ static void draw_asset(void) {
 
       fs_framebuffer_t *framebuffer = (fs_framebuffer_t *)s_selected_asset->instance;
 
-      dirty |= ImGui::InputText("Depth Attachment", framebuffer->depth_attachment.reference_path, TI_PATH_SIZE, ImGuiInputTextFlags_EnterReturnsTrue);
+      ImGui::SeparatorText("Color Attachment");
 
       uint64_t attachment_index_to_destroy = -1;
       uint64_t attachment_index = 0;
@@ -334,19 +619,18 @@ static void draw_asset(void) {
 
       while (attachment_index < attachment_count) {
 
-        fs_asset_reference_t *color_attachment_reference = &framebuffer->color_attachments[attachment_index];
+        fs_asset_reference_t *color_attachment_reference = &framebuffer->color_attachment[attachment_index];
 
         ImGui::PushID(color_attachment_reference);
 
-        ImGui::SameLine();
         ImGui::PushFont((ImFont *)g_im_font_symbols_18);
-
         if (ImGui::Button(ICON_MS_DELETE)) {
 
           attachment_index_to_destroy = attachment_index;
         }
-
         ImGui::PopFont();
+
+        ImGui::SameLine();
 
         dirty |= ImGui::InputText("Color Attachment", color_attachment_reference->reference_path, TI_PATH_SIZE, ImGuiInputTextFlags_EnterReturnsTrue);
 
@@ -357,44 +641,50 @@ static void draw_asset(void) {
 
       if (attachment_index_to_destroy != -1) {
 
-        fs_asset_reference_t *src_color_attachment = &framebuffer->color_attachments[framebuffer->color_attachment_count - 1];
-        fs_asset_reference_t *dst_color_attachment = &framebuffer->color_attachments[attachment_index_to_destroy];
+        fs_asset_reference_t *src_color_attachment = &framebuffer->color_attachment[framebuffer->color_attachment_count - 1];
+        fs_asset_reference_t *dst_color_attachment = &framebuffer->color_attachment[attachment_index_to_destroy];
 
         memcpy(dst_color_attachment, src_color_attachment, sizeof(fs_asset_reference_t));
 
         uint64_t old_color_attachment_count = framebuffer->color_attachment_count;
         uint64_t new_color_attachment_count = framebuffer->color_attachment_count - 1;
 
-        fs_asset_reference_t *old_color_attachments = framebuffer->color_attachments;
-        fs_asset_reference_t *new_color_attachments = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * new_color_attachment_count, 0, 0);
+        fs_asset_reference_t *old_color_attachment = framebuffer->color_attachment;
+        fs_asset_reference_t *new_color_attachment = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * new_color_attachment_count, 0, 0);
 
-        memcpy(new_color_attachments, old_color_attachments, sizeof(fs_asset_reference_t) * new_color_attachment_count);
+        memcpy(new_color_attachment, old_color_attachment, sizeof(fs_asset_reference_t) * new_color_attachment_count);
 
-        TI_FREE(old_color_attachments);
+        TI_FREE(old_color_attachment);
 
         framebuffer->color_attachment_count = new_color_attachment_count;
-        framebuffer->color_attachments = new_color_attachments;
+        framebuffer->color_attachment = new_color_attachment;
 
         dirty = true;
       }
 
-      if (ImGui::Button("Add Color Attachment")) {
+      ImGui::PushFont((ImFont *)g_im_font_symbols_18);
+      if (ImGui::Button(ICON_MS_ADD)) {
 
         uint64_t old_color_attachment_count = framebuffer->color_attachment_count;
         uint64_t new_color_attachment_count = framebuffer->color_attachment_count + 1;
 
-        fs_asset_reference_t *old_color_attachments = framebuffer->color_attachments;
-        fs_asset_reference_t *new_color_attachments = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * new_color_attachment_count, 0, 0);
+        fs_asset_reference_t *old_color_attachment = framebuffer->color_attachment;
+        fs_asset_reference_t *new_color_attachment = (fs_asset_reference_t *)TI_ALLOC(sizeof(fs_asset_reference_t) * new_color_attachment_count, 0, 0);
 
-        memcpy(new_color_attachments, old_color_attachments, sizeof(fs_asset_reference_t) * old_color_attachment_count);
+        memcpy(new_color_attachment, old_color_attachment, sizeof(fs_asset_reference_t) * old_color_attachment_count);
 
-        TI_FREE(old_color_attachments);
+        TI_FREE(old_color_attachment);
 
         framebuffer->color_attachment_count = new_color_attachment_count;
-        framebuffer->color_attachments = new_color_attachments;
+        framebuffer->color_attachment = new_color_attachment;
 
         dirty = true;
       }
+      ImGui::PopFont();
+
+      ImGui::SeparatorText("Depth Attachment");
+
+      dirty |= ImGui::InputText("Depth Attachment", framebuffer->depth_attachment.reference_path, TI_PATH_SIZE, ImGuiInputTextFlags_EnterReturnsTrue);
 
       break;
     }
@@ -523,7 +813,8 @@ static void draw_entity_controls(void) {
 
   ImGui::SameLine();
 
-  if (ImGui::Button("Add")) {
+  ImGui::PushFont((ImFont *)g_im_font_symbols_18);
+  if (ImGui::Button(ICON_MS_ADD)) {
 
     switch (s_selected_comp) {
 
@@ -579,10 +870,12 @@ static void draw_entity_controls(void) {
       }
     }
   }
+  ImGui::PopFont();
 
   ImGui::SameLine();
 
-  if (ImGui::Button("Remove")) {
+  ImGui::PushFont((ImFont *)g_im_font_symbols_18);
+  if (ImGui::Button(ICON_MS_REMOVE)) {
 
     switch (s_selected_comp) {
 
@@ -618,11 +911,15 @@ static void draw_entity_controls(void) {
       }
     }
   }
+  ImGui::PopFont();
 }
 static void draw_entity(void) {
+  bool dirty = false;
+
   ImGuiTreeNodeFlags tree_node_flags = ImGuiTreeNodeFlags_OpenOnArrow |
                                        ImGuiTreeNodeFlags_SpanFullWidth |
-                                       ImGuiTreeNodeFlags_FramePadding;
+                                       ImGuiTreeNodeFlags_FramePadding |
+                                       ImGuiTreeNodeFlags_Framed;
 
   cp_transform_t *transform = ecs_get_mut(g_scene.world, s_selected_entity, cp_transform_t);
   cp_camera_t *camera = ecs_get_mut(g_scene.world, s_selected_entity, cp_camera_t);
@@ -726,6 +1023,10 @@ static void draw_entity(void) {
 
       ImGui::TreePop();
     }
+  }
+
+  if (dirty) {
+    // TODO
   }
 }
 
@@ -844,7 +1145,30 @@ static bool draw_cull_mode_flags(VkCullModeFlags *flags) {
 
   return dirty;
 }
+static bool draw_shader_stage_flags(VkShaderStageFlags *flags) {
+  bool dirty = false;
 
+  dirty |= ImGui::CheckboxFlags("VK_SHADER_STAGE_VERTEX_BIT", flags, VK_SHADER_STAGE_VERTEX_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT", flags, VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT", flags, VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_SHADER_STAGE_GEOMETRY_BIT", flags, VK_SHADER_STAGE_GEOMETRY_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_SHADER_STAGE_FRAGMENT_BIT", flags, VK_SHADER_STAGE_FRAGMENT_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_SHADER_STAGE_COMPUTE_BIT", flags, VK_SHADER_STAGE_COMPUTE_BIT);
+  dirty |= ImGui::CheckboxFlags("VK_SHADER_STAGE_ALL_GRAPHICS", flags, VK_SHADER_STAGE_ALL_GRAPHICS);
+  dirty |= ImGui::CheckboxFlags("VK_SHADER_STAGE_ALL", flags, VK_SHADER_STAGE_ALL);
+  dirty |= ImGui::CheckboxFlags("VK_SHADER_STAGE_RAYGEN_BIT_KHR", flags, VK_SHADER_STAGE_RAYGEN_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_SHADER_STAGE_ANY_HIT_BIT_KHR", flags, VK_SHADER_STAGE_ANY_HIT_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR", flags, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_SHADER_STAGE_MISS_BIT_KHR", flags, VK_SHADER_STAGE_MISS_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_SHADER_STAGE_INTERSECTION_BIT_KHR", flags, VK_SHADER_STAGE_INTERSECTION_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_SHADER_STAGE_CALLABLE_BIT_KHR", flags, VK_SHADER_STAGE_CALLABLE_BIT_KHR);
+  dirty |= ImGui::CheckboxFlags("VK_SHADER_STAGE_TASK_BIT_EXT", flags, VK_SHADER_STAGE_TASK_BIT_EXT);
+  dirty |= ImGui::CheckboxFlags("VK_SHADER_STAGE_MESH_BIT_EXT", flags, VK_SHADER_STAGE_MESH_BIT_EXT);
+  dirty |= ImGui::CheckboxFlags("VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI", flags, VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI);
+  dirty |= ImGui::CheckboxFlags("VK_SHADER_STAGE_CLUSTER_CULLING_BIT_HUAWEI", flags, VK_SHADER_STAGE_CLUSTER_CULLING_BIT_HUAWEI);
+
+  return dirty;
+}
 static bool draw_vulkan_enum_dropdown(char const *label, uint64_t *selected_index, vk_enum_record_t *table, uint64_t table_count) {
   bool dirty = false;
 

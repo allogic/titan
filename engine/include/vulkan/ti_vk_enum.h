@@ -13,6 +13,7 @@ extern vk_enum_record_t g_vk_image_view_type_table[7];
 extern vk_enum_record_t g_vk_descriptor_type_table[19];
 extern vk_enum_record_t g_vk_primitive_topology_table[11];
 extern vk_enum_record_t g_vk_polygon_mode_table[4];
+extern vk_enum_record_t g_vk_vertex_input_rate_table[2];
 
 uint64_t vk_find_format_index(VkFormat format);
 uint64_t vk_find_image_layout_index(VkImageLayout image_layout);
@@ -22,6 +23,7 @@ uint64_t vk_find_image_view_type_index(VkImageViewType image_view_type);
 uint64_t vk_find_descriptor_type_index(VkDescriptorType descriptor_type);
 uint64_t vk_find_primitive_topology_index(VkPrimitiveTopology primitive_topology);
 uint64_t vk_find_polygon_mode_index(VkPolygonMode polygon_mode);
+uint64_t vk_find_vertex_input_rate_index(VkVertexInputRate vertex_input_rate);
 
 #ifdef __cplusplus
 }
