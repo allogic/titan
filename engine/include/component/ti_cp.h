@@ -3,9 +3,11 @@
 
 #include <component/ti_cp_transform.h>
 #include <component/ti_cp_camera.h>
+#include <component/ti_cp_editor_camera_controller.h>
 #include <component/ti_cp_material.h>
 #include <component/ti_cp_mesh.h>
 #include <component/ti_cp_skeleton.h>
 #include <component/ti_cp_script.h>
+#include <component/ti_cp_velocity.h>
 
 #endif // TI_CP_H

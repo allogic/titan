@@ -1,19 +1,19 @@
-__forceinline fvec3_t cp_transform_local_right(cp_transform_t const *transform) {
+__forceinline fvec3_t cp_transform_local_right(cp_transform_t *transform) {
   return fquat_right((fquat_t){transform->rotation_x, transform->rotation_y, transform->rotation_z, transform->rotation_w});
 }
-__forceinline fvec3_t cp_transform_local_up(cp_transform_t const *transform) {
+__forceinline fvec3_t cp_transform_local_up(cp_transform_t *transform) {
   return fquat_up((fquat_t){transform->rotation_x, transform->rotation_y, transform->rotation_z, transform->rotation_w});
 }
-__forceinline fvec3_t cp_transform_local_front(cp_transform_t const *transform) {
+__forceinline fvec3_t cp_transform_local_front(cp_transform_t *transform) {
   return fquat_front((fquat_t){transform->rotation_x, transform->rotation_y, transform->rotation_z, transform->rotation_w});
 }
-__forceinline fvec3_t cp_transform_local_left(cp_transform_t const *transform) {
+__forceinline fvec3_t cp_transform_local_left(cp_transform_t *transform) {
   return fvec3_negate(fquat_right((fquat_t){transform->rotation_x, transform->rotation_y, transform->rotation_z, transform->rotation_w}));
 }
-__forceinline fvec3_t cp_transform_local_down(cp_transform_t const *transform) {
+__forceinline fvec3_t cp_transform_local_down(cp_transform_t *transform) {
   return fvec3_negate(fquat_up((fquat_t){transform->rotation_x, transform->rotation_y, transform->rotation_z, transform->rotation_w}));
 }
-__forceinline fvec3_t cp_transform_local_back(cp_transform_t const *transform) {
+__forceinline fvec3_t cp_transform_local_back(cp_transform_t *transform) {
   return fvec3_negate(fquat_front((fquat_t){transform->rotation_x, transform->rotation_y, transform->rotation_z, transform->rotation_w}));
 }
 

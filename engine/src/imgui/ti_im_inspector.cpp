@@ -26,6 +26,7 @@ static fs_asset_t *s_selected_asset = 0;
 static const char *s_component_name[] = {
   "Transform",
   "Camera",
+  "Velocity",
   "Material",
   "Mesh",
   "Skeleton",
@@ -838,6 +839,16 @@ static void draw_entity_controls(void) {
 
         break;
       }
+      case CP_COMPONENT_TYPE_VELOCITY: {
+
+        ecs_add(g_scene.world, s_selected_entity, cp_velocity_t);
+
+        cp_velocity_t *velocity = ecs_get_mut(g_scene.world, s_selected_entity, cp_velocity_t);
+
+        cp_velocity_init(velocity);
+
+        break;
+      }
       case CP_COMPONENT_TYPE_MATERIAL: {
 
         ecs_add(g_scene.world, s_selected_entity, cp_material_t);
@@ -923,6 +934,7 @@ static void draw_entity(void) {
 
   cp_transform_t *transform = ecs_get_mut(g_scene.world, s_selected_entity, cp_transform_t);
   cp_camera_t *camera = ecs_get_mut(g_scene.world, s_selected_entity, cp_camera_t);
+  cp_velocity_t *velocity = ecs_get_mut(g_scene.world, s_selected_entity, cp_velocity_t);
   cp_material_t *material = ecs_get_mut(g_scene.world, s_selected_entity, cp_material_t);
   cp_mesh_t *mesh = ecs_get_mut(g_scene.world, s_selected_entity, cp_mesh_t);
   cp_skeleton_t *skeleton = ecs_get_mut(g_scene.world, s_selected_entity, cp_skeleton_t);
@@ -982,6 +994,32 @@ static void draw_entity(void) {
       if (ImGui::DragFloat("Far Z", &camera->far_z, 0.01F, 0.0F, 0.0F, "%.3F", 0)) {
         // TODO
       }
+
+      ImGui::TreePop();
+    }
+  }
+
+  if (velocity) {
+
+    if (ImGui::TreeNodeEx("Velocity", tree_node_flags)) {
+
+      fvec3_t linear = {velocity->linear_x, velocity->linear_y, velocity->linear_z};
+      fvec3_t angular = {velocity->angular_x, velocity->angular_y, velocity->angular_z};
+
+      if (ImGui::DragFloat3("Linear", (float *)&linear, 0.01F, 0.0F, 0.0F, "%.3F", 0)) {
+
+        velocity->linear_x = linear.x;
+        velocity->linear_y = linear.y;
+        velocity->linear_z = linear.z;
+      }
+      if (ImGui::DragFloat3("Angular", (float *)&angular, 0.01F, 0.0F, 0.0F, "%.3F", 0)) {
+
+        velocity->angular_x = angular.x;
+        velocity->angular_y = angular.y;
+        velocity->angular_z = angular.z;
+      }
+      ImGui::DragFloat("Linear Drag", &velocity->linear_drag, 0.01F, 0.0F, 0.0F, "%.3F", 0);
+      ImGui::DragFloat("Angular Drag", &velocity->angular_drag, 0.01F, 0.0F, 0.0F, "%.3F", 0);
 
       ImGui::TreePop();
     }
@@ -1172,6 +1210,7 @@ static bool draw_shader_stage_flags(VkShaderStageFlags *flags) {
 
   return dirty;
 }
+
 static bool draw_vulkan_enum_dropdown(char const *label, uint64_t *selected_index, vk_enum_record_t *table, uint64_t table_count) {
   bool dirty = false;
 

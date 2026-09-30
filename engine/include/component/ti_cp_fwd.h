@@ -25,6 +25,7 @@ typedef enum cp_frustum_corner_t {
 typedef enum cp_component_type_t {
   CP_COMPONENT_TYPE_TRANSFORM = 0,
   CP_COMPONENT_TYPE_CAMERA,
+  CP_COMPONENT_TYPE_VELOCITY,
   CP_COMPONENT_TYPE_MATERIAL,
   CP_COMPONENT_TYPE_MESH,
   CP_COMPONENT_TYPE_SKELETON,
@@ -34,6 +35,8 @@ typedef enum cp_component_type_t {
 
 ECS_STRUCT_TYPE(cp_transform_t, TI_CP_TRANSFORM_DECL);
 ECS_STRUCT_TYPE(cp_camera_t, TI_CP_CAMERA_DECL);
+ECS_STRUCT_TYPE(cp_velocity_t, TI_CP_VELOCITY_DECL);
+ECS_STRUCT_TYPE(cp_editor_camera_controller_t, TI_CP_EDITOR_CAMERA_CONTROLLER_DECL);
 ECS_STRUCT_TYPE(cp_material_t, TI_CP_MATERIAL_DECL);
 ECS_STRUCT_TYPE(cp_mesh_t, TI_CP_MESH_DECL);
 ECS_STRUCT_TYPE(cp_skeleton_t, TI_CP_SKELETON_DECL);
@@ -50,6 +53,7 @@ extern "C" {
 
 extern ECS_COMPONENT_DECLARE(cp_transform_t);
 extern ECS_COMPONENT_DECLARE(cp_camera_t);
+extern ECS_COMPONENT_DECLARE(cp_velocity_t);
 extern ECS_COMPONENT_DECLARE(cp_material_t);
 extern ECS_COMPONENT_DECLARE(cp_mesh_t);
 extern ECS_COMPONENT_DECLARE(cp_skeleton_t);

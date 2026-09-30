@@ -94,6 +94,7 @@ void pl_window_run(pl_window_t *window) {
       DispatchMessageA(&msg);
     }
 
+    scene_update(&g_scene);
     physic_update(window->delta_time);
     audio_update();
 

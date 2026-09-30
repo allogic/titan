@@ -8,6 +8,8 @@
 // TODO: resolve asset references inside the gui and display it via TreeNodeEx..
 // TODO: fix sound importer..
 // TODO: check ECS transients for async asset loading..
+// TODO: create a editor camera component and create an entity with it depending on wether we are in editor or runtime mode..
+// TODO: handle events properly..
 
 static void import_default_assets(void);
 static void create_default_assets(void);
@@ -24,7 +26,7 @@ int32_t main(int32_t argc, char **argv) {
     audio_create();
     // TODO: Add missing ti_audio_demo_create()
     physic_create();
-    scene_create(&g_scene, "test", "asset/scene/test.pak");
+    scene_create(&g_scene);
 
     import_default_assets();
     create_default_assets();

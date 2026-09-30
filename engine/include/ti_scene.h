@@ -7,7 +7,8 @@ extern "C" {
 
 extern scene_t g_scene;
 
-void scene_create(scene_t *scene, char const *file_name, char const *file_path);
+void scene_create(scene_t *scene);
+void scene_update(scene_t *scene);
 // TODO
 // void scene_load(scene_t *scene, fs_file *file);
 // void scene_store(scene_t *scene, fs_file *file);

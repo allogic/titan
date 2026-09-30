@@ -12,12 +12,12 @@ void cp_transform_init(cp_transform_t *transform);
 // void cp_transform_compute_world_rotation(cp_transform_t *transform);
 // void cp_transform_compute_world_scale(cp_transform_t *transform);
 
-__forceinline fvec3_t cp_transform_local_right(cp_transform_t const *transform);
-__forceinline fvec3_t cp_transform_local_up(cp_transform_t const *transform);
-__forceinline fvec3_t cp_transform_local_front(cp_transform_t const *transform);
-__forceinline fvec3_t cp_transform_local_left(cp_transform_t const *transform);
-__forceinline fvec3_t cp_transform_local_down(cp_transform_t const *transform);
-__forceinline fvec3_t cp_transform_local_back(cp_transform_t const *transform);
+__forceinline fvec3_t cp_transform_local_right(cp_transform_t *transform);
+__forceinline fvec3_t cp_transform_local_up(cp_transform_t *transform);
+__forceinline fvec3_t cp_transform_local_front(cp_transform_t *transform);
+__forceinline fvec3_t cp_transform_local_left(cp_transform_t *transform);
+__forceinline fvec3_t cp_transform_local_down(cp_transform_t *transform);
+__forceinline fvec3_t cp_transform_local_back(cp_transform_t *transform);
 
 // __forceinline void cp_transform_set_position(cp_transform_t *transform, fvec3_t position);
 // __forceinline void cp_transform_set_position_xyz(cp_transform_t *transform, float x, float y, float z);

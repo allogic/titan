@@ -28,6 +28,7 @@
 #define FLECS_META
 #define FLECS_JSON
 #define FLECS_SYSTEM
+#define FLECS_PIPELINE
 #include <flecs.h>
 
 #include <fs.h>

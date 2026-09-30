@@ -465,13 +465,11 @@ static void update_coherent_buffer(vk_renderer_t *renderer) {
 
       fvec3_t camera_direction = fquat_front(camera_rotation);
 
-      fvec3_t up = {0.0F, 1.0F, 0.0F};
-
       float aspect_ratio = (float)g_pl_window.width / (float)g_pl_window.height;
 
       camera_info->position = (fvec4_t){camera_position.x, camera_position.y, camera_position.z, 0.0F};
       camera_info->direction = (fvec4_t){camera_direction.x, camera_direction.y, camera_direction.z};
-      camera_info->view = fmat4x4_look_at(camera_position, fvec3_add(camera_position, camera_direction), up);
+      camera_info->view = fmat4x4_look_at(camera_position, fvec3_add(camera_position, camera_direction), fvec3_up());
       camera_info->view_inv = fmat4x4_inverse(camera_info->view);
       camera_info->projection = fmat4x4_persp(deg_to_rad(-camera->fov), aspect_ratio, camera->near_z, camera->far_z);
       camera_info->projection_inv = fmat4x4_inverse(camera_info->projection);
