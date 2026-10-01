@@ -102,11 +102,18 @@ static void draw_scene_controls(void) {
     // TODO
   }
 
-  ImGui::SameLine();
+  ImGui::SetCursorPos(ImVec2(450.0F, 5.0F));
 
   if (ImGui::Button(ICON_MS_PLAY_ARROW)) {
 
     scene_play(&g_scene);
+  }
+
+  ImGui::SameLine();
+
+  if (ImGui::Button(ICON_MS_PAUSE)) {
+
+    scene_pause(&g_scene);
   }
 
   ImGui::SameLine();

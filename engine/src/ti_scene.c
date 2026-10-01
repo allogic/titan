@@ -148,6 +148,9 @@ void scene_play(scene_t *scene) {
   scene->snapshot = ecs_world_to_json(scene->world, 0);
   scene->is_running = 1;
 }
+void scene_pause(scene_t *scene) {
+  // TODO
+}
 void scene_stop(scene_t *scene) {
   if (scene->snapshot) {
 
