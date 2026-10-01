@@ -1,28 +1,39 @@
 #include <ti_pch.h>
 
-static LRESULT window_message_proc(HWND window_handle, UINT window_message, WPARAM w_param, LPARAM l_param);
+#include <windows.h>
 
-static char const *s_window_class = "TITAN_WND_CLASS";
+static LRESULT message_proc(HWND window_handle, UINT window_message, WPARAM w_param, LPARAM l_param);
 
-void pl_window_create(pl_window_t *window) {
-  window->is_first_frame = 1;
-  window->window_border_width = 1;
-  window->titlebar_height = 35;
-  window->sidebar_width = 46;
-  window->module_handle = GetModuleHandleA(0);
+// TODO: config this bitch..
+window_t g_window = {
+  .width = 1920,
+  .height = 1080,
+  .title = "TITAN",
+  .class_name = "TITAN_WND_CLASS",
+  .h_border_padding = 7,
+  .v_border_padding = 10,
+  .titlebar_height = 35,
+};
+
+void window_create(void) {
+  g_window.is_first_frame = 1;
+  g_window.window_border_width = 1;
+  g_window.titlebar_height = 35;
+  g_window.sidebar_width = 46;
+  g_window.module_handle = GetModuleHandleA(0);
 
   WNDCLASSEX window_class_ex = {
     .cbSize = sizeof(WNDCLASSEX),
     .style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
-    .lpfnWndProc = window_message_proc,
+    .lpfnWndProc = message_proc,
     .cbClsExtra = 0,
     .cbWndExtra = 0,
-    .hInstance = window->module_handle,
+    .hInstance = g_window.module_handle,
     .hIcon = LoadIconA(0, IDI_APPLICATION),
     .hCursor = LoadCursorA(0, IDC_ARROW),
     .hbrBackground = (HBRUSH)(COLOR_WINDOW + 1),
     .lpszMenuName = 0,
-    .lpszClassName = s_window_class,
+    .lpszClassName = g_window.class_name,
     .hIconSm = LoadIconA(0, IDI_APPLICATION),
   };
 
@@ -30,43 +41,44 @@ void pl_window_create(pl_window_t *window) {
 
   INT screen_width = GetSystemMetrics(SM_CXSCREEN);
   INT screen_height = GetSystemMetrics(SM_CYSCREEN);
-  INT window_position_x = (screen_width - window->width) / 2;
-  INT window_position_y = (screen_height - window->height) / 2;
+  INT window_position_x = (screen_width - g_window.width) / 2;
+  INT window_position_y = (screen_height - g_window.height) / 2;
 
-  window->window_handle = CreateWindowExA(
+  g_window.window_handle = CreateWindowExA(
     0,
-    s_window_class, window->title,
+    g_window.class_name,
+    g_window.title,
     WS_POPUP | WS_THICKFRAME,
     window_position_x, window_position_y,
-    window->width, window->height,
+    g_window.width, g_window.height,
     0,
     0,
-    window->module_handle,
-    window);
+    g_window.module_handle,
+    &g_window);
 
-  ShowWindow(window->window_handle, SW_SHOW);
+  ShowWindow(g_window.window_handle, SW_SHOW);
 
   vk_create();
 }
-void pl_window_run(pl_window_t *window) {
-  QueryPerformanceFrequency(&window->time_freq);
-  QueryPerformanceCounter(&window->time_prev);
+void window_run(void) {
+  QueryPerformanceFrequency((PLARGE_INTEGER)&g_window.time_freq);
+  QueryPerformanceCounter((PLARGE_INTEGER)&g_window.time_prev);
 
   im_viewport_update(&g_vk_viewport);
 
-  while (window->is_running) {
+  while (g_window.is_running) {
 
-    window->mouse_wheel_delta = 0;
+    g_window.mouse_wheel_delta = 0;
 
     uint32_t keyboard_key_index = 0;
     uint32_t keyboard_key_count = KEYBOARD_KEY_COUNT;
 
     while (keyboard_key_index < keyboard_key_count) {
 
-      if (window->keyboard_key_states[keyboard_key_index] == KEY_STATE_PRESSED) {
-        window->keyboard_key_states[keyboard_key_index] = KEY_STATE_DOWN;
-      } else if (window->keyboard_key_states[keyboard_key_index] == KEY_STATE_RELEASED) {
-        window->keyboard_key_states[keyboard_key_index] = KEY_STATE_UP;
+      if (g_window.keyboard_key_states[keyboard_key_index] == KEY_STATE_PRESSED) {
+        g_window.keyboard_key_states[keyboard_key_index] = KEY_STATE_DOWN;
+      } else if (g_window.keyboard_key_states[keyboard_key_index] == KEY_STATE_RELEASED) {
+        g_window.keyboard_key_states[keyboard_key_index] = KEY_STATE_UP;
       }
 
       keyboard_key_index++;
@@ -77,10 +89,10 @@ void pl_window_run(pl_window_t *window) {
 
     while (mouse_key_index < mouse_key_count) {
 
-      if (window->mouse_key_states[mouse_key_index] == KEY_STATE_PRESSED) {
-        window->mouse_key_states[mouse_key_index] = KEY_STATE_DOWN;
-      } else if (window->mouse_key_states[mouse_key_index] == KEY_STATE_RELEASED) {
-        window->mouse_key_states[mouse_key_index] = KEY_STATE_UP;
+      if (g_window.mouse_key_states[mouse_key_index] == KEY_STATE_PRESSED) {
+        g_window.mouse_key_states[mouse_key_index] = KEY_STATE_DOWN;
+      } else if (g_window.mouse_key_states[mouse_key_index] == KEY_STATE_RELEASED) {
+        g_window.mouse_key_states[mouse_key_index] = KEY_STATE_UP;
       }
 
       mouse_key_index++;
@@ -95,7 +107,7 @@ void pl_window_run(pl_window_t *window) {
     }
 
     scene_update(&g_scene);
-    physic_update(window->delta_time);
+    physic_update(g_window.delta_time);
     audio_update();
 
     fvec3_t center = {0.0F, 0.0F, 0.0F};
@@ -112,7 +124,7 @@ void pl_window_run(pl_window_t *window) {
 
     vk_renderer_draw(&g_vk_renderer);
 
-    QueryPerformanceCounter(&window->time_curr);
+    QueryPerformanceCounter((PLARGE_INTEGER)&g_window.time_curr);
 
     if (g_vk_main_framebuffer.is_dirty) {
 
@@ -153,45 +165,65 @@ void pl_window_run(pl_window_t *window) {
       vk_renderer_create(&g_vk_renderer, "asset/renderer/main.pak");
 
       vk_framebuffer_create(&g_vk_main_framebuffer, &g_vk_main_renderpass, g_vk_viewport.width, g_vk_viewport.height, "asset/framebuffer/main.pak");
-      vk_framebuffer_create(&g_vk_imgui_framebuffer, &g_vk_imgui_renderpass, g_pl_window.width, g_pl_window.height, "asset/framebuffer/imgui.pak");
+      vk_framebuffer_create(&g_vk_imgui_framebuffer, &g_vk_imgui_renderpass, g_window.width, g_window.height, "asset/framebuffer/imgui.pak");
 
       im_viewport_update(&g_vk_viewport);
     }
 
-    double time_freq = (double)window->time_freq.QuadPart;
-    double time_prev = (double)window->time_prev.QuadPart;
-    double time_curr = (double)window->time_curr.QuadPart;
+    double time_freq = (double)g_window.time_freq;
+    double time_prev = (double)g_window.time_prev;
+    double time_curr = (double)g_window.time_curr;
 
     float delta_time = (float)((time_curr - time_prev) / time_freq);
 
     delta_time = clampf(delta_time, 0.0F, TI_WINDOW_MAX_DELTA_TIME);
 
-    window->delta_time = delta_time;
-    window->time_prev = window->time_curr;
-    window->time += delta_time;
-    window->elapsed_time_since_fps_count_update += delta_time;
-    window->fps_counter++;
+    g_window.delta_time = delta_time;
+    g_window.time_prev = g_window.time_curr;
+    g_window.time += delta_time;
+    g_window.elapsed_time_since_fps_count_update += delta_time;
+    g_window.fps_counter++;
 
-    if ((window->elapsed_time_since_fps_count_update > 1.0F) || (window->is_first_frame)) {
+    if ((g_window.elapsed_time_since_fps_count_update > 1.0F) || (g_window.is_first_frame)) {
 
-      window->elapsed_time_since_fps_count_update = 0.0F;
-      window->final_fps_counter = window->fps_counter;
-      window->fps_counter = 0;
+      g_window.elapsed_time_since_fps_count_update = 0.0F;
+      g_window.final_fps_counter = g_window.fps_counter;
+      g_window.fps_counter = 0;
     }
 
-    window->is_first_frame = 0;
+    g_window.is_first_frame = 0;
   }
 }
-void pl_window_destroy(pl_window_t *window) {
+void window_destroy(void) {
   vk_destroy();
 
-  DestroyWindow(window->window_handle);
+  DestroyWindow(g_window.window_handle);
 
-  UnregisterClassA(s_window_class, window->module_handle);
+  UnregisterClassA(g_window.class_name, g_window.module_handle);
 }
 
-static LRESULT window_message_proc(HWND window_handle, UINT window_message, WPARAM w_param, LPARAM l_param) {
-  pl_window_t *window = (pl_window_t *)GetWindowLongPtr(window_handle, GWLP_USERDATA);
+uint8_t is_keyboard_key_pressed(keyboard_key_t key) {
+  return g_window.keyboard_key_states[key] == KEY_STATE_PRESSED;
+}
+uint8_t is_keyboard_key_held(keyboard_key_t key) {
+  return (g_window.keyboard_key_states[key] == KEY_STATE_DOWN) || (g_window.keyboard_key_states[key] == KEY_STATE_PRESSED);
+}
+uint8_t is_keyboard_key_released(keyboard_key_t key) {
+  return g_window.keyboard_key_states[key] == KEY_STATE_RELEASED;
+}
+
+uint8_t is_mouse_key_pressed(mouse_key_t key) {
+  return g_window.mouse_key_states[key] == KEY_STATE_PRESSED;
+}
+uint8_t is_mouse_key_held(mouse_key_t key) {
+  return (g_window.mouse_key_states[key] == KEY_STATE_DOWN) || (g_window.mouse_key_states[key] == KEY_STATE_PRESSED);
+}
+uint8_t is_mouse_key_released(mouse_key_t key) {
+  return g_window.mouse_key_states[key] == KEY_STATE_RELEASED;
+}
+
+static LRESULT message_proc(HWND window_handle, UINT window_message, WPARAM w_param, LPARAM l_param) {
+  window_t *window = (window_t *)GetWindowLongPtr(window_handle, GWLP_USERDATA);
 
   im_message(window_handle, window_message, w_param, l_param);
 

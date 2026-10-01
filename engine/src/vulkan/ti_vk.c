@@ -1,7 +1,7 @@
 #include <ti_pch.h>
 
 #ifdef BUILD_DEBUG
-static VkBool32 vulkan_message_proc(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity, VkDebugUtilsMessageTypeFlagsEXT message_type, VkDebugUtilsMessengerCallbackDataEXT const *callback_data, void *user_data);
+static VkBool32 message_proc(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity, VkDebugUtilsMessageTypeFlagsEXT message_type, VkDebugUtilsMessengerCallbackDataEXT const *callback_data, void *user_data);
 #endif // BUILD_DEBUG
 
 static void create_instance(void);
@@ -149,7 +149,7 @@ void vk_create(void) {
   vk_renderer_create(&g_vk_renderer, "asset/renderer/main.pak");
 
   vk_framebuffer_create(&g_vk_main_framebuffer, &g_vk_main_renderpass, g_vk_viewport.width, g_vk_viewport.height, "asset/framebuffer/main.pak");
-  vk_framebuffer_create(&g_vk_imgui_framebuffer, &g_vk_imgui_renderpass, g_pl_window.width, g_pl_window.height, "asset/framebuffer/imgui.pak");
+  vk_framebuffer_create(&g_vk_imgui_framebuffer, &g_vk_imgui_renderpass, g_window.width, g_window.height, "asset/framebuffer/imgui.pak");
 
   im_create();
 }
@@ -183,8 +183,8 @@ void vk_destroy(void) {
 void vk_update_surface_capabilities(void) {
   TI_VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(g_vk_instance.physical_device, g_vk_instance.surface, &g_vk_instance.surface_capabilities));
 
-  g_pl_window.width = g_vk_instance.surface_capabilities.currentExtent.width;
-  g_pl_window.height = g_vk_instance.surface_capabilities.currentExtent.height;
+  g_window.width = g_vk_instance.surface_capabilities.currentExtent.width;
+  g_window.height = g_vk_instance.surface_capabilities.currentExtent.height;
 
   g_vk_instance.min_image_count = g_vk_instance.surface_capabilities.minImageCount;
   g_vk_instance.max_image_count = g_vk_instance.surface_capabilities.maxImageCount;
@@ -244,7 +244,7 @@ void vk_primary_command_buffer_submit_immediate(VkCommandBuffer command_buffer) 
 }
 
 #ifdef BUILD_DEBUG
-static VkBool32 vulkan_message_proc(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity, VkDebugUtilsMessageTypeFlagsEXT message_type, VkDebugUtilsMessengerCallbackDataEXT const *callback_data, void *user_data) {
+static VkBool32 message_proc(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity, VkDebugUtilsMessageTypeFlagsEXT message_type, VkDebugUtilsMessengerCallbackDataEXT const *callback_data, void *user_data) {
   printf("%s\n", callback_data->pMessage);
 
   __debugbreak();
@@ -285,7 +285,7 @@ static void create_instance(void) {
     .flags = 0,
     .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
     .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
-    .pfnUserCallback = vulkan_message_proc,
+    .pfnUserCallback = message_proc,
     .pUserData = 0,
   };
 #endif // BUILD_DEBUG
@@ -334,8 +334,8 @@ static void create_instance(void) {
 static void create_surface(void) {
   VkWin32SurfaceCreateInfoKHR win32_surface_create_info = {
     .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
-    .hwnd = g_pl_window.window_handle,
-    .hinstance = g_pl_window.module_handle,
+    .hwnd = g_window.window_handle,
+    .hinstance = g_window.module_handle,
   };
 
   TI_VK_CHECK(vkCreateWin32SurfaceKHR(g_vk_instance.instance, &win32_surface_create_info, 0, &g_vk_instance.surface));

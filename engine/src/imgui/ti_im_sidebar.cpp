@@ -7,12 +7,12 @@ static void draw_button(ImVec2 position, im_sidebar_tab_t current_tab, char cons
 im_sidebar_tab_t g_sidebar_tab = IM_SIDEBAR_TAB_HIERARCHY;
 
 void im_sidebar_draw(void) {
-  if (g_pl_window.is_maximized) {
-    ImGui::SetNextWindowPos(ImVec2((float)g_pl_window.h_border_padding, (float)g_pl_window.titlebar_height + (float)g_pl_window.v_border_padding));
-    ImGui::SetNextWindowSize(ImVec2((float)g_pl_window.sidebar_width, (float)g_pl_window.height - (float)g_pl_window.titlebar_height - (float)g_pl_window.v_border_padding * 2));
+  if (g_window.is_maximized) {
+    ImGui::SetNextWindowPos(ImVec2((float)g_window.h_border_padding, (float)g_window.titlebar_height + (float)g_window.v_border_padding));
+    ImGui::SetNextWindowSize(ImVec2((float)g_window.sidebar_width, (float)g_window.height - (float)g_window.titlebar_height - (float)g_window.v_border_padding * 2));
   } else {
-    ImGui::SetNextWindowPos(ImVec2(0.0F, (float)g_pl_window.titlebar_height));
-    ImGui::SetNextWindowSize(ImVec2((float)g_pl_window.sidebar_width, (float)g_pl_window.height - (float)g_pl_window.titlebar_height));
+    ImGui::SetNextWindowPos(ImVec2(0.0F, (float)g_window.titlebar_height));
+    ImGui::SetNextWindowSize(ImVec2((float)g_window.sidebar_width, (float)g_window.height - (float)g_window.titlebar_height));
   }
 
   ImGui::PushStyleColor(ImGuiCol_WindowBg, TI_LIGHT_GREY);

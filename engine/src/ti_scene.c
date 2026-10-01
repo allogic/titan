@@ -112,7 +112,7 @@ void scene_create(scene_t *scene) {
   // strcpy(script_ref->module_path, "asset/script/camera_controller.pak");
 }
 void scene_update(scene_t *scene) {
-  ecs_progress(scene->world, g_pl_window.delta_time);
+  ecs_progress(scene->world, g_window.delta_time);
 }
 // TODO
 // void scene_load(scene_t *scene, fs_file *file) {

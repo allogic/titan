@@ -1,5 +1,8 @@
 #include <ti_pch.h>
 
+#include <windows.h>
+#include <dbghelp.h>
+
 // TODO: make thread-safe!
 
 static LONG WINAPI veh_proc(struct _EXCEPTION_POINTERS *exception_info);

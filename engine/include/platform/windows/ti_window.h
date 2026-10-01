@@ -1,13 +1,13 @@
-#ifndef TI_PL_FWD_H
-#define TI_PL_FWD_H
+#ifndef TI_WINDOW_H
+#define TI_WINDOW_H
 
-typedef enum pl_key_state_t {
+typedef enum key_state_t {
   KEY_STATE_UP = 0,
   KEY_STATE_PRESSED,
   KEY_STATE_DOWN,
   KEY_STATE_RELEASED,
-} pl_key_state_t;
-typedef enum pl_keyboard_key_t {
+} key_state_t;
+typedef enum keyboard_key_t {
   KEYBOARD_KEY_BACK = 0x08,
   KEYBOARD_KEY_TAB = 0x09,
   KEYBOARD_KEY_RETURN = 0x0D,
@@ -116,28 +116,26 @@ typedef enum pl_keyboard_key_t {
   KEYBOARD_KEY_LEFT_MENU = 0xA4,
   KEYBOARD_KEY_RIGHT_MENU = 0xA5,
   KEYBOARD_KEY_COUNT,
-} pl_keyboard_key_t;
-typedef enum pl_mouse_key_t {
+} keyboard_key_t;
+typedef enum mouse_key_t {
   MOUSE_KEY_LEFT = 0,
   MOUSE_KEY_MIDDLE,
   MOUSE_KEY_RIGHT,
   MOUSE_KEY_COUNT,
-} pl_mouse_key_t;
+} mouse_key_t;
 
-typedef struct pl_window_t {
+typedef struct window_t {
   char const *title;
-  HMODULE module_handle;
-  HWND window_handle;
-  LARGE_INTEGER time_freq;
-  LARGE_INTEGER time_prev;
-  LARGE_INTEGER time_curr;
+  char const *class_name;
+  void *module_handle;
+  void *window_handle;
   float time;
   float delta_time;
   float elapsed_time_since_fps_count_update;
-  int32_t window_border_width;
   uint8_t is_first_frame;
   uint8_t is_running;
   uint8_t is_maximized;
+  int32_t window_border_width;
   uint32_t width;
   uint32_t height;
   uint32_t h_border_padding;
@@ -149,8 +147,33 @@ typedef struct pl_window_t {
   uint32_t mouse_wheel_delta;
   uint32_t fps_counter;
   uint32_t final_fps_counter;
-  pl_key_state_t keyboard_key_states[KEYBOARD_KEY_COUNT];
-  pl_key_state_t mouse_key_states[MOUSE_KEY_COUNT];
-} pl_window_t;
+  uint64_t time_freq;
+  uint64_t time_prev;
+  uint64_t time_curr;
+  key_state_t keyboard_key_states[KEYBOARD_KEY_COUNT];
+  key_state_t mouse_key_states[MOUSE_KEY_COUNT];
+} window_t;
 
-#endif // TI_PL_FWD_H
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
+extern window_t g_window;
+
+void window_create(void);
+void window_run(void);
+void window_destroy(void);
+
+uint8_t is_keyboard_key_pressed(keyboard_key_t key);
+uint8_t is_keyboard_key_held(keyboard_key_t key);
+uint8_t is_keyboard_key_released(keyboard_key_t key);
+
+uint8_t is_mouse_key_pressed(mouse_key_t key);
+uint8_t is_mouse_key_held(mouse_key_t key);
+uint8_t is_mouse_key_released(mouse_key_t key);
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
+
+#endif // TI_WINDOW_H

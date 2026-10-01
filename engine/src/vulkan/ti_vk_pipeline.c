@@ -379,8 +379,8 @@ static void create_default_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *re
   VkViewport viewport = {
     .x = 0.0F,
     .y = 0.0F,
-    .width = (float)g_pl_window.width,   // TODO
-    .height = (float)g_pl_window.height, // TODO
+    .width = (float)g_window.width,   // TODO
+    .height = (float)g_window.height, // TODO
     .minDepth = 0.0F,
     .maxDepth = 1.0F,
   };
@@ -389,8 +389,8 @@ static void create_default_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *re
     .offset.x = 0,
     .offset.y = 0,
     .extent = {
-      .width = g_pl_window.width,   // TODO
-      .height = g_pl_window.height, // TODO
+      .width = g_window.width,   // TODO
+      .height = g_window.height, // TODO
     },
   };
 
@@ -515,7 +515,7 @@ static void create_mesh_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *rende
       .codeSize = shader_size,
     };
 
-    TI_VK_CHECK(vkCreateShaderModule(g_pl_window.device, &shader_module_create_info, 0, &task_module));
+    TI_VK_CHECK(vkCreateShaderModule(g_window.device, &shader_module_create_info, 0, &task_module));
 
     TI_FREE(shader_bytes);
   }
@@ -532,7 +532,7 @@ static void create_mesh_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *rende
       .codeSize = shader_size,
     };
 
-    TI_VK_CHECK(vkCreateShaderModule(g_pl_window.device, &shader_module_create_info, 0, &mesh_module));
+    TI_VK_CHECK(vkCreateShaderModule(g_window.device, &shader_module_create_info, 0, &mesh_module));
 
     TI_FREE(shader_bytes);
   }
@@ -549,7 +549,7 @@ static void create_mesh_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *rende
       .codeSize = shader_size,
     };
 
-    TI_VK_CHECK(vkCreateShaderModule(g_pl_window.device, &shader_module_create_info, 0, &fragment_module));
+    TI_VK_CHECK(vkCreateShaderModule(g_window.device, &shader_module_create_info, 0, &fragment_module));
 
     TI_FREE(shader_bytes);
   }
@@ -579,8 +579,8 @@ static void create_mesh_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *rende
   VkViewport viewport = {
     .x = 0.0F,
     .y = 0.0F,
-    .width = (float)g_pl_window.width,   // TODO
-    .height = (float)g_pl_window.height, // TODO
+    .width = (float)g_window.width,   // TODO
+    .height = (float)g_window.height, // TODO
     .minDepth = 0.0F,
     .maxDepth = 1.0F,
   };
@@ -589,8 +589,8 @@ static void create_mesh_pipeline(vk_pipeline_t *pipeline, vk_renderpass_t *rende
     .offset.x = 0,
     .offset.y = 0,
     .extent = {
-      .width = g_pl_window.width,   // TODO
-      .height = g_pl_window.height, // TODO
+      .width = g_window.width,   // TODO
+      .height = g_window.height, // TODO
     },
   };
 
@@ -715,7 +715,7 @@ static void create_ray_tracing_pipeline(vk_pipeline_t *pipeline) {
       .codeSize = shader_size,
     };
 
-    TI_VK_CHECK(vkCreateShaderModule(g_pl_window.device, &shader_module_create_info, 0, &ray_gen_module));
+    TI_VK_CHECK(vkCreateShaderModule(g_window.device, &shader_module_create_info, 0, &ray_gen_module));
 
     TI_FREE(shader_bytes);
   }
@@ -732,7 +732,7 @@ static void create_ray_tracing_pipeline(vk_pipeline_t *pipeline) {
       .codeSize = shader_size,
     };
 
-    TI_VK_CHECK(vkCreateShaderModule(g_pl_window.device, &shader_module_create_info, 0, &ray_miss_module));
+    TI_VK_CHECK(vkCreateShaderModule(g_window.device, &shader_module_create_info, 0, &ray_miss_module));
 
     TI_FREE(shader_bytes);
   }
@@ -749,7 +749,7 @@ static void create_ray_tracing_pipeline(vk_pipeline_t *pipeline) {
       .codeSize = shader_size,
     };
 
-    TI_VK_CHECK(vkCreateShaderModule(g_pl_window.device, &shader_module_create_info, 0, &ray_intersect_module));
+    TI_VK_CHECK(vkCreateShaderModule(g_window.device, &shader_module_create_info, 0, &ray_intersect_module));
 
     TI_FREE(shader_bytes);
   }
@@ -766,7 +766,7 @@ static void create_ray_tracing_pipeline(vk_pipeline_t *pipeline) {
       .codeSize = shader_size,
     };
 
-    TI_VK_CHECK(vkCreateShaderModule(g_pl_window.device, &shader_module_create_info, 0, &ray_closest_hit_module));
+    TI_VK_CHECK(vkCreateShaderModule(g_window.device, &shader_module_create_info, 0, &ray_closest_hit_module));
 
     TI_FREE(shader_bytes);
   }
@@ -865,7 +865,7 @@ static void create_compute_pipeline(vk_pipeline_t *pipeline) {
       .codeSize = shader_size,
     };
 
-    TI_VK_CHECK(vkCreateShaderModule(g_pl_window.device, &shader_module_create_info, 0, &compute_module));
+    TI_VK_CHECK(vkCreateShaderModule(g_window.device, &shader_module_create_info, 0, &compute_module));
 
     TI_FREE(shader_bytes);
   }

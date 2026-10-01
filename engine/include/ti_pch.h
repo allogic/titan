@@ -16,12 +16,16 @@
 // BEGIN DEPENDENCIES
 /////////////////////////////////
 
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <windows.h>
-#include <dbghelp.h>
+#if defined(OS_WINDOWS)
+#  define WIN32_LEAN_AND_MEAN
+#  define NOMINMAX
+#  define VK_USE_PLATFORM_WIN32_KHR
+#elif defined(OS_LINUX)
+#  define VK_USE_PLATFORM_WAYLAND_KHR
+#elif defined(OS_DARWIN)
+#  define VK_USE_PLATFORM_METAL_EXT
+#endif // OS_SELECTION
 
-#define VK_USE_PLATFORM_WIN32_KHR
 #include <vulkan/vulkan.h>
 
 #define FLECS_CUSTOM_BUILD
@@ -54,7 +58,6 @@
 #include <math/ti_math_fwd.h>
 #include <physic/ti_physic_fwd.h>
 #include <component/ti_cp_fwd.h>
-#include <platform/ti_pl_fwd.h>
 #include <filesystem/ti_fs_fwd.h>
 #include <vulkan/ti_vk_fwd.h>
 #include <imgui/ti_im_fwd.h>
@@ -70,6 +73,14 @@
 #  define TI_FREE(DATA) dmalloc_free(__FILE__, __func__, __LINE__, DATA)
 #endif // BUILD_DEBUG
 
+#if defined(OS_WINDOWS)
+#  include <platform/windows/ti_window.h>
+#elif defined(OS_LINUX)
+#  include <platform/linux/ti_window.h>
+#elif defined(OS_DARWIN)
+#  include <platform/darwin/ti_window.h>
+#endif // OS_SELECTION
+
 #include <ti_dmalloc.h>
 #include <ti_map.h>
 #include <ti_archive.h>
@@ -77,7 +88,6 @@
 #include <math/ti_math.h>
 #include <physic/ti_physic.h>
 #include <component/ti_cp.h>
-#include <platform/ti_pl.h>
 #include <vulkan/ti_vk.h>
 #include <filesystem/ti_fs.h>
 #include <imgui/ti_im.h>

@@ -48,8 +48,8 @@ static void handle_position(cp_editor_camera_controller_t *editor_camera_control
   velocity->linear_z = v.z;
 }
 static void handle_rotation(cp_editor_camera_controller_t *editor_camera_controller, cp_transform_t *transform, cp_velocity_t *velocity) {
-  float mouse_position_x = (float)g_pl_window.mouse_position_x;
-  float mouse_position_y = (float)g_pl_window.mouse_position_y;
+  float mouse_position_x = (float)g_window.mouse_position_x;
+  float mouse_position_y = (float)g_window.mouse_position_y;
 
   if (is_mouse_key_pressed(MOUSE_KEY_RIGHT)) {
 

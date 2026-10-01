@@ -19,7 +19,7 @@ void cp_velocity_update(cp_velocity_t *velocity, cp_transform_t *transform) {
 }
 
 static void handle_linear_velocity(cp_velocity_t *velocity, cp_transform_t *transform) {
-  float delta_time = g_pl_window.delta_time;
+  float delta_time = g_window.delta_time;
   float linear_damping = expf(-velocity->linear_drag * delta_time);
 
   transform->position_x = transform->position_x + velocity->linear_x * delta_time;
@@ -31,7 +31,7 @@ static void handle_linear_velocity(cp_velocity_t *velocity, cp_transform_t *tran
   velocity->linear_z *= linear_damping;
 }
 static void handle_angular_velocity(cp_velocity_t *velocity, cp_transform_t *transform) {
-  float delta_time = g_pl_window.delta_time;
+  float delta_time = g_window.delta_time;
   float angular_damping = expf(-velocity->angular_drag * delta_time);
 
   fquat_t qp = fquat_angle_axis(velocity->angular_x * delta_time, cp_transform_local_right(transform));

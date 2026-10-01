@@ -166,7 +166,7 @@ void im_create(void) {
   ImGui::PushStyleColor(ImGuiCol_HeaderHovered, TI_HOVER_GREY);
   ImGui::PushStyleColor(ImGuiCol_HeaderActive, TI_ACTIVE_GREY);
 
-  ImGui_ImplWin32_Init(g_pl_window.window_handle);
+  ImGui_ImplWin32_Init(g_window.window_handle);
 
   ImGui_ImplVulkan_InitInfo imgui_vulkan_init_info = {
     .Instance = g_vk_instance.instance,
@@ -201,12 +201,12 @@ void im_draw(void) {
   im_titlebar_draw();
   im_sidebar_draw();
 
-  if (g_pl_window.is_maximized) {
-    ImGui::SetNextWindowPos(ImVec2((float)g_pl_window.sidebar_width + (float)g_pl_window.h_border_padding, (float)g_pl_window.titlebar_height + (float)g_pl_window.v_border_padding));
-    ImGui::SetNextWindowSize(ImVec2((float)g_pl_window.width - (float)g_pl_window.sidebar_width - (float)g_pl_window.h_border_padding * 2, (float)g_pl_window.height - (float)g_pl_window.titlebar_height - (float)g_pl_window.v_border_padding * 2));
+  if (g_window.is_maximized) {
+    ImGui::SetNextWindowPos(ImVec2((float)g_window.sidebar_width + (float)g_window.h_border_padding, (float)g_window.titlebar_height + (float)g_window.v_border_padding));
+    ImGui::SetNextWindowSize(ImVec2((float)g_window.width - (float)g_window.sidebar_width - (float)g_window.h_border_padding * 2, (float)g_window.height - (float)g_window.titlebar_height - (float)g_window.v_border_padding * 2));
   } else {
-    ImGui::SetNextWindowPos(ImVec2((float)g_pl_window.sidebar_width, (float)g_pl_window.titlebar_height));
-    ImGui::SetNextWindowSize(ImVec2((float)g_pl_window.width - (float)g_pl_window.sidebar_width, (float)g_pl_window.height - (float)g_pl_window.titlebar_height));
+    ImGui::SetNextWindowPos(ImVec2((float)g_window.sidebar_width, (float)g_window.titlebar_height));
+    ImGui::SetNextWindowSize(ImVec2((float)g_window.width - (float)g_window.sidebar_width, (float)g_window.height - (float)g_window.titlebar_height));
   }
 
   ImGuiWindowFlags window_flags =

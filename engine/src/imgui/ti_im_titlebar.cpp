@@ -1,5 +1,7 @@
 #include <ti_pch.h>
 
+#include <windows.h>
+
 #include <imgui.h>
 
 static void reset_drag_state(void);
@@ -10,12 +12,12 @@ static void draw_panel_controls(void);
 static void draw_window_controls(void);
 
 void im_titlebar_draw(void) {
-  if (g_pl_window.is_maximized) {
-    ImGui::SetNextWindowPos(ImVec2((float)g_pl_window.h_border_padding, (float)g_pl_window.v_border_padding));
-    ImGui::SetNextWindowSize(ImVec2((float)g_pl_window.width - (float)g_pl_window.h_border_padding * 2, (float)g_pl_window.titlebar_height - (float)g_pl_window.v_border_padding));
+  if (g_window.is_maximized) {
+    ImGui::SetNextWindowPos(ImVec2((float)g_window.h_border_padding, (float)g_window.v_border_padding));
+    ImGui::SetNextWindowSize(ImVec2((float)g_window.width - (float)g_window.h_border_padding * 2, (float)g_window.titlebar_height - (float)g_window.v_border_padding));
   } else {
     ImGui::SetNextWindowPos(ImVec2(0.0F, 0.0F));
-    ImGui::SetNextWindowSize(ImVec2((float)g_pl_window.width, (float)g_pl_window.titlebar_height));
+    ImGui::SetNextWindowSize(ImVec2((float)g_window.width, (float)g_window.titlebar_height));
   }
 
   ImGui::PushStyleColor(ImGuiCol_WindowBg, TI_LIGHT_GREY);
@@ -65,7 +67,7 @@ static void reset_drag_state(void) {
 
     ReleaseCapture();
 
-    SendMessage(g_pl_window.window_handle, WM_NCLBUTTONDOWN, HTCAPTION, 0);
+    SendMessage((HWND)g_window.window_handle, WM_NCLBUTTONDOWN, HTCAPTION, 0);
   }
 
   ImGui::GetIO().MouseDown[0] = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
@@ -75,12 +77,12 @@ static void draw_title(void) {
   ImGui::SetCursorPos(ImVec2(16.0F, 11.0F));
 
   ImGui::Text("%s %s.%s.%s (%s) - %d FPS",
-              g_pl_window.title,
+              g_window.title,
               VERSION_MAJOR,
               VERSION_MINOR,
               VERSION_PATCH,
               GIT_VERSION_HASH,
-              g_pl_window.final_fps_counter);
+              g_window.final_fps_counter);
 }
 static void draw_scene_controls(void) {
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0F);
@@ -121,10 +123,10 @@ static void draw_panel_controls(void) {
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0F);
   ImGui::PushFont((ImFont *)g_im_font_symbols_18);
 
-  if (g_pl_window.is_maximized) {
-    ImGui::SetCursorPos(ImVec2((float)g_pl_window.width - ((float)g_pl_window.h_border_padding * 2) - 200.0F, 5.0F));
+  if (g_window.is_maximized) {
+    ImGui::SetCursorPos(ImVec2((float)g_window.width - ((float)g_window.h_border_padding * 2) - 200.0F, 5.0F));
   } else {
-    ImGui::SetCursorPos(ImVec2((float)g_pl_window.width - 200.0F, 5.0F));
+    ImGui::SetCursorPos(ImVec2((float)g_window.width - 200.0F, 5.0F));
   }
 
   if (ImGui::Button(ICON_MS_DOCK_TO_RIGHT)) {
@@ -141,36 +143,36 @@ static void draw_panel_controls(void) {
   ImGui::PopStyleVar(1);
 }
 static void draw_window_controls(void) {
-  if (g_pl_window.is_maximized) {
-    ImGui::SetCursorPos(ImVec2((float)g_pl_window.width - ((float)g_pl_window.h_border_padding * 2) - 89.0F, 5.0F));
+  if (g_window.is_maximized) {
+    ImGui::SetCursorPos(ImVec2((float)g_window.width - ((float)g_window.h_border_padding * 2) - 89.0F, 5.0F));
   } else {
-    ImGui::SetCursorPos(ImVec2((float)g_pl_window.width - 89.0F, 5.0F));
+    ImGui::SetCursorPos(ImVec2((float)g_window.width - 89.0F, 5.0F));
   }
 
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0F);
   ImGui::PushFont((ImFont *)g_im_font_symbols_18);
 
   if (ImGui::Button(ICON_MS_REMOVE)) {
-    ShowWindow(g_pl_window.window_handle, SW_MINIMIZE);
+    ShowWindow((HWND)g_window.window_handle, SW_MINIMIZE);
   }
 
   ImGui::SameLine();
 
   if (ImGui::Button(ICON_MS_RECTANGLE)) {
 
-    if (g_pl_window.is_maximized) {
-      ShowWindow(g_pl_window.window_handle, SW_RESTORE);
+    if (g_window.is_maximized) {
+      ShowWindow((HWND)g_window.window_handle, SW_RESTORE);
     } else {
-      ShowWindow(g_pl_window.window_handle, SW_MAXIMIZE);
+      ShowWindow((HWND)g_window.window_handle, SW_MAXIMIZE);
     }
 
-    g_pl_window.is_maximized = !g_pl_window.is_maximized;
+    g_window.is_maximized = !g_window.is_maximized;
   }
 
   ImGui::SameLine();
 
   if (ImGui::Button(ICON_MS_CLOSE)) {
-    g_pl_window.is_running = 0;
+    g_window.is_running = 0;
   }
 
   ImGui::PopFont();

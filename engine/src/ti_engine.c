@@ -10,6 +10,7 @@
 // TODO: check ECS transients for async asset loading..
 // TODO: create a editor camera component and create an entity with it depending on wether we are in editor or runtime mode..
 // TODO: handle events properly..
+// TODO: create asset database..
 
 static void import_default_assets(void);
 static void create_default_assets(void);
@@ -31,9 +32,9 @@ int32_t main(int32_t argc, char **argv) {
     import_default_assets();
     create_default_assets();
 
-    pl_window_create(&g_pl_window);
-    pl_window_run(&g_pl_window);
-    pl_window_destroy(&g_pl_window);
+    window_create();
+    window_run();
+    window_destroy();
 
     scene_destroy(&g_scene);
     ti_physic_demo_destroy(); // TODO
