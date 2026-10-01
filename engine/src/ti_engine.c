@@ -11,6 +11,7 @@
 // TODO: create a editor camera component and create an entity with it depending on wether we are in editor or runtime mode..
 // TODO: handle events properly..
 // TODO: create asset database..
+// TODO: create a proper import dialog for every type..
 
 static void import_default_assets(void);
 static void create_default_assets(void);

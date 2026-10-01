@@ -78,19 +78,19 @@ uint8_t cl_compiler_compile(char const *source_code, void **buffer, uint64_t *bu
     ROOT_DIR,
 
     // TODO
-    "-I"
+    "-I",
     "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.26100.0\\ucrt",
 
     // TODO
-    "-I"
+    "-I",
     "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.26100.0\\shared",
 
     // TODO
-    "-I"
+    "-I",
     "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.26100.0\\um",
 
     // TODO
-    "-I"
+    "-I",
     "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.51.36231\\include",
 
     "main.c",
