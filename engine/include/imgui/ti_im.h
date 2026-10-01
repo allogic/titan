@@ -13,6 +13,7 @@
 #include <imgui/ti_im_renderer.h>
 #include <imgui/ti_im_sound_studio.h>
 #include <imgui/ti_im_physic_studio.h>
+#include <imgui/ti_im_output.h>
 
 #ifdef __cplusplus
 extern "C" {

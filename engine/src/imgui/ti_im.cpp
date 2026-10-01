@@ -282,6 +282,8 @@ void im_draw(void) {
     im_text_editor_draw();
   }
 
+  im_output_draw();
+
   if (g_im_show_right_panel) {
     im_inspector_draw();
   }
@@ -353,9 +355,11 @@ static void build_layout(void) {
     ImGuiID dock_left = 0;
     ImGuiID dock_right = 0;
     ImGuiID dock_bottom = 0;
+    ImGuiID dock_output = 0;
 
     dock_left = ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Left, 0.15F, 0, &dock_main);
     dock_right = ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Right, 0.25F, 0, &dock_main);
+    dock_output = ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Down, 0.20F, 0, &dock_main);
     dock_bottom = ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Down, 0.35F, 0, &dock_main);
 
     ImGui::DockBuilderDockWindow("Viewport", dock_main);
@@ -363,6 +367,7 @@ static void build_layout(void) {
     ImGui::DockBuilderDockWindow("Filesystem", dock_left);
     ImGui::DockBuilderDockWindow("Handle", dock_left);
     ImGui::DockBuilderDockWindow("Text Editor", dock_bottom);
+    ImGui::DockBuilderDockWindow("Output", dock_output);
     ImGui::DockBuilderDockWindow("Renderer", dock_left);
     ImGui::DockBuilderDockWindow("Sound Studio", dock_left);
     ImGui::DockBuilderDockWindow("Physics Studio", dock_left);

@@ -50,6 +50,7 @@ int32_t main(int32_t argc, char **argv) {
     printf("Something went wrong..\n"); // TODO
   }
 
+  im_output_clear();
   dmalloc_cleanup();
 
   return 0;

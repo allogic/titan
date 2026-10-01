@@ -39,4 +39,8 @@ typedef struct im_file_entry_t {
   struct im_file_entry_t *children;
 } im_file_entry_t;
 
+typedef struct im_output_message_t {
+  char *text;
+} im_output_message_t;
+
 #endif // TI_IM_FWD_H
