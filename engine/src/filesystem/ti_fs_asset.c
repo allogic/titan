@@ -1,4 +1,4 @@
-#include <ti_pch.h>
+#include <filesystem/ti_fs_asset.h>
 
 // TODO: find a dedicated spot for these default resources..
 static char s_default_source_code[] = {
@@ -114,14 +114,14 @@ void fs_asset_create(fs_asset_t *asset) {
 }
 uint8_t fs_asset_exists(fs_asset_t *asset) {
   fs_file_info info = {0};
-  fs_result result = fs_info(g_fs, asset->path, 0, &info);
+  fs_result result = fs_info(g_fs_context, asset->path, 0, &info);
 
   return result != FS_DOES_NOT_EXIST;
 }
 void fs_asset_load(fs_asset_t *asset) {
   fs_file *file = 0;
 
-  if (fs_file_open(g_fs, asset->path, FS_READ, &file) != FS_SUCCESS) {
+  if (fs_file_open(g_fs_context, asset->path, FS_READ, &file) != FS_SUCCESS) {
     return;
   }
 
@@ -250,7 +250,7 @@ error:
 void fs_asset_store(fs_asset_t *asset) {
   fs_file *file = 0;
 
-  if (fs_file_open(g_fs, asset->path, FS_WRITE, &file) != FS_SUCCESS) {
+  if (fs_file_open(g_fs_context, asset->path, FS_WRITE, &file) != FS_SUCCESS) {
     return;
   }
 

@@ -1,4 +1,4 @@
-#include <ti_pch.h>
+#include <component/ti_cp_camera.h>
 
 void cp_camera_init(cp_camera_t *camera) {
   camera->is_debug_enabled = 0;

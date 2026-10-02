@@ -1,4 +1,6 @@
-#include <ti_pch.h>
+#include <component/ti_cp_editor_camera_controller.h>
+
+// TODO: fix and limit pitch and yaw..
 
 static void handle_position(cp_editor_camera_controller_t *editor_camera_controller, cp_transform_t *transform, cp_velocity_t *velocity);
 static void handle_rotation(cp_editor_camera_controller_t *editor_camera_controller, cp_transform_t *transform, cp_velocity_t *velocity);

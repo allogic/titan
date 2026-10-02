@@ -1,4 +1,4 @@
-#include <ti_pch.h>
+#include <filesystem/ti_fs_primitive.h>
 
 void fs_primitive_load(fs_primitive_t *primitive, fs_file *file) {
   memset(primitive, 0, sizeof(fs_primitive_t));

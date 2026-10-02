@@ -173,6 +173,8 @@ typedef struct vk_renderer_t {
   vk_buffer_t full_screen_index_buffer;
   vk_pipeline_t debug_line_pipeline;
 } vk_renderer_t;
+
+// TODO: move this into the editor..
 typedef struct vk_viewport_t {
   uint32_t width;
   uint32_t height;

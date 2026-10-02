@@ -1,4 +1,4 @@
-#include <ti_pch.h>
+#include <filesystem/ti_fs_joint.h>
 
 void fs_joint_load(fs_joint_t *joint, fs_file *file) {
   memset(joint, 0, sizeof(fs_joint_t));

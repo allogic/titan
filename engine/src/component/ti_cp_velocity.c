@@ -1,4 +1,4 @@
-#include <ti_pch.h>
+#include <component/ti_cp_velocity.h>
 
 static void handle_linear_velocity(cp_velocity_t *velocity, cp_transform_t *transform);
 static void handle_angular_velocity(cp_velocity_t *velocity, cp_transform_t *transform);

@@ -1,6 +1,4 @@
-#include <ti_pch.h>
-
-#include <windows.h>
+#include <platform/windows/ti_window.h>
 
 static LRESULT message_proc(HWND window_handle, UINT window_message, WPARAM w_param, LPARAM l_param);
 
@@ -54,17 +52,19 @@ void window_create(void) {
     0,
     0,
     g_window.module_handle,
-    &g_window);
+    0);
 
   ShowWindow(g_window.window_handle, SW_SHOW);
 
-  vk_create();
+  vk_context_create();
 }
 void window_run(void) {
   QueryPerformanceFrequency((PLARGE_INTEGER)&g_window.time_freq);
   QueryPerformanceCounter((PLARGE_INTEGER)&g_window.time_prev);
 
-  im_viewport_update(&g_vk_viewport);
+  if (g_window.editor_viewport_update_proc) {
+    g_window.editor_viewport_update_proc(&g_vk_viewport);
+  }
 
   while (g_window.is_running) {
 
@@ -106,9 +106,9 @@ void window_run(void) {
       DispatchMessageA(&msg);
     }
 
-    scene_update(&g_scene);
-    physic_update(g_window.delta_time);
-    audio_update();
+    scene_update(&g_scene); // TODO
+    audio_update();         // TODO
+    ph_world_update(g_window.delta_time);
 
     fvec3_t center = {0.0F, 0.0F, 0.0F};
     fvec3_t right = {1.0F, 0.0F, 0.0F};
@@ -136,7 +136,9 @@ void window_run(void) {
       vk_framebuffer_destroy(&g_vk_main_framebuffer);
       vk_framebuffer_create(&g_vk_main_framebuffer, &g_vk_main_renderpass, g_vk_viewport.width, g_vk_viewport.height, "asset/framebuffer/main.pak");
 
-      im_viewport_update(&g_vk_viewport);
+      if (g_window.editor_viewport_update_proc) {
+        g_window.editor_viewport_update_proc(&g_vk_viewport);
+      }
     }
 
     if (g_vk_swapchain.is_dirty) {
@@ -155,7 +157,7 @@ void window_run(void) {
       vk_renderer_destroy(&g_vk_renderer);
       vk_swapchain_destroy(&g_vk_swapchain);
 
-      vk_update_surface_capabilities();
+      vk_context_update_surface_capabilities();
 
       vk_swapchain_create(&g_vk_swapchain, "asset/swapchain/main.pak");
 
@@ -167,7 +169,9 @@ void window_run(void) {
       vk_framebuffer_create(&g_vk_main_framebuffer, &g_vk_main_renderpass, g_vk_viewport.width, g_vk_viewport.height, "asset/framebuffer/main.pak");
       vk_framebuffer_create(&g_vk_imgui_framebuffer, &g_vk_imgui_renderpass, g_window.width, g_window.height, "asset/framebuffer/imgui.pak");
 
-      im_viewport_update(&g_vk_viewport);
+      if (g_window.editor_viewport_update_proc) {
+        g_window.editor_viewport_update_proc(&g_vk_viewport);
+      }
     }
 
     double time_freq = (double)g_window.time_freq;
@@ -195,7 +199,7 @@ void window_run(void) {
   }
 }
 void window_destroy(void) {
-  vk_destroy();
+  vk_context_destroy();
 
   DestroyWindow(g_window.window_handle);
 
@@ -223,21 +227,21 @@ uint8_t is_mouse_key_released(mouse_key_t key) {
 }
 
 static LRESULT message_proc(HWND window_handle, UINT window_message, WPARAM w_param, LPARAM l_param) {
-  window_t *window = (window_t *)GetWindowLongPtr(window_handle, GWLP_USERDATA);
-
-  im_message(window_handle, window_message, w_param, l_param);
+  if (g_window.editor_message_proc) {
+    g_window.editor_message_proc(window_handle, window_message, w_param, l_param);
+  }
 
   switch (window_message) {
 
     case WM_CREATE: {
 
-      window->is_running = 1;
+      g_window.is_running = 1;
 
       break;
     }
     case WM_CLOSE: {
 
-      window->is_running = 0;
+      g_window.is_running = 0;
 
       break;
     }
@@ -264,25 +268,25 @@ static LRESULT message_proc(HWND window_handle, UINT window_message, WPARAM w_pa
       switch (virtual_key) {
 
         case KEYBOARD_KEY_LEFT_SHIFT:
-          window->keyboard_key_states[KEYBOARD_KEY_LEFT_SHIFT] = ((window->keyboard_key_states[KEYBOARD_KEY_LEFT_SHIFT] == KEY_STATE_UP) || (window->keyboard_key_states[KEYBOARD_KEY_LEFT_SHIFT] == KEY_STATE_RELEASED)) ? KEY_STATE_PRESSED : KEY_STATE_DOWN;
+          g_window.keyboard_key_states[KEYBOARD_KEY_LEFT_SHIFT] = ((g_window.keyboard_key_states[KEYBOARD_KEY_LEFT_SHIFT] == KEY_STATE_UP) || (g_window.keyboard_key_states[KEYBOARD_KEY_LEFT_SHIFT] == KEY_STATE_RELEASED)) ? KEY_STATE_PRESSED : KEY_STATE_DOWN;
           break;
         case KEYBOARD_KEY_RIGHT_SHIFT:
-          window->keyboard_key_states[KEYBOARD_KEY_RIGHT_SHIFT] = ((window->keyboard_key_states[KEYBOARD_KEY_RIGHT_SHIFT] == KEY_STATE_UP) || (window->keyboard_key_states[KEYBOARD_KEY_RIGHT_SHIFT] == KEY_STATE_RELEASED)) ? KEY_STATE_PRESSED : KEY_STATE_DOWN;
+          g_window.keyboard_key_states[KEYBOARD_KEY_RIGHT_SHIFT] = ((g_window.keyboard_key_states[KEYBOARD_KEY_RIGHT_SHIFT] == KEY_STATE_UP) || (g_window.keyboard_key_states[KEYBOARD_KEY_RIGHT_SHIFT] == KEY_STATE_RELEASED)) ? KEY_STATE_PRESSED : KEY_STATE_DOWN;
           break;
         case KEYBOARD_KEY_LEFT_CONTROL:
-          window->keyboard_key_states[KEYBOARD_KEY_LEFT_CONTROL] = ((window->keyboard_key_states[KEYBOARD_KEY_LEFT_CONTROL] == KEY_STATE_UP) || (window->keyboard_key_states[KEYBOARD_KEY_LEFT_CONTROL] == KEY_STATE_RELEASED)) ? KEY_STATE_PRESSED : KEY_STATE_DOWN;
+          g_window.keyboard_key_states[KEYBOARD_KEY_LEFT_CONTROL] = ((g_window.keyboard_key_states[KEYBOARD_KEY_LEFT_CONTROL] == KEY_STATE_UP) || (g_window.keyboard_key_states[KEYBOARD_KEY_LEFT_CONTROL] == KEY_STATE_RELEASED)) ? KEY_STATE_PRESSED : KEY_STATE_DOWN;
           break;
         case KEYBOARD_KEY_RIGHT_CONTROL:
-          window->keyboard_key_states[KEYBOARD_KEY_RIGHT_CONTROL] = ((window->keyboard_key_states[KEYBOARD_KEY_RIGHT_CONTROL] == KEY_STATE_UP) || (window->keyboard_key_states[KEYBOARD_KEY_RIGHT_CONTROL] == KEY_STATE_RELEASED)) ? KEY_STATE_PRESSED : KEY_STATE_DOWN;
+          g_window.keyboard_key_states[KEYBOARD_KEY_RIGHT_CONTROL] = ((g_window.keyboard_key_states[KEYBOARD_KEY_RIGHT_CONTROL] == KEY_STATE_UP) || (g_window.keyboard_key_states[KEYBOARD_KEY_RIGHT_CONTROL] == KEY_STATE_RELEASED)) ? KEY_STATE_PRESSED : KEY_STATE_DOWN;
           break;
         case KEYBOARD_KEY_LEFT_MENU:
-          window->keyboard_key_states[KEYBOARD_KEY_LEFT_MENU] = ((window->keyboard_key_states[KEYBOARD_KEY_LEFT_MENU] == KEY_STATE_UP) || (window->keyboard_key_states[KEYBOARD_KEY_LEFT_MENU] == KEY_STATE_RELEASED)) ? KEY_STATE_PRESSED : KEY_STATE_DOWN;
+          g_window.keyboard_key_states[KEYBOARD_KEY_LEFT_MENU] = ((g_window.keyboard_key_states[KEYBOARD_KEY_LEFT_MENU] == KEY_STATE_UP) || (g_window.keyboard_key_states[KEYBOARD_KEY_LEFT_MENU] == KEY_STATE_RELEASED)) ? KEY_STATE_PRESSED : KEY_STATE_DOWN;
           break;
         case KEYBOARD_KEY_RIGHT_MENU:
-          window->keyboard_key_states[KEYBOARD_KEY_RIGHT_MENU] = ((window->keyboard_key_states[KEYBOARD_KEY_RIGHT_MENU] == KEY_STATE_UP) || (window->keyboard_key_states[KEYBOARD_KEY_RIGHT_MENU] == KEY_STATE_RELEASED)) ? KEY_STATE_PRESSED : KEY_STATE_DOWN;
+          g_window.keyboard_key_states[KEYBOARD_KEY_RIGHT_MENU] = ((g_window.keyboard_key_states[KEYBOARD_KEY_RIGHT_MENU] == KEY_STATE_UP) || (g_window.keyboard_key_states[KEYBOARD_KEY_RIGHT_MENU] == KEY_STATE_RELEASED)) ? KEY_STATE_PRESSED : KEY_STATE_DOWN;
           break;
         default:
-          window->keyboard_key_states[virtual_key] = ((window->keyboard_key_states[virtual_key] == KEY_STATE_UP) || (window->keyboard_key_states[virtual_key] == KEY_STATE_RELEASED)) ? KEY_STATE_PRESSED : KEY_STATE_DOWN;
+          g_window.keyboard_key_states[virtual_key] = ((g_window.keyboard_key_states[virtual_key] == KEY_STATE_UP) || (g_window.keyboard_key_states[virtual_key] == KEY_STATE_RELEASED)) ? KEY_STATE_PRESSED : KEY_STATE_DOWN;
           break;
       }
 
@@ -298,25 +302,25 @@ static LRESULT message_proc(HWND window_handle, UINT window_message, WPARAM w_pa
       switch (virtual_key) {
 
         case KEYBOARD_KEY_LEFT_SHIFT:
-          window->keyboard_key_states[KEYBOARD_KEY_LEFT_SHIFT] = ((window->keyboard_key_states[KEYBOARD_KEY_LEFT_SHIFT] == KEY_STATE_DOWN) || (window->keyboard_key_states[KEYBOARD_KEY_LEFT_SHIFT] == KEY_STATE_PRESSED)) ? KEY_STATE_RELEASED : KEY_STATE_UP;
+          g_window.keyboard_key_states[KEYBOARD_KEY_LEFT_SHIFT] = ((g_window.keyboard_key_states[KEYBOARD_KEY_LEFT_SHIFT] == KEY_STATE_DOWN) || (g_window.keyboard_key_states[KEYBOARD_KEY_LEFT_SHIFT] == KEY_STATE_PRESSED)) ? KEY_STATE_RELEASED : KEY_STATE_UP;
           break;
         case KEYBOARD_KEY_RIGHT_SHIFT:
-          window->keyboard_key_states[KEYBOARD_KEY_RIGHT_SHIFT] = ((window->keyboard_key_states[KEYBOARD_KEY_RIGHT_SHIFT] == KEY_STATE_DOWN) || (window->keyboard_key_states[KEYBOARD_KEY_RIGHT_SHIFT] == KEY_STATE_PRESSED)) ? KEY_STATE_RELEASED : KEY_STATE_UP;
+          g_window.keyboard_key_states[KEYBOARD_KEY_RIGHT_SHIFT] = ((g_window.keyboard_key_states[KEYBOARD_KEY_RIGHT_SHIFT] == KEY_STATE_DOWN) || (g_window.keyboard_key_states[KEYBOARD_KEY_RIGHT_SHIFT] == KEY_STATE_PRESSED)) ? KEY_STATE_RELEASED : KEY_STATE_UP;
           break;
         case KEYBOARD_KEY_LEFT_CONTROL:
-          window->keyboard_key_states[KEYBOARD_KEY_LEFT_CONTROL] = ((window->keyboard_key_states[KEYBOARD_KEY_LEFT_CONTROL] == KEY_STATE_DOWN) || (window->keyboard_key_states[KEYBOARD_KEY_LEFT_CONTROL] == KEY_STATE_PRESSED)) ? KEY_STATE_RELEASED : KEY_STATE_UP;
+          g_window.keyboard_key_states[KEYBOARD_KEY_LEFT_CONTROL] = ((g_window.keyboard_key_states[KEYBOARD_KEY_LEFT_CONTROL] == KEY_STATE_DOWN) || (g_window.keyboard_key_states[KEYBOARD_KEY_LEFT_CONTROL] == KEY_STATE_PRESSED)) ? KEY_STATE_RELEASED : KEY_STATE_UP;
           break;
         case KEYBOARD_KEY_RIGHT_CONTROL:
-          window->keyboard_key_states[KEYBOARD_KEY_RIGHT_CONTROL] = ((window->keyboard_key_states[KEYBOARD_KEY_RIGHT_CONTROL] == KEY_STATE_DOWN) || (window->keyboard_key_states[KEYBOARD_KEY_RIGHT_CONTROL] == KEY_STATE_PRESSED)) ? KEY_STATE_RELEASED : KEY_STATE_UP;
+          g_window.keyboard_key_states[KEYBOARD_KEY_RIGHT_CONTROL] = ((g_window.keyboard_key_states[KEYBOARD_KEY_RIGHT_CONTROL] == KEY_STATE_DOWN) || (g_window.keyboard_key_states[KEYBOARD_KEY_RIGHT_CONTROL] == KEY_STATE_PRESSED)) ? KEY_STATE_RELEASED : KEY_STATE_UP;
           break;
         case KEYBOARD_KEY_LEFT_MENU:
-          window->keyboard_key_states[KEYBOARD_KEY_LEFT_MENU] = ((window->keyboard_key_states[KEYBOARD_KEY_LEFT_MENU] == KEY_STATE_DOWN) || (window->keyboard_key_states[KEYBOARD_KEY_LEFT_MENU] == KEY_STATE_PRESSED)) ? KEY_STATE_RELEASED : KEY_STATE_UP;
+          g_window.keyboard_key_states[KEYBOARD_KEY_LEFT_MENU] = ((g_window.keyboard_key_states[KEYBOARD_KEY_LEFT_MENU] == KEY_STATE_DOWN) || (g_window.keyboard_key_states[KEYBOARD_KEY_LEFT_MENU] == KEY_STATE_PRESSED)) ? KEY_STATE_RELEASED : KEY_STATE_UP;
           break;
         case KEYBOARD_KEY_RIGHT_MENU:
-          window->keyboard_key_states[KEYBOARD_KEY_RIGHT_MENU] = ((window->keyboard_key_states[KEYBOARD_KEY_RIGHT_MENU] == KEY_STATE_DOWN) || (window->keyboard_key_states[KEYBOARD_KEY_RIGHT_MENU] == KEY_STATE_PRESSED)) ? KEY_STATE_RELEASED : KEY_STATE_UP;
+          g_window.keyboard_key_states[KEYBOARD_KEY_RIGHT_MENU] = ((g_window.keyboard_key_states[KEYBOARD_KEY_RIGHT_MENU] == KEY_STATE_DOWN) || (g_window.keyboard_key_states[KEYBOARD_KEY_RIGHT_MENU] == KEY_STATE_PRESSED)) ? KEY_STATE_RELEASED : KEY_STATE_UP;
           break;
         default:
-          window->keyboard_key_states[virtual_key] = ((window->keyboard_key_states[virtual_key] == KEY_STATE_DOWN) || (window->keyboard_key_states[virtual_key] == KEY_STATE_PRESSED)) ? KEY_STATE_RELEASED : KEY_STATE_UP;
+          g_window.keyboard_key_states[virtual_key] = ((g_window.keyboard_key_states[virtual_key] == KEY_STATE_DOWN) || (g_window.keyboard_key_states[virtual_key] == KEY_STATE_PRESSED)) ? KEY_STATE_RELEASED : KEY_STATE_UP;
           break;
       }
 
@@ -325,37 +329,37 @@ static LRESULT message_proc(HWND window_handle, UINT window_message, WPARAM w_pa
 
     case WM_LBUTTONDOWN: {
 
-      window->mouse_key_states[MOUSE_KEY_LEFT] = ((window->mouse_key_states[MOUSE_KEY_LEFT] == KEY_STATE_UP) || (window->mouse_key_states[MOUSE_KEY_LEFT] == KEY_STATE_RELEASED)) ? KEY_STATE_PRESSED : KEY_STATE_DOWN;
+      g_window.mouse_key_states[MOUSE_KEY_LEFT] = ((g_window.mouse_key_states[MOUSE_KEY_LEFT] == KEY_STATE_UP) || (g_window.mouse_key_states[MOUSE_KEY_LEFT] == KEY_STATE_RELEASED)) ? KEY_STATE_PRESSED : KEY_STATE_DOWN;
 
       break;
     }
     case WM_LBUTTONUP: {
 
-      window->mouse_key_states[MOUSE_KEY_LEFT] = ((window->mouse_key_states[MOUSE_KEY_LEFT] == KEY_STATE_DOWN) || (window->mouse_key_states[MOUSE_KEY_LEFT] == KEY_STATE_PRESSED)) ? KEY_STATE_RELEASED : KEY_STATE_UP;
+      g_window.mouse_key_states[MOUSE_KEY_LEFT] = ((g_window.mouse_key_states[MOUSE_KEY_LEFT] == KEY_STATE_DOWN) || (g_window.mouse_key_states[MOUSE_KEY_LEFT] == KEY_STATE_PRESSED)) ? KEY_STATE_RELEASED : KEY_STATE_UP;
 
       break;
     }
     case WM_MBUTTONDOWN: {
 
-      window->mouse_key_states[MOUSE_KEY_MIDDLE] = ((window->mouse_key_states[MOUSE_KEY_MIDDLE] == KEY_STATE_UP) || (window->mouse_key_states[MOUSE_KEY_MIDDLE] == KEY_STATE_RELEASED)) ? KEY_STATE_PRESSED : KEY_STATE_DOWN;
+      g_window.mouse_key_states[MOUSE_KEY_MIDDLE] = ((g_window.mouse_key_states[MOUSE_KEY_MIDDLE] == KEY_STATE_UP) || (g_window.mouse_key_states[MOUSE_KEY_MIDDLE] == KEY_STATE_RELEASED)) ? KEY_STATE_PRESSED : KEY_STATE_DOWN;
 
       break;
     }
     case WM_MBUTTONUP: {
 
-      window->mouse_key_states[MOUSE_KEY_MIDDLE] = ((window->mouse_key_states[MOUSE_KEY_MIDDLE] == KEY_STATE_DOWN) || (window->mouse_key_states[MOUSE_KEY_MIDDLE] == KEY_STATE_PRESSED)) ? KEY_STATE_RELEASED : KEY_STATE_UP;
+      g_window.mouse_key_states[MOUSE_KEY_MIDDLE] = ((g_window.mouse_key_states[MOUSE_KEY_MIDDLE] == KEY_STATE_DOWN) || (g_window.mouse_key_states[MOUSE_KEY_MIDDLE] == KEY_STATE_PRESSED)) ? KEY_STATE_RELEASED : KEY_STATE_UP;
 
       break;
     }
     case WM_RBUTTONDOWN: {
 
-      window->mouse_key_states[MOUSE_KEY_RIGHT] = ((window->mouse_key_states[MOUSE_KEY_RIGHT] == KEY_STATE_UP) || (window->mouse_key_states[MOUSE_KEY_RIGHT] == KEY_STATE_RELEASED)) ? KEY_STATE_PRESSED : KEY_STATE_DOWN;
+      g_window.mouse_key_states[MOUSE_KEY_RIGHT] = ((g_window.mouse_key_states[MOUSE_KEY_RIGHT] == KEY_STATE_UP) || (g_window.mouse_key_states[MOUSE_KEY_RIGHT] == KEY_STATE_RELEASED)) ? KEY_STATE_PRESSED : KEY_STATE_DOWN;
 
       break;
     }
     case WM_RBUTTONUP: {
 
-      window->mouse_key_states[MOUSE_KEY_RIGHT] = ((window->mouse_key_states[MOUSE_KEY_RIGHT] == KEY_STATE_DOWN) || (window->mouse_key_states[MOUSE_KEY_RIGHT] == KEY_STATE_PRESSED)) ? KEY_STATE_RELEASED : KEY_STATE_UP;
+      g_window.mouse_key_states[MOUSE_KEY_RIGHT] = ((g_window.mouse_key_states[MOUSE_KEY_RIGHT] == KEY_STATE_DOWN) || (g_window.mouse_key_states[MOUSE_KEY_RIGHT] == KEY_STATE_PRESSED)) ? KEY_STATE_RELEASED : KEY_STATE_UP;
 
       break;
     }
@@ -377,14 +381,14 @@ static LRESULT message_proc(HWND window_handle, UINT window_message, WPARAM w_pa
       INT mouse_x = LOWORD(l_param);
       INT mouse_y = HIWORD(l_param);
 
-      window->mouse_position_x = mouse_x;
-      window->mouse_position_y = mouse_y;
+      g_window.mouse_position_x = mouse_x;
+      g_window.mouse_position_y = mouse_y;
 
       break;
     }
     case WM_MOUSEWHEEL: {
 
-      window->mouse_wheel_delta = GET_WHEEL_DELTA_WPARAM(w_param) / WHEEL_DELTA;
+      g_window.mouse_wheel_delta = GET_WHEEL_DELTA_WPARAM(w_param) / WHEEL_DELTA;
 
       break;
     }
@@ -416,10 +420,10 @@ static LRESULT message_proc(HWND window_handle, UINT window_message, WPARAM w_pa
       RECT rect = {0};
       GetClientRect(window_handle, &rect);
 
-      BOOL left = mouse.x <= window->window_border_width;
-      BOOL right = mouse.x >= (rect.right - window->window_border_width);
-      BOOL top = (mouse.y <= window->window_border_width) || (mouse.y < border_size_y);
-      BOOL bottom = mouse.y >= (rect.bottom - window->window_border_width);
+      BOOL left = mouse.x <= g_window.window_border_width;
+      BOOL right = mouse.x >= (rect.right - g_window.window_border_width);
+      BOOL top = (mouse.y <= g_window.window_border_width) || (mouse.y < border_size_y);
+      BOOL bottom = mouse.y >= (rect.bottom - g_window.window_border_width);
 
       if (top && left) {
         return HTTOPLEFT;

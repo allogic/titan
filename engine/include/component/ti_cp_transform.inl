@@ -1,20 +1,62 @@
 __forceinline fvec3_t cp_transform_local_right(cp_transform_t *transform) {
-  return fquat_right((fquat_t){transform->rotation_x, transform->rotation_y, transform->rotation_z, transform->rotation_w});
+  fquat_t q = {
+    transform->rotation_x,
+    transform->rotation_y,
+    transform->rotation_z,
+    transform->rotation_w,
+  };
+
+  return fquat_right(q);
 }
 __forceinline fvec3_t cp_transform_local_up(cp_transform_t *transform) {
-  return fquat_up((fquat_t){transform->rotation_x, transform->rotation_y, transform->rotation_z, transform->rotation_w});
+  fquat_t q = {
+    transform->rotation_x,
+    transform->rotation_y,
+    transform->rotation_z,
+    transform->rotation_w,
+  };
+
+  return fquat_up(q);
 }
 __forceinline fvec3_t cp_transform_local_front(cp_transform_t *transform) {
-  return fquat_front((fquat_t){transform->rotation_x, transform->rotation_y, transform->rotation_z, transform->rotation_w});
+  fquat_t q = {
+    transform->rotation_x,
+    transform->rotation_y,
+    transform->rotation_z,
+    transform->rotation_w,
+  };
+
+  return fquat_front(q);
 }
 __forceinline fvec3_t cp_transform_local_left(cp_transform_t *transform) {
-  return fvec3_negate(fquat_right((fquat_t){transform->rotation_x, transform->rotation_y, transform->rotation_z, transform->rotation_w}));
+  fquat_t q = {
+    transform->rotation_x,
+    transform->rotation_y,
+    transform->rotation_z,
+    transform->rotation_w,
+  };
+
+  return fvec3_negate(fquat_right(q));
 }
 __forceinline fvec3_t cp_transform_local_down(cp_transform_t *transform) {
-  return fvec3_negate(fquat_up((fquat_t){transform->rotation_x, transform->rotation_y, transform->rotation_z, transform->rotation_w}));
+  fquat_t q = {
+    transform->rotation_x,
+    transform->rotation_y,
+    transform->rotation_z,
+    transform->rotation_w,
+  };
+
+  return fvec3_negate(fquat_up(q));
 }
 __forceinline fvec3_t cp_transform_local_back(cp_transform_t *transform) {
-  return fvec3_negate(fquat_front((fquat_t){transform->rotation_x, transform->rotation_y, transform->rotation_z, transform->rotation_w}));
+  fquat_t q = {
+    transform->rotation_x,
+    transform->rotation_y,
+    transform->rotation_z,
+    transform->rotation_w,
+  };
+
+  return fvec3_negate(fquat_front(q));
 }
 
 // void transform_set_position(transform_t *transform, fvec3_t position) {
@@ -37,20 +79,21 @@ __forceinline fvec3_t cp_transform_local_back(cp_transform_t *transform) {
 // }
 
 void cp_transform_set_rotation(cp_transform_t *transform, fquat_t rotation) {
-  fquat_t q = fquat_norm(rotation);
+  fquat_t qn = fquat_norm(rotation);
 
-  transform->rotation_x = q.x;
-  transform->rotation_y = q.y;
-  transform->rotation_z = q.z;
-  transform->rotation_w = q.w;
+  transform->rotation_x = qn.x;
+  transform->rotation_y = qn.y;
+  transform->rotation_z = qn.z;
+  transform->rotation_w = qn.w;
 }
 void cp_transform_set_rotation_xyzw(cp_transform_t *transform, float x, float y, float z, float w) {
-  fquat_t q = fquat_norm((fquat_t){x, y, z, w});
+  fquat_t q = {x, y, z, w};
+  fquat_t qn = fquat_norm(q);
 
-  transform->rotation_x = q.x;
-  transform->rotation_y = q.y;
-  transform->rotation_z = q.z;
-  transform->rotation_w = q.w;
+  transform->rotation_x = qn.x;
+  transform->rotation_y = qn.y;
+  transform->rotation_z = qn.z;
+  transform->rotation_w = qn.w;
 }
 // void transform_set_relative_rotation(transform_t *transform, transform_t *reference, fquat_t rotation) {
 //   transform->rotation = fquat_norm(fquat_mul(reference->world_rotation, rotation));

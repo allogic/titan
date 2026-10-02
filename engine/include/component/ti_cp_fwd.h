@@ -42,11 +42,6 @@ ECS_STRUCT_TYPE(cp_mesh_t, TI_CP_MESH_DECL);
 ECS_STRUCT_TYPE(cp_skeleton_t, TI_CP_SKELETON_DECL);
 ECS_STRUCT_TYPE(cp_script_t, TI_CP_SCRIPT_DECL);
 
-ECS_STRUCT_TYPE(cp_material_ref_t, TI_CP_MATERIAL_REF_DECL);
-ECS_STRUCT_TYPE(cp_mesh_ref_t, TI_CP_MESH_REF_DECL);
-ECS_STRUCT_TYPE(cp_skeleton_ref_t, TI_CP_SKELETON_REF_DECL);
-ECS_STRUCT_TYPE(cp_script_ref_t, TI_CP_SCRIPT_REF_DECL);
-
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
@@ -58,11 +53,6 @@ extern ECS_COMPONENT_DECLARE(cp_material_t);
 extern ECS_COMPONENT_DECLARE(cp_mesh_t);
 extern ECS_COMPONENT_DECLARE(cp_skeleton_t);
 extern ECS_COMPONENT_DECLARE(cp_script_t);
-
-extern ECS_COMPONENT_DECLARE(cp_material_ref_t);
-extern ECS_COMPONENT_DECLARE(cp_mesh_ref_t);
-extern ECS_COMPONENT_DECLARE(cp_skeleton_ref_t);
-extern ECS_COMPONENT_DECLARE(cp_script_ref_t);
 
 #ifdef __cplusplus
 }

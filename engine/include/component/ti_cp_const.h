@@ -46,46 +46,25 @@
     float mouse_delta_y;                    \
   }
 
-#define TI_CP_MATERIAL_DECL  \
-  {                          \
-    void *pipeline_instance; \
-    void *material_instance; \
-  }
-
-#define TI_CP_MESH_DECL  \
-  {                      \
-    void *mesh_instance; \
-  }
-
-#define TI_CP_SKELETON_DECL  \
-  {                          \
-    void *skeleton_instance; \
-  }
-
-#define TI_CP_SCRIPT_DECL  \
-  {                        \
-    void *module_instance; \
-  }
-
-#define TI_CP_MATERIAL_REF_DECL \
-  {                             \
-    char pipeline_path[256];    \
-    char material_path[256];    \
-  }
-
-#define TI_CP_MESH_REF_DECL \
+#define TI_CP_MATERIAL_DECL \
   {                         \
-    char mesh_path[256];    \
+    uint64_t pipeline_hash; \
+    uint64_t material_hash; \
   }
 
-#define TI_CP_SKELETON_REF_DECL \
-  {                             \
-    char skeleton_path[256];    \
+#define TI_CP_MESH_DECL \
+  {                     \
+    uint64_t mesh_hash; \
   }
 
-#define TI_CP_SCRIPT_REF_DECL \
-  {                           \
-    char module_path[256];    \
+#define TI_CP_SKELETON_DECL \
+  {                         \
+    uint64_t skeleton_hash; \
+  }
+
+#define TI_CP_SCRIPT_DECL \
+  {                       \
+    uint64_t module_hash; \
   }
 
 #define TI_CP_TRANSFORM_DESC TI_STRINGIFY(TI_CP_TRANSFORM_DECL)
@@ -96,10 +75,5 @@
 #define TI_CP_MESH_DESC TI_STRINGIFY(TI_CP_MESH_DECL)
 #define TI_CP_SKELETON_DESC TI_STRINGIFY(TI_CP_SKELETON_DECL)
 #define TI_CP_SCRIPT_DESC TI_STRINGIFY(TI_CP_SCRIPT_DECL)
-
-#define TI_CP_MATERIAL_REF_DESC TI_STRINGIFY(TI_CP_MATERIAL_REF_DECL)
-#define TI_CP_MESH_REF_DESC TI_STRINGIFY(TI_CP_MESH_REF_DECL)
-#define TI_CP_SKELETON_REF_DESC TI_STRINGIFY(TI_CP_SKELETON_REF_DECL)
-#define TI_CP_SCRIPT_REF_DESC TI_STRINGIFY(TI_CP_SCRIPT_REF_DECL)
 
 #endif // TI_CP_CONST_H

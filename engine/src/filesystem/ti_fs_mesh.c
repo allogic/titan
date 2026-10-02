@@ -1,4 +1,4 @@
-#include <ti_pch.h>
+#include <filesystem/ti_fs_mesh.h>
 
 void fs_mesh_load(fs_mesh_t *mesh, fs_file *file) {
   memset(mesh, 0, sizeof(fs_mesh_t));

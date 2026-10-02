@@ -1,6 +1,8 @@
 #ifndef TI_ARCHIVE_H
 #define TI_ARCHIVE_H
 
+#include <ti_engine.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus

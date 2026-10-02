@@ -1,4 +1,4 @@
-#include <ti_pch.h>
+#include <vulkan/ti_vk_model.h>
 
 void vk_model_create(vk_model_t *model, char const *asset_path) {
   model->asset.path = asset_path;

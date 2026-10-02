@@ -1,4 +1,4 @@
-#include <ti_pch.h>
+#include <vulkan/ti_vk_renderer.h>
 
 static void create_sync_object(vk_renderer_t *renderer);
 static void create_debug_line_buffer(vk_renderer_t *renderer);
@@ -780,7 +780,9 @@ static void record_imgui_pass(vk_renderer_t *renderer) {
 
   vkCmdSetScissor(g_vk_instance.command_buffer, 0, 1, &scissor);
 
-  im_draw();
+  if (g_window.editor_draw_proc) {
+    g_window.editor_draw_proc();
+  }
 
   vkCmdEndRenderPass(g_vk_instance.command_buffer);
 }

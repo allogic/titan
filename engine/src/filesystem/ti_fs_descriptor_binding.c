@@ -1,4 +1,4 @@
-#include <ti_pch.h>
+#include <filesystem/ti_fs_descriptor_binding.h>
 
 void fs_descriptor_binding_load(fs_descriptor_binding_t *descriptor_binding, fs_file *file) {
   memset(descriptor_binding, 0, sizeof(fs_descriptor_binding_t));

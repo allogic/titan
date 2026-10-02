@@ -1,6 +1,8 @@
 #ifndef TI_AUDIO_H
 #define TI_AUDIO_H
 
+#include <ti_engine.h>
+
 #include <phonon.h>
 
 #define TI_AUDIO_SAMPLE_RATE 48000
@@ -30,7 +32,7 @@ typedef struct ti_audio_source_t ti_audio_source_t;
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif // __cplusplus
 
 extern ti_audio_t g_audio;
 
@@ -51,6 +53,6 @@ void audio_render(float *output, uint32_t frame_count);
 
 #ifdef __cplusplus
 }
-#endif
+#endif // __cplusplus
 
 #endif // TI_AUDIO_H

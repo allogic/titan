@@ -1,6 +1,8 @@
 #ifndef TI_VK_DESCRIPTOR_BINDING_H
 #define TI_VK_DESCRIPTOR_BINDING_H
 
+#include <ti_engine.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus

@@ -1,9 +1,4 @@
-#include <ti_pch.h>
-
-static void resolve_material_refs(ecs_iter_t *it);
-static void resolve_mesh_refs(ecs_iter_t *it);
-static void resolve_skeleton_refs(ecs_iter_t *it);
-static void resolve_script_refs(ecs_iter_t *it);
+#include <ti_scene.h>
 
 static void script_on_create(ecs_iter_t *it);
 // static void script_on_play(ecs_iter_t *it);
@@ -23,10 +18,6 @@ ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_material_t, TI_CP_MATERIAL_DES
 ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_mesh_t, TI_CP_MESH_DESC);
 ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_skeleton_t, TI_CP_SKELETON_DESC);
 ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_script_t, TI_CP_SCRIPT_DESC);
-ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_material_ref_t, TI_CP_MATERIAL_REF_DESC);
-ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_mesh_ref_t, TI_CP_MESH_REF_DESC);
-ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_skeleton_ref_t, TI_CP_SKELETON_REF_DESC);
-ECS_META_IMPL_CALL(ECS_STRUCT_, ECS_META_IMPL, cp_script_ref_t, TI_CP_SCRIPT_REF_DESC);
 
 void scene_create(scene_t *scene) {
   scene->world = ecs_init();
@@ -39,10 +30,6 @@ void scene_create(scene_t *scene) {
   ECS_COMPONENT_DEFINE(scene->world, cp_mesh_t);
   ECS_COMPONENT_DEFINE(scene->world, cp_skeleton_t);
   ECS_COMPONENT_DEFINE(scene->world, cp_script_t);
-  ECS_COMPONENT_DEFINE(scene->world, cp_material_ref_t);
-  ECS_COMPONENT_DEFINE(scene->world, cp_mesh_ref_t);
-  ECS_COMPONENT_DEFINE(scene->world, cp_skeleton_ref_t);
-  ECS_COMPONENT_DEFINE(scene->world, cp_script_ref_t);
 
   ecs_meta_from_desc(scene->world, ecs_id(cp_transform_t), EcsStructType, TI_CP_TRANSFORM_DESC);
   ecs_meta_from_desc(scene->world, ecs_id(cp_camera_t), EcsStructType, TI_CP_CAMERA_DESC);
@@ -52,15 +39,6 @@ void scene_create(scene_t *scene) {
   ecs_meta_from_desc(scene->world, ecs_id(cp_mesh_t), EcsStructType, TI_CP_MESH_DESC);
   ecs_meta_from_desc(scene->world, ecs_id(cp_skeleton_t), EcsStructType, TI_CP_SKELETON_DESC);
   ecs_meta_from_desc(scene->world, ecs_id(cp_script_t), EcsStructType, TI_CP_SCRIPT_DESC);
-  ecs_meta_from_desc(scene->world, ecs_id(cp_material_ref_t), EcsStructType, TI_CP_MATERIAL_REF_DESC);
-  ecs_meta_from_desc(scene->world, ecs_id(cp_mesh_ref_t), EcsStructType, TI_CP_MESH_REF_DESC);
-  ecs_meta_from_desc(scene->world, ecs_id(cp_skeleton_ref_t), EcsStructType, TI_CP_SKELETON_REF_DESC);
-  ecs_meta_from_desc(scene->world, ecs_id(cp_script_ref_t), EcsStructType, TI_CP_SCRIPT_REF_DESC);
-
-  ECS_SYSTEM(scene->world, resolve_material_refs, EcsOnStart, cp_material_ref_t);
-  ECS_SYSTEM(scene->world, resolve_mesh_refs, EcsOnStart, cp_mesh_ref_t);
-  ECS_SYSTEM(scene->world, resolve_skeleton_refs, EcsOnStart, cp_skeleton_ref_t);
-  ECS_SYSTEM(scene->world, resolve_script_refs, EcsOnStart, cp_script_ref_t);
 
   ECS_SYSTEM(scene->world, update_velocity, EcsOnUpdate, cp_velocity_t, cp_transform_t);
   ECS_SYSTEM(scene->world, update_editor_camera_controller, EcsOnUpdate, cp_editor_camera_controller_t, cp_transform_t, cp_velocity_t);
@@ -132,7 +110,7 @@ void scene_update(scene_t *scene) {
 //
 //   if (buffer) {
 //
-//     fs_file_open_and_write(g_fs, scene->file_path, buffer, buffer_size);
+//     fs_file_open_and_write(g_fs_context, scene->file_path, buffer, buffer_size);
 //
 //     ecs_os_free(buffer);
 //   }
@@ -206,30 +184,6 @@ void entity_destroy(scene_t *scene, ecs_entity_t entity) {
   ecs_delete(scene->world, entity);
 }
 
-static void resolve_material_refs(ecs_iter_t *it) {
-}
-static void resolve_mesh_refs(ecs_iter_t *it) {
-}
-static void resolve_skeleton_refs(ecs_iter_t *it) {
-}
-static void resolve_script_refs(ecs_iter_t *it) {
-  cp_script_ref_t *script_references = ecs_field(it, cp_script_ref_t, 0);
-
-  uint32_t index = 0;
-  uint32_t count = it->count;
-
-  while (index < count) {
-
-    ecs_set(it->world, it->entities[index], cp_script_t, {
-                                                           .module_instance = (void *)0xDEADBEEFDEADBEEF,
-                                                         });
-
-    ecs_remove(it->world, it->entities[index], cp_script_ref_t);
-
-    index++;
-  }
-}
-
 static void script_on_create(ecs_iter_t *it) {
   cp_script_t *scripts = ecs_field(it, cp_script_t, 0);
 
@@ -239,7 +193,6 @@ static void script_on_create(ecs_iter_t *it) {
   while (index < count) {
 
     cp_script_t *script = &scripts[index];
-    cl_module_t *module = (cl_module_t *)script->module_instance;
 
     // module->on_create_proc();
 
@@ -287,7 +240,6 @@ static void script_on_destroy(ecs_iter_t *it) {
   while (index < count) {
 
     cp_script_t *script = &scripts[index];
-    cl_module_t *module = (cl_module_t *)script->module_instance;
 
     // module->on_destroy_proc();
 

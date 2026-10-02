@@ -1,4 +1,4 @@
-#include <ti_pch.h>
+#include <vulkan/ti_vk_pipeline.h>
 
 static void create_descriptor_pool(vk_pipeline_t *pipeline);
 static void create_descriptor_set_layout(vk_pipeline_t *pipeline);
@@ -226,7 +226,7 @@ static void create_sbt_buffer(vk_pipeline_t *pipeline) {
 
   vkGetBufferMemoryRequirements(g_vk_instance.device, pipeline->sbt_buffer_handle, &memory_requirements);
 
-  uint32_t memory_type_index = vk_find_memory_type_index(memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+  uint32_t memory_type_index = vk_memory_find_type_index(memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
   VkMemoryAllocateFlagsInfo memory_allocate_flags_info = {
     .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO,

@@ -1,4 +1,4 @@
-#include <ti_pch.h>
+#include <ti_archive.h>
 
 static void calc_offset(archive_t *archive);
 static void write_header(archive_t *archive, fs_file *file);
@@ -39,7 +39,7 @@ void archive_load(archive_t *archive) {
   uint64_t record_index = 0;
   uint64_t record_count = 0;
 
-  if (fs_file_open(g_fs, archive->file_path, FS_READ, &file) == FS_SUCCESS) {
+  if (fs_file_open(g_fs_context, archive->file_path, FS_READ, &file) == FS_SUCCESS) {
 
     fs_file_read(file, &record_count, sizeof(uint64_t), 0);
 
@@ -75,7 +75,7 @@ void archive_load(archive_t *archive) {
 void archive_store(archive_t *archive) {
   fs_file *file = 0;
 
-  if (fs_file_open(g_fs, archive->file_path, FS_WRITE, &file) == FS_SUCCESS) {
+  if (fs_file_open(g_fs_context, archive->file_path, FS_WRITE, &file) == FS_SUCCESS) {
 
     calc_offset(archive);
     write_header(archive, file);

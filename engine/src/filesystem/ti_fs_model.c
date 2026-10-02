@@ -1,4 +1,4 @@
-#include <ti_pch.h>
+#include <filesystem/ti_fs_model.h>
 
 void fs_model_load(fs_model_t *model, fs_file *file) {
   memset(model, 0, sizeof(fs_model_t));

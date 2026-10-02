@@ -1,6 +1,8 @@
 #ifndef TI_FS_IMAGE_H
 #define TI_FS_IMAGE_H
 
+#include <ti_engine.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus

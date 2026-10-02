@@ -1,4 +1,4 @@
-#include <ti_pch.h>
+#include <ti_audio_demo.h>
 
 int32_t g_audio_demo_available = 0;
 int32_t g_audio_demo_door_open = 1;

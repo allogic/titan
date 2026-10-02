@@ -1,4 +1,4 @@
-#include <ti_pch.h>
+#include <filesystem/ti_fs_image.h>
 
 void fs_image_load(fs_image_t *image, fs_file *file) {
   memset(image, 0, sizeof(fs_image_t));

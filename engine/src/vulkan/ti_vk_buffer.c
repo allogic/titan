@@ -1,4 +1,4 @@
-#include <ti_pch.h>
+#include <vulkan/ti_vk_buffer.h>
 
 void vk_buffer_create(vk_buffer_t *buffer, char const *asset_path) {
   buffer->asset.path = asset_path;
@@ -24,7 +24,7 @@ void vk_buffer_create(vk_buffer_t *buffer, char const *asset_path) {
 
     vkGetBufferMemoryRequirements(g_vk_instance.device, buffer->buffer_handle, &memory_requirements);
 
-    uint32_t memory_type_index = vk_find_memory_type_index(memory_requirements.memoryTypeBits, config->memory_property_flags);
+    uint32_t memory_type_index = vk_memory_find_type_index(memory_requirements.memoryTypeBits, config->memory_property_flags);
 
     VkMemoryAllocateFlagsInfo memory_allocate_flags_info = {
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO,
@@ -56,7 +56,7 @@ void vk_buffer_create(vk_buffer_t *buffer, char const *asset_path) {
 
     vkGetBufferMemoryRequirements(g_vk_instance.device, staging_buffer, &memory_requirements);
 
-    uint32_t memory_type_index = vk_find_memory_type_index(memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    uint32_t memory_type_index = vk_memory_find_type_index(memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
     VkMemoryAllocateInfo memory_allocate_info = {
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
@@ -79,7 +79,7 @@ void vk_buffer_create(vk_buffer_t *buffer, char const *asset_path) {
     vkUnmapMemory(g_vk_instance.device, staging_device_memory);
   }
 
-  VkCommandBuffer command_buffer = vk_primary_command_buffer_record_immediate();
+  VkCommandBuffer command_buffer = vk_commandbuffer_primary_record_immediate();
 
   if (config->zero_data) {
 
@@ -94,7 +94,7 @@ void vk_buffer_create(vk_buffer_t *buffer, char const *asset_path) {
 
   vkCmdCopyBuffer(command_buffer, staging_buffer, buffer->buffer_handle, 1, &buffer_copy);
 
-  vk_primary_command_buffer_submit_immediate(command_buffer);
+  vk_commandbuffer_primary_submit_immediate(command_buffer);
 
   vkFreeMemory(g_vk_instance.device, staging_device_memory, 0);
   vkDestroyBuffer(g_vk_instance.device, staging_buffer, 0);

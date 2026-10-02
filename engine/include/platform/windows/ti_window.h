@@ -1,6 +1,8 @@
 #ifndef TI_WINDOW_H
 #define TI_WINDOW_H
 
+#include <ti_engine.h>
+
 typedef enum key_state_t {
   KEY_STATE_UP = 0,
   KEY_STATE_PRESSED,
@@ -124,6 +126,12 @@ typedef enum mouse_key_t {
   MOUSE_KEY_COUNT,
 } mouse_key_t;
 
+typedef void (*editor_create_proc_t)(void);
+typedef void (*editor_draw_proc_t)(void);
+typedef void (*editor_destroy_proc_t)(void);
+typedef void (*editor_viewport_update_proc_t)(vk_viewport_t *viewport);
+typedef void (*editor_message_proc_t)(HWND, UINT, WPARAM, LPARAM);
+
 typedef struct window_t {
   char const *title;
   char const *class_name;
@@ -152,6 +160,11 @@ typedef struct window_t {
   uint64_t time_curr;
   key_state_t keyboard_key_states[KEYBOARD_KEY_COUNT];
   key_state_t mouse_key_states[MOUSE_KEY_COUNT];
+  editor_create_proc_t editor_create_proc;
+  editor_draw_proc_t editor_draw_proc;
+  editor_destroy_proc_t editor_destroy_proc;
+  editor_message_proc_t editor_message_proc;
+  editor_viewport_update_proc_t editor_viewport_update_proc;
 } window_t;
 
 #ifdef __cplusplus

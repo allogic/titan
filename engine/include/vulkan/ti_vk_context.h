@@ -1,0 +1,62 @@
+#ifndef TI_VK_CONTEXT_H
+#define TI_VK_CONTEXT_H
+
+#include <ti_engine.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
+extern VkPhysicalDeviceRayTracingPipelinePropertiesKHR g_physical_device_ray_tracing_pipeline_properties;
+
+extern VkPhysicalDeviceVulkan12Features g_physical_device_vulkan_12_features;
+extern VkPhysicalDeviceRayTracingPipelineFeaturesKHR g_physical_device_ray_tracing_pipeline_features;
+extern VkPhysicalDeviceAccelerationStructureFeaturesKHR g_physical_device_acceleration_structure_features;
+extern VkPhysicalDeviceMaintenance4Features g_physical_device_maintenance_4_features;
+extern VkPhysicalDeviceFragmentShadingRateFeaturesKHR g_physical_device_fragment_shading_rate_features;
+extern VkPhysicalDeviceMultiviewFeatures g_physical_device_multiview_features;
+extern VkPhysicalDeviceMeshShaderFeaturesEXT g_physical_device_mesh_shader_features;
+
+extern vk_instance_t g_vk_instance;
+extern vk_swapchain_t g_vk_swapchain;
+extern vk_renderer_t g_vk_renderer;
+extern vk_viewport_t g_vk_viewport;
+
+extern vk_renderpass_t g_vk_main_renderpass;
+extern vk_renderpass_t g_vk_imgui_renderpass;
+
+extern vk_framebuffer_t g_vk_main_framebuffer;
+extern vk_framebuffer_t g_vk_imgui_framebuffer;
+
+extern vk_buffer_t g_vk_time_info_buffer;
+extern vk_buffer_t g_vk_screen_info_buffer;
+extern vk_buffer_t g_vk_mouse_info_buffer;
+extern vk_buffer_t g_vk_camera_info_buffer;
+
+#ifdef BUILD_DEBUG
+extern PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT_proc;
+extern PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT_proc;
+#endif // BUILD_DEBUG
+
+extern PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasksEXT_proc;
+extern PFN_vkCmdTraceRaysKHR vkCmdTraceRaysKHR_proc;
+extern PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructuresKHR_proc;
+
+extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructureKHR_proc;
+extern PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelinesKHR_proc;
+
+extern PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizesKHR_proc;
+extern PFN_vkGetAccelerationStructureDeviceAddressKHR vkGetAccelerationStructureDeviceAddressKHR_proc;
+extern PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandlesKHR_proc;
+
+extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructureKHR_proc;
+
+void vk_context_create(void);
+void vk_context_update_surface_capabilities(void);
+void vk_context_destroy(void);
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
+
+#endif // TI_VK_CONTEXT_H

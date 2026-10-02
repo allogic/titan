@@ -1,6 +1,8 @@
 #ifndef TI_VK_FONT_H
 #define TI_VK_FONT_H
 
+#include <ti_engine.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus

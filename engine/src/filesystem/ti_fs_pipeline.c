@@ -1,4 +1,4 @@
-#include <ti_pch.h>
+#include <filesystem/ti_fs_pipeline.h>
 
 static void read_input_variables(fs_pipeline_t *pipeline, fs_file *file);
 static void read_descriptor_bindings(fs_pipeline_t *pipeline, fs_file *file);

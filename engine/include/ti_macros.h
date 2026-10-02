@@ -1,8 +1,6 @@
 #ifndef TI_MACROS_H
 #define TI_MACROS_H
 
-#define TI_CONSOLE(...) im_output_push(__VA_ARGS__)
-
 #define TI_STATIC_ASSERT(EXPRESSION) typedef uint8_t static_assert_t[(EXPRESSION) ? (1) : (-1)]
 
 #define TI_ARRAY_COUNT(ARRAY) ((uint64_t)(sizeof(ARRAY) / sizeof((ARRAY)[0ULL])))

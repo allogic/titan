@@ -1,6 +1,8 @@
 #ifndef TI_MAP_H
 #define TI_MAP_H
 
+#include <ti_engine.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus

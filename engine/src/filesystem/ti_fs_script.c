@@ -1,4 +1,4 @@
-#include <ti_pch.h>
+#include <filesystem/ti_fs_script.h>
 
 void fs_script_load(fs_script_t *script, fs_file *file) {
   memset(script, 0, sizeof(fs_script_t));

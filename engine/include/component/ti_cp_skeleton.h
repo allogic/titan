@@ -1,6 +1,8 @@
 #ifndef TI_CP_SKELETON_H
 #define TI_CP_SKELETON_H
 
+#include <ti_engine.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus

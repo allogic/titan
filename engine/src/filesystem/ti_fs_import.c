@@ -1,4 +1,4 @@
-#include <ti_pch.h>
+#include <filesystem/ti_fs_import.h>
 
 #include <miniaudio.h>
 
@@ -48,7 +48,7 @@ uint8_t fs_import_script(fs_asset_t *asset, char const *script_file) {
   QueryPerformanceFrequency(&freq);
   QueryPerformanceCounter(&t0);
 
-  if (fs_file_open_and_read(g_fs, script_file, FS_FORMAT_TEXT, &source_buffer, &source_buffer_size) != FS_SUCCESS) {
+  if (fs_file_open_and_read(g_fs_context, script_file, FS_FORMAT_TEXT, &source_buffer, &source_buffer_size) != FS_SUCCESS) {
 
     status = 1;
 
@@ -103,7 +103,7 @@ uint8_t fs_import_model(fs_asset_t *asset, char const *model_file) {
   QueryPerformanceFrequency(&freq);
   QueryPerformanceCounter(&t0);
 
-  if (fs_file_open_and_read(g_fs, model_file, FS_FORMAT_BINARY, &gltf_buffer, &gltf_buffer_size) != FS_SUCCESS) {
+  if (fs_file_open_and_read(g_fs_context, model_file, FS_FORMAT_BINARY, &gltf_buffer, &gltf_buffer_size) != FS_SUCCESS) {
 
     status = 1;
 
@@ -187,7 +187,7 @@ uint8_t fs_import_font(fs_asset_t *asset, char const *font_file) {
   QueryPerformanceFrequency(&freq);
   QueryPerformanceCounter(&t0);
 
-  if (fs_file_open_and_read(g_fs, font_file, FS_FORMAT_BINARY, &font_buffer, &font_buffer_size) != FS_SUCCESS) {
+  if (fs_file_open_and_read(g_fs_context, font_file, FS_FORMAT_BINARY, &font_buffer, &font_buffer_size) != FS_SUCCESS) {
 
     status = 1;
 
@@ -229,7 +229,7 @@ uint8_t fs_import_sound(fs_asset_t *asset, char const *sound_file, uint8_t stere
   fs_sound_t imported = {0};
   uint8_t result = 1;
 
-  if (fs_file_open_and_read(g_fs, sound_file, FS_FORMAT_BINARY, &file_data, &file_size) != FS_SUCCESS) {
+  if (fs_file_open_and_read(g_fs_context, sound_file, FS_FORMAT_BINARY, &file_data, &file_size) != FS_SUCCESS) {
     goto cleanup;
   }
 
@@ -261,7 +261,7 @@ uint8_t fs_import_sound(fs_asset_t *asset, char const *sound_file, uint8_t stere
 cleanup:
   fs_sound_destroy(&imported);
   ma_free(samples, &config.allocationCallbacks);
-  fs_free(file_data, fs_get_allocation_callbacks(g_fs));
+  fs_free(file_data, fs_get_allocation_callbacks(g_fs_context));
 
   return result;
 }
@@ -994,7 +994,7 @@ static uint8_t compile_glsl_shader(fs_pipeline_t *pipeline, char const *file_pat
   glslang_program_t *program = 0;
   glslang_shader_t *shader = 0;
 
-  if (fs_file_open_and_read(g_fs, file_path, FS_FORMAT_TEXT, &buffer, &buffer_size) != FS_SUCCESS) {
+  if (fs_file_open_and_read(g_fs_context, file_path, FS_FORMAT_TEXT, &buffer, &buffer_size) != FS_SUCCESS) {
 
     status = 1;
 

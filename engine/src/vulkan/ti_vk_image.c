@@ -1,4 +1,4 @@
-#include <ti_pch.h>
+#include <vulkan/ti_vk_image.h>
 
 void vk_image_create(vk_image_t *image, uint32_t width, uint32_t height, uint32_t depth, char const *asset_path) {
   image->asset.path = asset_path;
@@ -31,7 +31,7 @@ void vk_image_create(vk_image_t *image, uint32_t width, uint32_t height, uint32_
 
   vkGetImageMemoryRequirements(g_vk_instance.device, image->handle, &memory_requirements);
 
-  uint32_t memory_type_index = vk_find_memory_type_index(memory_requirements.memoryTypeBits, config->memory_property_flags);
+  uint32_t memory_type_index = vk_memory_find_type_index(memory_requirements.memoryTypeBits, config->memory_property_flags);
 
   VkMemoryAllocateFlagsInfo memory_allocate_flags_info = {
     .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO,
@@ -85,7 +85,7 @@ void vk_image_create(vk_image_t *image, uint32_t width, uint32_t height, uint32_
 
   TI_VK_CHECK(vkCreateSampler(g_vk_instance.device, &sampler_create_info, 0, &image->sampler));
 
-  VkCommandBuffer command_buffer = vk_primary_command_buffer_record_immediate();
+  VkCommandBuffer command_buffer = vk_commandbuffer_primary_record_immediate();
 
   VkImageMemoryBarrier image_memory_barrier = {
     .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -107,7 +107,7 @@ void vk_image_create(vk_image_t *image, uint32_t width, uint32_t height, uint32_
 
   vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, 0, 0, 0, 1, &image_memory_barrier);
 
-  vk_primary_command_buffer_submit_immediate(command_buffer);
+  vk_commandbuffer_primary_submit_immediate(command_buffer);
 }
 void vk_image_destroy(vk_image_t *image) {
   vkDestroySampler(g_vk_instance.device, image->sampler, 0);

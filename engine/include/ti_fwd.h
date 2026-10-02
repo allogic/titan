@@ -59,6 +59,18 @@ typedef struct scene_t {
   ecs_query_t *root_children;
 } scene_t;
 
+typedef void (*on_create_proc_t)(void);
+typedef void (*on_play_proc_t)(void);
+typedef void (*on_stop_proc_t)(void);
+typedef void (*on_destroy_proc_t)(void);
+
+typedef struct cl_module_t {
+  on_create_proc_t on_create_proc;
+  on_play_proc_t on_play_proc;
+  on_stop_proc_t on_stop_proc;
+  on_destroy_proc_t on_destroy_proc;
+} cl_module_t;
+
 // TODO: further abstract this..
 typedef struct ti_physic_t {
   JPH_PhysicsSystem *system;

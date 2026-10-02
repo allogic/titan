@@ -1,4 +1,4 @@
-#include <ti_pch.h>
+#include <vulkan/ti_vk_descriptor_binding.h>
 
 void vk_descriptor_binding_create(vk_descriptor_binding_t *descriptor_binding, char const *asset_path) {
   descriptor_binding->asset.path = asset_path;
