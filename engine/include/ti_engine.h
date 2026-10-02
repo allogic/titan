@@ -80,6 +80,7 @@
 #  include <platform/darwin/ti_window.h>
 #endif // OS_SELECTION
 
+#include <ti_hash.h>
 #include <ti_dmalloc.h>
 #include <ti_map.h>
 
@@ -143,8 +144,8 @@
 #include <filesystem/ti_fs_import.h>
 #include <filesystem/ti_fs_context.h>
 
-#include <ti_archive.h>
 #include <ti_clang.h>
+#include <ti_adb.h>
 #include <ti_scene.h>
 #include <ti_audio.h>
 #include <ti_audio_demo.h>

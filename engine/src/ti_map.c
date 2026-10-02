@@ -1,79 +1,64 @@
 #include <ti_map.h>
 
-static void expand(map_t *map);
-static uint64_t hash(map_t *map, void const *key, uint64_t key_size, uint64_t modulus);
-static uint8_t load_factor(map_t *map);
+static void expand(map64_t *map);
 
-void map_create(map_t *map) {
-  map->table = (map_record_t **)TI_ALLOC(TI_MAP_TABLE_COUNT * sizeof(map_record_t *), 1, 0);
-  map->table_size = TI_MAP_TABLE_COUNT * sizeof(map_record_t *);
+void map64_create(map64_t *map) {
+  map->table = (map64_record_t **)TI_ALLOC(TI_MAP_TABLE_COUNT * sizeof(map64_record_t *), 1, 0);
+  map->table_size = TI_MAP_TABLE_COUNT * sizeof(map64_record_t *);
   map->table_count = TI_MAP_TABLE_COUNT;
   map->record_count = 0;
 }
-uint8_t map_insert(map_t *map, void const *key, uint64_t key_size, void const *value, uint64_t value_size) {
-  uint8_t key_exists = 0;
-  uint8_t load = load_factor(map);
+bool32_t map64_insert(map64_t *map, uint64_t key, uint64_t value) {
+  uint64_t load_factor = ((map->record_count + 1) / map->table_count) * 100;
 
-  if (load > TI_MAP_LOAD_FACTOR) {
+  if (load_factor > TI_MAP_LOAD_FACTOR) {
     expand(map);
   }
 
-  uint64_t h = hash(map, key, key_size, map->table_count);
+  uint64_t hash = hash64(key) % map->table_count;
 
-  map_record_t *curr = map->table[h];
+  map64_record_t *curr = map->table[hash];
 
   while (curr) {
 
-    if (memcmp(curr->key, key, TI_MIN(curr->key_size, key_size)) == 0) {
-
-      key_exists = 1;
-
-      break;
+    if (curr->key == key) {
+      return 0;
     }
 
     curr = curr->next;
   }
 
-  if (key_exists == 0) {
+  curr = (map64_record_t *)TI_ALLOC(sizeof(map64_record_t), 1, 0);
 
-    // TODO: map_record_t pool optimization..
+  curr->next = map->table[hash];
+  curr->key = key;
+  curr->value = value;
 
-    curr = (map_record_t *)TI_ALLOC(sizeof(map_record_t), 1, 0);
+  map->table[hash] = curr;
+  map->record_count++;
 
-    curr->next = map->table[h];
-    curr->key = (uint8_t *)TI_ALLOC(key_size, 0, key);
-    curr->key_size = key_size;
-    curr->value = (uint8_t *)TI_ALLOC(value_size, 0, value);
-    curr->value_size = value_size;
-
-    map->table[h] = curr;
-    map->record_count++;
-  }
-
-  return key_exists;
+  return 1;
 }
-uint8_t map_remove(map_t *map, void const *key, uint64_t key_size, void *value, uint64_t value_size) {
-  uint64_t h = hash(map, key, key_size, map->table_count);
+bool32_t map64_remove(map64_t *map, uint64_t key, uint64_t *value) {
+  uint64_t hash = hash64(key) % map->table_count;
 
-  map_record_t *curr = map->table[h];
-  map_record_t *prev = 0;
+  map64_record_t *curr = map->table[hash];
+  map64_record_t *prev = 0;
 
   while (curr) {
 
-    if (memcmp(curr->key, key, TI_MIN(curr->key_size, key_size)) == 0) {
+    if (curr->key == key) {
 
       if (prev) {
         prev->next = curr->next;
       } else {
-        map->table[h] = curr->next;
+        map->table[hash] = curr->next;
       }
 
       if (value) {
-        memcpy(value, curr->value, TI_MIN(value_size, curr->value_size));
+        *value = curr->value;
       }
 
-      TI_FREE(curr->key);
-      TI_FREE(curr->value);
       TI_FREE(curr);
 
       map->record_count--;
@@ -87,14 +72,14 @@ uint8_t map_remove(map_t *map, void const *key, uint64_t key_size, void *value, 
 
   return 0;
 }
-uint8_t map_contains(map_t *map, void const *key, uint64_t key_size) {
-  uint64_t h = hash(map, key, key_size, map->table_count);
+bool32_t map64_contains(map64_t *map, uint64_t key) {
+  uint64_t hash = hash64(key) % map->table_count;
 
-  map_record_t *curr = map->table[h];
+  map64_record_t *curr = map->table[hash];
 
   while (curr) {
 
-    if (memcmp(curr->key, key, TI_MIN(curr->key_size, key_size)) == 0) {
+    if (curr->key == key) {
       return 1;
     }
 
@@ -103,18 +88,18 @@ uint8_t map_contains(map_t *map, void const *key, uint64_t key_size) {
 
   return 0;
 }
-uint64_t map_count(map_t *map) {
+uint64_t map64_count(map64_t *map) {
   return map->record_count;
 }
-void *map_at(map_t *map, void const *key, uint64_t key_size) {
-  uint64_t h = hash(map, key, key_size, map->table_count);
+uint64_t *map64_at(map64_t *map, uint64_t key) {
+  uint64_t hash = hash64(key) % map->table_count;
 
-  map_record_t *curr = map->table[h];
+  map64_record_t *curr = map->table[hash];
 
   while (curr) {
 
-    if (memcmp(curr->key, key, TI_MIN(curr->key_size, key_size)) == 0) {
-      return curr->value;
+    if (curr->key == key) {
+      return &curr->value;
     }
 
     curr = curr->next;
@@ -122,18 +107,19 @@ void *map_at(map_t *map, void const *key, uint64_t key_size) {
 
   return 0;
 }
-map_iter_t map_iter(map_t *map) {
-  map_iter_t it = {
+map64_iter_t map64_iter(map64_t *map) {
+  map64_iter_t it = {
     .table = map->table,
     .table_count = map->table_count,
     .first_step = 0,
   };
 
   uint64_t table_index = 0;
+  uint64_t table_count = map->table_count;
 
-  while (table_index < map->table_count) {
+  while (table_index < table_count) {
 
-    map_record_t *curr = map->table[table_index];
+    map64_record_t *curr = map->table[table_index];
 
     if (curr) {
 
@@ -148,7 +134,54 @@ map_iter_t map_iter(map_t *map) {
 
   return it;
 }
-uint8_t map_next(map_iter_t *it) {
+void map64_clear(map64_t *map) {
+  uint64_t table_index = 0;
+  uint64_t table_count = map->table_count;
+
+  while (table_index < table_count) {
+
+    map64_record_t *curr = map->table[table_index];
+
+    while (curr) {
+
+      map64_record_t *tmp = curr;
+
+      curr = curr->next;
+
+      TI_FREE(tmp);
+    }
+
+    table_index++;
+  }
+
+  memset(map->table, 0, map->table_size);
+
+  map->record_count = 0;
+}
+void map64_destroy(map64_t *map) {
+  uint64_t table_index = 0;
+  uint64_t table_count = map->table_count;
+
+  while (table_index < table_count) {
+
+    map64_record_t *curr = map->table[table_index];
+
+    while (curr) {
+
+      map64_record_t *tmp = curr;
+
+      curr = curr->next;
+
+      TI_FREE(tmp);
+    }
+
+    table_index++;
+  }
+
+  TI_FREE(map->table);
+}
+
+bool32_t map64_next(map64_iter_t *it) {
   if (it->first_step) {
 
     if (it->table_record) {
@@ -177,85 +210,29 @@ uint8_t map_next(map_iter_t *it) {
 
   return (it->table_index < it->table_count) && it->table_record;
 }
-void *map_key(map_iter_t *it) {
-  return it->table_record->key;
-}
-uint64_t map_key_size(map_iter_t *it) {
-  return it->table_record->key_size;
-}
-void *map_value(map_iter_t *it) {
-  return it->table_record->value;
-}
-uint64_t map_value_size(map_iter_t *it) {
-  return it->table_record->value_size;
-}
-void map_clear(map_t *map) {
+
+static void expand(map64_t *map) {
   uint64_t table_index = 0;
+  uint64_t table_count = map->table_count;
 
-  while (table_index < map->table_count) {
+  uint64_t new_table_size = map->table_size * 2;
+  uint64_t new_table_count = map->table_count * 2;
 
-    map_record_t *curr = map->table[table_index];
+  map64_record_t **new_table = (map64_record_t **)TI_ALLOC(new_table_size, 1, 0);
+
+  while (table_index < table_count) {
+
+    map64_record_t *curr = map->table[table_index];
+    map64_record_t *next = 0;
 
     while (curr) {
 
-      map_record_t *tmp = curr;
+      uint64_t hash = hash64(curr->key) % new_table_count;
 
-      curr = curr->next;
-
-      TI_FREE(tmp->key);
-      TI_FREE(tmp->value);
-      TI_FREE(tmp);
-    }
-
-    table_index++;
-  }
-
-  memset(map->table, 0, map->table_size);
-
-  map->record_count = 0;
-}
-void map_destroy(map_t *map) {
-  uint64_t table_index = 0;
-
-  while (table_index < map->table_count) {
-
-    map_record_t *curr = map->table[table_index];
-
-    while (curr) {
-
-      map_record_t *tmp = curr;
-
-      curr = curr->next;
-
-      TI_FREE(tmp->key);
-      TI_FREE(tmp->value);
-      TI_FREE(tmp);
-    }
-
-    table_index++;
-  }
-
-  TI_FREE(map->table);
-}
-
-static void expand(map_t *map) {
-  uint64_t table_index = 0;
-  uint64_t table_size = map->table_size * 2;
-  uint64_t table_count = map->table_count * 2;
-
-  map_record_t **table = (map_record_t **)TI_ALLOC(table_size, 1, 0);
-
-  while (table_index < map->table_count) {
-
-    map_record_t *curr = map->table[table_index];
-
-    while (curr) {
-
-      uint64_t h = hash(map, curr->key, curr->key_size, table_count);
-
-      curr->next = table[h];
-      table[h] = curr;
-      curr = curr->next;
+      next = curr->next;
+      curr->next = new_table[hash];
+      new_table[hash] = curr;
+      curr = next;
     }
 
     table_index++;
@@ -263,23 +240,7 @@ static void expand(map_t *map) {
 
   TI_FREE(map->table);
 
-  map->table = table;
-  map->table_size = table_size;
-  map->table_count = table_count;
-}
-static uint64_t hash(map_t *map, void const *key, uint64_t key_size, uint64_t modulus) {
-  uint64_t hash = TI_MAP_HASH_POLY;
-  uint64_t key_index = 0;
-
-  while (key_index < key_size) {
-
-    hash = ((hash << 5) + hash) + *(((uint8_t *)key) + key_index);
-
-    key_index++;
-  }
-
-  return hash % modulus;
-}
-static uint8_t load_factor(map_t *map) {
-  return (uint8_t)(((map->record_count + 1) / map->table_count) * 100);
+  map->table = new_table;
+  map->table_size = new_table_size;
+  map->table_count = new_table_count;
 }

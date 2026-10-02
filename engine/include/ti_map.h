@@ -7,20 +7,19 @@
 extern "C" {
 #endif // __cplusplus
 
-void map_create(map_t *map);
-uint8_t map_insert(map_t *map, void const *key, uint64_t key_size, void const *value, uint64_t value_size);
-uint8_t map_remove(map_t *map, void const *key, uint64_t key_size, void *value, uint64_t value_size);
-uint8_t map_contains(map_t *map, void const *key, uint64_t key_size);
-uint64_t map_count(map_t *map);
-void *map_at(map_t *map, void const *key, uint64_t key_size);
-map_iter_t map_iter(map_t *map);
-uint8_t map_next(map_iter_t *it);
-void *map_key(map_iter_t *it);
-uint64_t map_key_size(map_iter_t *it);
-void *map_value(map_iter_t *it);
-uint64_t map_value_size(map_iter_t *it);
-void map_clear(map_t *map);
-void map_destroy(map_t *map);
+// TODO: map_record_t pool optimization..
+
+void map64_create(map64_t *map);
+bool32_t map64_insert(map64_t *map, uint64_t key, uint64_t value);
+bool32_t map64_remove(map64_t *map, uint64_t key, uint64_t *value);
+bool32_t map64_contains(map64_t *map, uint64_t key);
+uint64_t map64_count(map64_t *map);
+uint64_t *map64_at(map64_t *map, uint64_t key);
+map64_iter_t map64_iter(map64_t *map);
+void map64_clear(map64_t *map);
+void map64_destroy(map64_t *map);
+
+bool32_t map64_next(map64_iter_t *it);
 
 #ifdef __cplusplus
 }

@@ -12,6 +12,7 @@
 // TODO: handle events properly..
 // TODO: create asset database..
 // TODO: create a proper import dialog for every type..
+// TODO: replace every uint8_t with bool32_t..
 
 static void import_default_assets(void);
 static void create_default_assets(void);
@@ -27,7 +28,8 @@ int32_t main(int32_t argc, char **argv) {
 
   __try {
 
-    fs_context_create(ROOT_DIR "/static", ROOT_DIR "/asset");
+    fs_create(ROOT_DIR "/static", ROOT_DIR "/asset");
+    adb_create();
     clang_create();
     audio_create();
     // TODO: Add missing ti_audio_demo_create()
@@ -49,7 +51,8 @@ int32_t main(int32_t argc, char **argv) {
     ti_audio_demo_destroy(); // TODO
     audio_destroy();
     clang_destroy();
-    fs_context_destroy();
+    adb_destroy();
+    fs_destroy();
 
   } __except (EXCEPTION_EXECUTE_HANDLER) {
 

@@ -45,8 +45,6 @@ static llvm::orc::ResourceTrackerSP s_resource_tracker; // TODO: assoc to module
 
 static std::unique_ptr<llvm::orc::LLJIT> s_jit;
 
-map_t g_cl_loaded_modules = {0}; // TODO
-
 uint8_t clang_create(void) {
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();

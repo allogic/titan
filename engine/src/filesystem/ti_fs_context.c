@@ -2,7 +2,7 @@
 
 fs *g_fs_context = 0;
 
-fs_result fs_context_create(char const *static_path, char const *asset_path) {
+fs_result fs_create(char const *static_path, char const *asset_path) {
   fs_result result = FS_SUCCESS;
 
   result = fs_init(0, &g_fs_context);
@@ -31,10 +31,6 @@ fs_result fs_context_create(char const *static_path, char const *asset_path) {
 
   return result;
 }
-void fs_context_destroy(void) {
-  fs_uninit(g_fs_context);
-}
-
 fs_result fs_mkdir_recursive(fs *fs, const char *file_path, int32_t options) {
   fs_result result = FS_SUCCESS;
   fs_path_iterator path_it = {0};
@@ -129,4 +125,7 @@ fs_result fs_path_parent(char const *file_path, char *parent_path) {
   memcpy(parent_path, file_path, end);
 
   return result;
+}
+void fs_destroy(void) {
+  fs_uninit(g_fs_context);
 }

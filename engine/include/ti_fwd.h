@@ -1,6 +1,8 @@
 #ifndef TI_FWD_H
 #define TI_FWD_H
 
+typedef uint32_t bool32_t;
+
 typedef struct dalloc_t {
   char const *file_name;
   char const *function_name;
@@ -17,30 +19,28 @@ typedef struct dalloc_t {
   time_t time;
 } dalloc_t;
 
-typedef struct map_t {
-  struct map_record_t **table;
+typedef struct map64_t {
+  struct map64_record_t **table;
   uint64_t table_size;
   uint64_t table_count;
   uint64_t record_count;
-} map_t;
-typedef struct map_record_t {
-  struct map_record_t *next;
-  uint8_t *key;
-  uint64_t key_size;
-  uint8_t *value;
-  uint64_t value_size;
-} map_record_t;
-typedef struct map_iter_t {
-  struct map_record_t **table;
-  struct map_record_t *table_record;
+} map64_t;
+typedef struct map64_record_t {
+  struct map64_record_t *next;
+  uint64_t key;
+  uint64_t value;
+} map64_record_t;
+typedef struct map64_iter_t {
+  struct map64_record_t **table;
+  struct map64_record_t *table_record;
   uint64_t table_index;
   uint64_t table_count;
-  uint8_t first_step;
-} map_iter_t;
+  bool32_t first_step;
+} map64_iter_t;
 
 typedef struct archive_t {
   char file_path[TI_PATH_SIZE];
-  map_t records;
+  map64_t records;
 } archive_t;
 typedef struct archive_record_t {
   char name[TI_PATH_SIZE];
