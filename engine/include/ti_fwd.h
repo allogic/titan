@@ -19,35 +19,33 @@ typedef struct dalloc_t {
   time_t time;
 } dalloc_t;
 
-typedef struct map64_t {
-  struct map64_record_t **table;
-  uint64_t table_size;
-  uint64_t table_count;
-  uint64_t record_count;
-} map64_t;
+typedef struct map64_pool_chunk_t {
+  struct map64_pool_chunk_t *next;
+  struct map64_record_t *records;
+  uint64_t capacity;
+} map64_pool_chunk_t;
 typedef struct map64_record_t {
   struct map64_record_t *next;
   uint64_t key;
   uint64_t value;
 } map64_record_t;
+typedef struct map64_t {
+  struct map64_record_t **table;
+  struct map64_record_t *pool;
+  struct map64_record_t *pool_free;
+  struct map64_pool_chunk_t *pool_chunks;
+  uint64_t table_capacity;
+  uint64_t table_count;
+  uint64_t pool_capacity;
+  uint64_t pool_count;
+} map64_t;
 typedef struct map64_iter_t {
   struct map64_record_t **table;
   struct map64_record_t *table_record;
+  uint64_t table_capacity;
   uint64_t table_index;
-  uint64_t table_count;
   bool32_t first_step;
 } map64_iter_t;
-
-typedef struct archive_t {
-  char file_path[TI_PATH_SIZE];
-  map64_t records;
-} archive_t;
-typedef struct archive_record_t {
-  char name[TI_PATH_SIZE];
-  void *buffer;
-  uint64_t buffer_size;
-  uint64_t global_offset;
-} archive_record_t;
 
 typedef struct scene_t {
   char name[TI_PATH_SIZE];
@@ -58,6 +56,13 @@ typedef struct scene_t {
   ecs_entity_t main_camera_entity;
   ecs_query_t *root_children;
 } scene_t;
+
+typedef struct handle_t {
+  char asset_path[TI_PATH_SIZE];
+  fs_asset_t asset;
+  void *instance;
+  struct handle_t *dependencies; // TODO
+} handle_t;
 
 typedef void (*on_create_proc_t)(void);
 typedef void (*on_play_proc_t)(void);

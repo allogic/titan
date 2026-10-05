@@ -17,21 +17,21 @@ extern VkPhysicalDeviceFragmentShadingRateFeaturesKHR g_physical_device_fragment
 extern VkPhysicalDeviceMultiviewFeatures g_physical_device_multiview_features;
 extern VkPhysicalDeviceMeshShaderFeaturesEXT g_physical_device_mesh_shader_features;
 
-extern vk_instance_t g_vk_instance;
-extern vk_swapchain_t g_vk_swapchain;
-extern vk_renderer_t g_vk_renderer;
-extern vk_viewport_t g_vk_viewport;
+extern vk_instance_t g_vk_instance; // TODO
+extern handle_t *g_vk_swapchain;
+extern handle_t *g_vk_renderer;
+extern handle_t *g_vk_viewport;
 
-extern vk_renderpass_t g_vk_main_renderpass;
-extern vk_renderpass_t g_vk_imgui_renderpass;
+extern handle_t *g_vk_main_renderpass;
+extern handle_t *g_vk_imgui_renderpass;
 
-extern vk_framebuffer_t g_vk_main_framebuffer;
-extern vk_framebuffer_t g_vk_imgui_framebuffer;
+extern handle_t *g_vk_main_framebuffer;
+extern handle_t *g_vk_imgui_framebuffer;
 
-extern vk_buffer_t g_vk_time_info_buffer;
-extern vk_buffer_t g_vk_screen_info_buffer;
-extern vk_buffer_t g_vk_mouse_info_buffer;
-extern vk_buffer_t g_vk_camera_info_buffer;
+extern handle_t *g_vk_time_info_buffer;
+extern handle_t *g_vk_screen_info_buffer;
+extern handle_t *g_vk_mouse_info_buffer;
+extern handle_t *g_vk_camera_info_buffer;
 
 #ifdef BUILD_DEBUG
 extern PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT_proc;
@@ -52,7 +52,7 @@ extern PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandle
 extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructureKHR_proc;
 
 void vk_context_create(void);
-void vk_context_update_surface_capabilities(void);
+void vk_context_update(void);
 void vk_context_destroy(void);
 
 #ifdef __cplusplus

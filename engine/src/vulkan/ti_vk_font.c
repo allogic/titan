@@ -1,16 +1,10 @@
 #include <vulkan/ti_vk_font.h>
 
-void vk_font_create(vk_font_t *font, char const *asset_path) {
-  font->asset.path = asset_path;
-
-  fs_asset_load(&font->asset);
-
-  fs_font_t *config = (fs_font_t *)font->asset.instance;
+void vk_font_create(vk_font_t *font, fs_font_t *config) {
+  font->config = config;
 
   // TODO
 }
 void vk_font_destroy(vk_font_t *font) {
   // TODO
-
-  fs_asset_destroy(&font->asset);
 }

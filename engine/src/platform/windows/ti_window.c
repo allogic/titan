@@ -126,48 +126,62 @@ void window_run(void) {
 
     QueryPerformanceCounter((PLARGE_INTEGER)&g_window.time_curr);
 
-    if (g_vk_main_framebuffer.is_dirty) {
+    vk_framebuffer_t *main_framebuffer = (vk_framebuffer_t *)g_vk_main_framebuffer->instance;
 
-      g_vk_main_framebuffer.is_dirty = 0;
+    if (main_framebuffer->is_dirty) {
+
+      main_framebuffer->is_dirty = 0;
 
       TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance.primary_queue));
       TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance.present_queue));
 
-      vk_framebuffer_destroy(&g_vk_main_framebuffer);
-      vk_framebuffer_create(&g_vk_main_framebuffer, &g_vk_main_renderpass, g_vk_viewport.width, g_vk_viewport.height, "asset/framebuffer/main.pak");
+      // TODO
+      //
+      // vk_framebuffer_destroy(&g_vk_main_framebuffer);
+      // vk_framebuffer_create(&g_vk_main_framebuffer, &g_vk_main_renderpass, g_vk_viewport.width, g_vk_viewport.height, "asset/framebuffer/main.pak");
+
+      idb_destroy_instance(g_vk_main_framebuffer);
+      idb_create_instance(g_vk_main_framebuffer);
 
       if (g_window.editor_viewport_update_proc) {
         g_window.editor_viewport_update_proc(&g_vk_viewport);
       }
     }
 
-    if (g_vk_swapchain.is_dirty) {
+    vk_swapchain_t *swapchain = (vk_swapchain_t *)g_vk_swapchain->instance;
 
-      g_vk_swapchain.is_dirty = 0;
+    if (swapchain->is_dirty) {
+
+      swapchain->is_dirty = 0;
 
       TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance.primary_queue));
       TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance.present_queue));
 
-      vk_framebuffer_destroy(&g_vk_imgui_framebuffer);
-      vk_framebuffer_destroy(&g_vk_main_framebuffer);
+      // TODO
 
-      vk_renderpass_destroy(&g_vk_imgui_renderpass);
-      vk_renderpass_destroy(&g_vk_main_renderpass);
+      // vk_framebuffer_destroy(&g_vk_imgui_framebuffer);
+      // vk_framebuffer_destroy(&g_vk_main_framebuffer);
 
-      vk_renderer_destroy(&g_vk_renderer);
-      vk_swapchain_destroy(&g_vk_swapchain);
+      // vk_renderpass_destroy(&g_vk_imgui_renderpass);
+      // vk_renderpass_destroy(&g_vk_main_renderpass);
 
-      vk_context_update_surface_capabilities();
+      // vk_renderer_destroy(&g_vk_renderer);
+      // vk_swapchain_destroy(&g_vk_swapchain);
 
-      vk_swapchain_create(&g_vk_swapchain, "asset/swapchain/main.pak");
+      idb_destroy_instance(g_vk_swapchain);
 
-      vk_renderpass_create(&g_vk_main_renderpass, "asset/renderpass/main.pak");
-      vk_renderpass_create(&g_vk_imgui_renderpass, "asset/renderpass/imgui.pak");
+      vk_context_update();
 
-      vk_renderer_create(&g_vk_renderer, "asset/renderer/main.pak");
+      idb_create_instance(g_vk_swapchain);
 
-      vk_framebuffer_create(&g_vk_main_framebuffer, &g_vk_main_renderpass, g_vk_viewport.width, g_vk_viewport.height, "asset/framebuffer/main.pak");
-      vk_framebuffer_create(&g_vk_imgui_framebuffer, &g_vk_imgui_renderpass, g_window.width, g_window.height, "asset/framebuffer/imgui.pak");
+      // vk_swapchain_create(&g_vk_swapchain, "asset/swapchain/main.pak");
+      // vk_renderer_create(&g_vk_renderer, "asset/renderer/main.pak");
+
+      // vk_renderpass_create(&g_vk_main_renderpass, "asset/renderpass/main.pak");
+      // vk_renderpass_create(&g_vk_imgui_renderpass, "asset/renderpass/imgui.pak");
+
+      // vk_framebuffer_create(&g_vk_main_framebuffer, &g_vk_main_renderpass, g_vk_viewport.width, g_vk_viewport.height, "asset/framebuffer/main.pak");
+      // vk_framebuffer_create(&g_vk_imgui_framebuffer, &g_vk_imgui_renderpass, g_window.width, g_window.height, "asset/framebuffer/imgui.pak");
 
       if (g_window.editor_viewport_update_proc) {
         g_window.editor_viewport_update_proc(&g_vk_viewport);

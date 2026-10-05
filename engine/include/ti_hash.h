@@ -7,7 +7,8 @@
 extern "C" {
 #endif // __cplusplus
 
-uint64_t hash64(uint64_t v);
+uint64_t mix64(uint64_t v);
+uint64_t fnv1a64(char const *v);
 
 #ifdef __cplusplus
 }

@@ -78,24 +78,21 @@ VkPhysicalDeviceMeshShaderFeaturesEXT g_physical_device_mesh_shader_features = {
   .pNext = &g_physical_device_multiview_features,
 };
 
-vk_instance_t g_vk_instance = {0};
-vk_swapchain_t g_vk_swapchain = {0};
-vk_renderer_t g_vk_renderer = {0};
-vk_viewport_t g_vk_viewport = {
-  .width = 1,
-  .height = 1,
-};
+vk_instance_t g_vk_instance = {0}; // TODO
+handle_t *g_vk_swapchain = 0;
+handle_t *g_vk_renderer = 0;
+handle_t *g_vk_viewport = 0;
 
-vk_renderpass_t g_vk_main_renderpass = {0};
-vk_renderpass_t g_vk_imgui_renderpass = {0};
+handle_t *g_vk_main_renderpass = 0;
+handle_t *g_vk_imgui_renderpass = 0;
 
-vk_framebuffer_t g_vk_main_framebuffer = {0};
-vk_framebuffer_t g_vk_imgui_framebuffer = {0};
+handle_t *g_vk_main_framebuffer = 0;
+handle_t *g_vk_imgui_framebuffer = 0;
 
-vk_buffer_t g_vk_time_info_buffer = {0};
-vk_buffer_t g_vk_screen_info_buffer = {0};
-vk_buffer_t g_vk_mouse_info_buffer = {0};
-vk_buffer_t g_vk_camera_info_buffer = {0};
+handle_t *g_vk_time_info_buffer = 0;
+handle_t *g_vk_screen_info_buffer = 0;
+handle_t *g_vk_mouse_info_buffer = 0;
+handle_t *g_vk_camera_info_buffer = 0;
 
 #ifdef BUILD_DEBUG
 PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT_proc = 0;
@@ -129,33 +126,35 @@ void vk_context_create(void) {
   create_command_pool();
   create_command_buffer();
 
-  vk_buffer_create(&g_vk_time_info_buffer, "asset/buffer/time_info.pak");
-  vk_buffer_create(&g_vk_screen_info_buffer, "asset/buffer/screen_info.pak");
-  vk_buffer_create(&g_vk_mouse_info_buffer, "asset/buffer/mouse_info.pak");
-  vk_buffer_create(&g_vk_camera_info_buffer, "asset/buffer/camera_info.pak");
+  vk_context_update();
 
-  vk_buffer_map(&g_vk_time_info_buffer);
-  vk_buffer_map(&g_vk_screen_info_buffer);
-  vk_buffer_map(&g_vk_mouse_info_buffer);
-  vk_buffer_map(&g_vk_camera_info_buffer);
+  // TODO
 
-  vk_context_update_surface_capabilities();
+  g_vk_time_info_buffer = idb_reference(0, "asset/buffer/time_info.pak");
+  g_vk_screen_info_buffer = idb_reference(0, "asset/buffer/screen_info.pak");
+  g_vk_mouse_info_buffer = idb_reference(0, "asset/buffer/mouse_info.pak");
+  g_vk_camera_info_buffer = idb_reference(0, "asset/buffer/camera_info.pak");
 
-  vk_swapchain_create(&g_vk_swapchain, "asset/swapchain/main.pak");
+  vk_buffer_map(g_vk_time_info_buffer->instance);
+  vk_buffer_map(g_vk_screen_info_buffer->instance);
+  vk_buffer_map(g_vk_mouse_info_buffer->instance);
+  vk_buffer_map(g_vk_camera_info_buffer->instance);
 
-  vk_renderpass_create(&g_vk_main_renderpass, "asset/renderpass/main.pak");
-  vk_renderpass_create(&g_vk_imgui_renderpass, "asset/renderpass/imgui.pak");
+  g_vk_swapchain = idb_reference(0, "asset/swapchain/main.pak");
 
-  vk_renderer_create(&g_vk_renderer, "asset/renderer/main.pak");
+  g_vk_main_renderpass = idb_reference(0, "asset/renderpass/main.pak");
+  g_vk_imgui_renderpass = idb_reference(0, "asset/renderpass/imgui.pak");
 
-  vk_framebuffer_create(&g_vk_main_framebuffer, &g_vk_main_renderpass, g_vk_viewport.width, g_vk_viewport.height, "asset/framebuffer/main.pak");
-  vk_framebuffer_create(&g_vk_imgui_framebuffer, &g_vk_imgui_renderpass, g_window.width, g_window.height, "asset/framebuffer/imgui.pak");
+  g_vk_renderer = idb_reference(0, "asset/renderer/main.pak");
+
+  g_vk_main_framebuffer = idb_reference(0, "asset/framebuffer/main.pak");
+  g_vk_imgui_framebuffer = idb_reference(0, "asset/framebuffer/imgui.pak");
 
   if (g_window.editor_create_proc) {
     g_window.editor_create_proc();
   }
 }
-void vk_context_update_surface_capabilities(void) {
+void vk_context_update(void) {
   TI_VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(g_vk_instance.physical_device, g_vk_instance.surface, &g_vk_instance.surface_capabilities));
 
   g_window.width = g_vk_instance.surface_capabilities.currentExtent.width;
@@ -173,19 +172,19 @@ void vk_context_destroy(void) {
     g_window.editor_destroy_proc();
   }
 
-  vk_buffer_destroy(&g_vk_time_info_buffer);
-  vk_buffer_destroy(&g_vk_screen_info_buffer);
-  vk_buffer_destroy(&g_vk_mouse_info_buffer);
-  vk_buffer_destroy(&g_vk_camera_info_buffer);
+  idb_dereference(g_vk_time_info_buffer);
+  idb_dereference(g_vk_screen_info_buffer);
+  idb_dereference(g_vk_mouse_info_buffer);
+  idb_dereference(g_vk_camera_info_buffer);
 
-  vk_framebuffer_destroy(&g_vk_imgui_framebuffer);
-  vk_framebuffer_destroy(&g_vk_main_framebuffer);
+  idb_dereference(g_vk_imgui_framebuffer);
+  idb_dereference(g_vk_main_framebuffer);
 
-  vk_renderpass_destroy(&g_vk_imgui_renderpass);
-  vk_renderpass_destroy(&g_vk_main_renderpass);
+  idb_dereference(g_vk_imgui_renderpass);
+  idb_dereference(g_vk_main_renderpass);
 
-  vk_renderer_destroy(&g_vk_renderer);
-  vk_swapchain_destroy(&g_vk_swapchain);
+  idb_dereference(g_vk_renderer);
+  idb_dereference(g_vk_swapchain);
 
   destroy_command_buffer();
   destroy_command_pool();

@@ -7,7 +7,7 @@
 extern "C" {
 #endif // __cplusplus
 
-void vk_renderer_create(vk_renderer_t *renderer, char const *asset_path);
+void vk_renderer_create(vk_renderer_t *renderer, fs_renderer_t *config);
 void vk_renderer_draw(vk_renderer_t *renderer);
 void vk_renderer_destroy(vk_renderer_t *renderer);
 

@@ -45,19 +45,15 @@ static vk_full_screen_index_t s_full_screen_indices[] = {
 };
 */
 
-void vk_renderer_create(vk_renderer_t *renderer, char const *asset_path) {
+void vk_renderer_create(vk_renderer_t *renderer, fs_renderer_t *config) {
+  renderer->config = config;
   renderer->is_debug_enabled = 1;
-  renderer->asset.path = asset_path;
-
-  fs_asset_load(&renderer->asset);
-
-  fs_renderer_t *config = (fs_renderer_t *)renderer->asset.instance;
 
   create_sync_object(renderer);
   create_debug_line_buffer(renderer);
   create_full_screen_buffer(renderer);
 
-  vk_pipeline_create(&renderer->debug_line_pipeline, &g_vk_main_renderpass, "asset/pipeline/debug_line/main.pak");
+  renderer->debug_line_pipeline = idb_reference(renderer, "asset/pipeline/debug_line/main.pak");
 
   update_descriptor_info(renderer);
   update_debug_line_descriptor_set(renderer);
@@ -270,12 +266,10 @@ void vk_renderer_draw(vk_renderer_t *renderer) {
   }
 }
 void vk_renderer_destroy(vk_renderer_t *renderer) {
-  vk_pipeline_destroy(&renderer->debug_line_pipeline);
+  idb_dereference(renderer->debug_line_pipeline);
 
   destroy_buffer(renderer);
   destroy_sync_object(renderer);
-
-  fs_asset_destroy(&renderer->asset);
 }
 
 void vk_renderer_draw_debug_line(vk_renderer_t *renderer, fvec3_t from, fvec3_t to, fvec4_t color) {
@@ -390,19 +384,15 @@ static void create_sync_object(vk_renderer_t *renderer) {
   TI_VK_CHECK(vkCreateFence(g_vk_instance.device, &fence_create_info, 0, &renderer->frame_fence));
 }
 static void create_debug_line_buffer(vk_renderer_t *renderer) {
-  fs_renderer_t *config = (fs_renderer_t *)renderer->asset.instance;
-
-  vk_buffer_create(&renderer->debug_line_vertex_buffer, config->debug_line_vertex_buffer.reference_path);
-  vk_buffer_create(&renderer->debug_line_index_buffer, config->debug_line_index_buffer.reference_path);
+  vk_buffer_create(&renderer->debug_line_vertex_buffer, renderer->config->debug_line_vertex_buffer.reference_path);
+  vk_buffer_create(&renderer->debug_line_index_buffer, renderer->config->debug_line_index_buffer.reference_path);
 
   vk_buffer_map(&renderer->debug_line_vertex_buffer);
   vk_buffer_map(&renderer->debug_line_index_buffer);
 }
 static void create_full_screen_buffer(vk_renderer_t *renderer) {
-  fs_renderer_t *config = (fs_renderer_t *)renderer->asset.instance;
-
-  vk_buffer_create(&renderer->full_screen_vertex_buffer, config->full_screen_vertex_buffer.reference_path);
-  vk_buffer_create(&renderer->full_screen_index_buffer, config->full_screen_index_buffer.reference_path);
+  vk_buffer_create(&renderer->full_screen_vertex_buffer, renderer->config->full_screen_vertex_buffer.reference_path);
+  vk_buffer_create(&renderer->full_screen_index_buffer, renderer->config->full_screen_index_buffer.reference_path);
 }
 
 static void update_descriptor_info(vk_renderer_t *renderer) {
@@ -441,6 +431,7 @@ static void update_debug_line_descriptor_set(vk_renderer_t *renderer) {
   vkUpdateDescriptorSets(g_vk_instance.device, TI_ARRAY_COUNT(write_descriptor_set), write_descriptor_set, 0, 0);
 }
 static void update_coherent_buffer(vk_renderer_t *renderer) {
+  // TODO: use ecs_valid or something..
   if (g_scene.main_camera_entity) {
 
     cp_transform_t const *transform = ecs_get(g_scene.world, g_scene.main_camera_entity, cp_transform_t);

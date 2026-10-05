@@ -31,26 +31,26 @@ typedef struct vk_instance_t {
 } vk_instance_t;
 
 typedef struct vk_swapchain_t {
-  fs_asset_t asset;
+  fs_swapchain_t *config;
   uint32_t is_dirty;
   uint32_t image_count;
   VkImage image[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
   VkSwapchainKHR handle;
 } vk_swapchain_t;
 typedef struct vk_buffer_t {
-  fs_asset_t asset;
+  fs_buffer_t *config;
   void *host_data;
   void *device_data;
   VkBuffer buffer_handle;
   VkDeviceMemory device_memory;
 } vk_buffer_t;
 typedef struct vk_model_t {
-  fs_asset_t asset;
+  fs_model_t *config;
   vk_buffer_t vertex_buffer;
   vk_buffer_t index_buffer;
 } vk_model_t;
 typedef struct vk_pipeline_t {
-  fs_asset_t asset;
+  fs_pipeline_t *config;
   char const *vertex_shader;
   char const *task_shader;
   char const *mesh_shader;
@@ -89,27 +89,27 @@ typedef struct vk_pipeline_t {
   VkStridedDeviceAddressRegionKHR callable_region;
 } vk_pipeline_t;
 typedef struct vk_font_t {
-  fs_asset_t asset;
+  fs_font_t *config;
 } vk_font_t;
 typedef struct vk_descriptor_binding_t {
-  fs_asset_t asset;
+  fs_descriptor_binding_t *config;
 } vk_descriptor_binding_t;
 typedef struct vk_image_t {
-  fs_asset_t asset;
+  fs_image_t *config;
   VkImageView image_view;
   VkDeviceMemory device_memory;
   VkSampler sampler;
   VkImage handle;
 } vk_image_t;
 typedef struct vk_framebuffer_t {
-  fs_asset_t asset;
+  fs_framebuffer_t *config;
   uint8_t is_dirty;
-  vk_image_t *color_attachment[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
-  vk_image_t depth_attachment[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
-  VkFramebuffer handle[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
+  vk_image_t **color_attachment;
+  vk_image_t *depth_attachment;
+  VkFramebuffer handle;
 } vk_framebuffer_t;
 typedef struct vk_renderpass_t {
-  fs_asset_t asset;
+  fs_renderpass_t *config;
   VkRenderPass handle;
 } vk_renderpass_t;
 
@@ -155,7 +155,7 @@ typedef uint32_t vk_full_screen_index_t;
 typedef uint32_t vk_debug_line_index_t;
 
 typedef struct vk_renderer_t {
-  fs_asset_t asset;
+  fs_renderer_t *config;
   uint32_t is_debug_enabled;
   uint32_t image_index;
   uint32_t debug_line_vertex_offset;
@@ -171,7 +171,7 @@ typedef struct vk_renderer_t {
   vk_buffer_t debug_line_index_buffer;
   vk_buffer_t full_screen_vertex_buffer;
   vk_buffer_t full_screen_index_buffer;
-  vk_pipeline_t debug_line_pipeline;
+  handle_t *debug_line_pipeline;
 } vk_renderer_t;
 
 // TODO: move this into the editor..

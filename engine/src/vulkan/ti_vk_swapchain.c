@@ -1,13 +1,9 @@
 #include <vulkan/ti_vk_swapchain.h>
 
-void vk_swapchain_create(vk_swapchain_t *swapchain, char const *asset_path) {
-  swapchain->asset.path = asset_path;
+void vk_swapchain_create(vk_swapchain_t *swapchain, fs_swapchain_t *config) {
+  swapchain->config = config;
 
-  fs_asset_load(&swapchain->asset);
-
-  fs_swapchain_t *config = (fs_swapchain_t *)swapchain->asset.instance;
-
-  swapchain->image_count = clampu(config->image_count, g_vk_instance.min_image_count, g_vk_instance.max_image_count);
+  swapchain->image_count = clampu(swapchain->config->image_count, g_vk_instance.min_image_count, g_vk_instance.max_image_count);
 
   uint32_t queue_families[2] = {
     g_vk_instance.primary_queue_index,
@@ -39,6 +35,4 @@ void vk_swapchain_create(vk_swapchain_t *swapchain, char const *asset_path) {
 }
 void vk_swapchain_destroy(vk_swapchain_t *swapchain) {
   vkDestroySwapchainKHR(g_vk_instance.device, swapchain->handle, 0);
-
-  fs_asset_destroy(&swapchain->asset);
 }

@@ -7,7 +7,7 @@
 extern "C" {
 #endif // __cplusplus
 
-void vk_renderpass_create(vk_renderpass_t *renderpass, char const *asset_path);
+void vk_renderpass_create(vk_renderpass_t *renderpass, fs_renderpass_t *config);
 void vk_renderpass_destroy(vk_renderpass_t *renderpass);
 
 #ifdef __cplusplus

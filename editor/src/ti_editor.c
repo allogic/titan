@@ -26,10 +26,33 @@ int32_t main(int32_t argc, char **argv) {
   g_window.editor_message_proc = im_context_message;
   g_window.editor_viewport_update_proc = im_viewport_update;
 
+  map64_t map = {0};
+
+  map64_create(&map);
+
+  uint64_t index = 0;
+  uint64_t count = 4096;
+
+  while (index < count) {
+
+    map64_insert(&map, index, index);
+
+    index++;
+  }
+
+  map64_iter_t it = map64_iter(&map);
+
+  while (map64_next(&it)) {
+
+    printf("%llu -> %llu\n", it.table_record->key, it.table_record->value);
+  }
+
+  map64_destroy(&map);
+
   __try {
 
     fs_create(ROOT_DIR "/static", ROOT_DIR "/asset");
-    adb_create();
+    idb_create();
     clang_create();
     audio_create();
     // TODO: Add missing ti_audio_demo_create()
@@ -51,7 +74,7 @@ int32_t main(int32_t argc, char **argv) {
     ti_audio_demo_destroy(); // TODO
     audio_destroy();
     clang_destroy();
-    adb_destroy();
+    idb_destroy();
     fs_destroy();
 
   } __except (EXCEPTION_EXECUTE_HANDLER) {
@@ -72,10 +95,10 @@ static void import_default_assets(void) {
     while (sound_index <= 10) {
 
       char asset_path[TI_PATH_SIZE] = {0};
-      char source_path[TI_PATH_SIZE] = {0};
+      char static_path[TI_PATH_SIZE] = {0};
 
       snprintf(asset_path, TI_PATH_SIZE, "asset/sound/fart_%02u.pak", sound_index);
-      snprintf(source_path, TI_PATH_SIZE, "static/sound/fart_%02u.wav", sound_index);
+      snprintf(static_path, TI_PATH_SIZE, "static/sound/fart_%02u.wav", sound_index);
 
       fs_asset_t asset = {
         .magic = TI_FS_ASSET_MAGIC,
@@ -87,7 +110,7 @@ static void import_default_assets(void) {
 
         fs_asset_create(&asset);
 
-        if (fs_import_sound(&asset, source_path, 1) == 0) {
+        if (fs_import_sound(&asset, static_path, 1) == 0) {
           fs_asset_store(&asset);
         }
 

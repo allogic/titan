@@ -7,8 +7,6 @@
 extern "C" {
 #endif // __cplusplus
 
-// TODO: map_record_t pool optimization..
-
 void map64_create(map64_t *map);
 bool32_t map64_insert(map64_t *map, uint64_t key, uint64_t value);
 bool32_t map64_remove(map64_t *map, uint64_t key, uint64_t *value);
