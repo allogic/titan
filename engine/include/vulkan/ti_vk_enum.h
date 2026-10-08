@@ -7,15 +7,15 @@
 extern "C" {
 #endif // __cplusplus
 
-extern vk_enum_record_t g_vk_format_table[355];
-extern vk_enum_record_t g_vk_image_layout_table[42];
-extern vk_enum_record_t g_vk_image_type_table[3];
-extern vk_enum_record_t g_vk_image_tiling_table[3];
-extern vk_enum_record_t g_vk_image_view_type_table[7];
-extern vk_enum_record_t g_vk_descriptor_type_table[19];
-extern vk_enum_record_t g_vk_primitive_topology_table[11];
-extern vk_enum_record_t g_vk_polygon_mode_table[4];
-extern vk_enum_record_t g_vk_vertex_input_rate_table[2];
+extern enum_record_t g_vk_format_table[355];
+extern enum_record_t g_vk_image_layout_table[42];
+extern enum_record_t g_vk_image_type_table[3];
+extern enum_record_t g_vk_image_tiling_table[3];
+extern enum_record_t g_vk_image_view_type_table[7];
+extern enum_record_t g_vk_descriptor_type_table[19];
+extern enum_record_t g_vk_primitive_topology_table[11];
+extern enum_record_t g_vk_polygon_mode_table[4];
+extern enum_record_t g_vk_vertex_input_rate_table[2];
 
 uint64_t vk_find_format_index(VkFormat format);
 uint64_t vk_find_image_layout_index(VkImageLayout image_layout);

@@ -15,7 +15,6 @@ CMakeUserPresets.json
 # Folder
 .vs
 out
-asset
 
 # Files
 *.ogg

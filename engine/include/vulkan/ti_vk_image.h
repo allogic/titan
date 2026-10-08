@@ -7,7 +7,7 @@
 extern "C" {
 #endif // __cplusplus
 
-void vk_image_create(vk_image_t *image, fs_image_t *config);
+void vk_image_create(vk_image_t *image);
 void vk_image_destroy(vk_image_t *image);
 
 #ifdef __cplusplus

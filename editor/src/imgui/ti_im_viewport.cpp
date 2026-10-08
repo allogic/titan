@@ -9,45 +9,22 @@ static void draw_viewport(vk_viewport_t *viewport);
 
 void im_viewport_update(vk_viewport_t *viewport) {
   {
-    uint64_t image_index = 0;
-    uint64_t image_count = g_vk_swapchain.image_count;
-
-    while (image_index < image_count) {
-
-      if (viewport->color_attachment) {
-        ImGui_ImplVulkan_RemoveTexture(viewport->color_attachment[image_index]);
-      }
-
-      if (viewport->depth_attachment) {
-        ImGui_ImplVulkan_RemoveTexture(viewport->depth_attachment[image_index]);
-      }
-
-      image_index++;
+    if (viewport->color_attachment != VK_NULL_HANDLE) {
+      ImGui_ImplVulkan_RemoveTexture(viewport->color_attachment);
     }
 
-    if (viewport->color_attachment) {
-      TI_FREE(viewport->color_attachment);
-    }
-
-    if (viewport->depth_attachment) {
-      TI_FREE(viewport->depth_attachment);
+    if (viewport->depth_attachment != VK_NULL_HANDLE) {
+      ImGui_ImplVulkan_RemoveTexture(viewport->depth_attachment);
     }
   }
 
   {
-    viewport->color_attachment = (VkDescriptorSet *)TI_ALLOC(sizeof(VkDescriptorSet) * g_vk_swapchain.image_count, 0, 0);
-    viewport->depth_attachment = (VkDescriptorSet *)TI_ALLOC(sizeof(VkDescriptorSet) * g_vk_swapchain.image_count, 0, 0);
+    vk_framebuffer_t *main_framebuffer = (vk_framebuffer_t *)g_vk_renderer->main_framebuffer_hdl->instance;
+    vk_image_t *color_attachment = (vk_image_t *)main_framebuffer->color_attachment_hdl[0]->instance;
+    vk_image_t *depth_attachment = (vk_image_t *)main_framebuffer->depth_attachment_hdl->instance;
 
-    uint64_t image_index = 0;
-    uint64_t image_count = g_vk_swapchain.image_count;
-
-    while (image_index < image_count) {
-
-      viewport->color_attachment[image_index] = ImGui_ImplVulkan_AddTexture(g_vk_main_framebuffer.color_attachment[image_index][0].image_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-      viewport->depth_attachment[image_index] = ImGui_ImplVulkan_AddTexture(g_vk_main_framebuffer.depth_attachment[image_index].image_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-      image_index++;
-    }
+    viewport->color_attachment = ImGui_ImplVulkan_AddTexture(color_attachment->image_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    viewport->depth_attachment = ImGui_ImplVulkan_AddTexture(depth_attachment->image_view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   }
 }
 void im_viewport_draw(vk_viewport_t *viewport) {
@@ -82,28 +59,12 @@ void im_viewport_refresh(vk_viewport_t *viewport) {
   // TODO
 }
 void im_viewport_reset(vk_viewport_t *viewport) {
-  uint64_t image_index = 0;
-  uint64_t image_count = g_vk_swapchain.image_count;
-
-  while (image_index < image_count) {
-
-    if (viewport->color_attachment) {
-      ImGui_ImplVulkan_RemoveTexture(viewport->color_attachment[image_index]);
-    }
-
-    if (viewport->depth_attachment) {
-      ImGui_ImplVulkan_RemoveTexture(viewport->depth_attachment[image_index]);
-    }
-
-    image_index++;
+  if (viewport->color_attachment != VK_NULL_HANDLE) {
+    ImGui_ImplVulkan_RemoveTexture(viewport->color_attachment);
   }
 
-  if (viewport->color_attachment) {
-    TI_FREE(viewport->color_attachment);
-  }
-
-  if (viewport->depth_attachment) {
-    TI_FREE(viewport->depth_attachment);
+  if (viewport->depth_attachment != VK_NULL_HANDLE) {
+    ImGui_ImplVulkan_RemoveTexture(viewport->depth_attachment);
   }
 }
 
@@ -152,13 +113,15 @@ static void draw_viewport(vk_viewport_t *viewport) {
     viewport->width = (uint32_t)window_size.x;
     viewport->height = (uint32_t)window_size.y;
 
-    g_vk_main_framebuffer.is_dirty = 1;
+    vk_framebuffer_t *main_framebuffer = (vk_framebuffer_t *)g_vk_renderer->main_framebuffer_hdl->instance;
+
+    main_framebuffer->is_dirty = 1;
   }
 
   ImDrawList *draw = ImGui::GetWindowDrawList();
 
   draw->AddImageRounded(
-    viewport->color_attachment[g_vk_renderer.image_index],
+    viewport->color_attachment,
     window_position,
     ImVec2(window_position.x + window_size.x, window_position.y + window_size.y),
     ImVec2(0.0F, 0.0F),

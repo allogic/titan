@@ -97,10 +97,11 @@ void audio_destroy(void) {
   s_mix_cursor = TI_AUDIO_FRAME_SIZE;
 }
 int audio_load(ti_sound_t **sound, char const *file_path) {
-  fs_asset_t asset = {.path = file_path};
-  ti_sound_t *loaded = 0;
+  // fs_asset_t asset = {.path = file_path};
+  // ti_sound_t *loaded = 0;
   int result = 1;
 
+  /*
   fs_asset_load(&asset);
 
   if (asset.type != FS_ASSET_TYPE_SOUND || asset.instance == 0) {
@@ -156,7 +157,7 @@ cleanup:
   if (asset.instance != 0) {
     fs_asset_destroy(&asset);
   }
-
+  */
   return result;
 }
 int audio_unload(ti_sound_t **sound) {

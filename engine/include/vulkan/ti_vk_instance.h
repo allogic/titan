@@ -1,0 +1,27 @@
+#ifndef TI_VK_INSTANCE_H
+#define TI_VK_INSTANCE_H
+
+#include <ti_engine.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
+extern VkPhysicalDeviceRayTracingPipelinePropertiesKHR g_physical_device_ray_tracing_pipeline_properties;
+
+extern VkPhysicalDeviceVulkan12Features g_physical_device_vulkan_12_features;
+extern VkPhysicalDeviceRayTracingPipelineFeaturesKHR g_physical_device_ray_tracing_pipeline_features;
+extern VkPhysicalDeviceAccelerationStructureFeaturesKHR g_physical_device_acceleration_structure_features;
+extern VkPhysicalDeviceMaintenance4Features g_physical_device_maintenance_4_features;
+extern VkPhysicalDeviceFragmentShadingRateFeaturesKHR g_physical_device_fragment_shading_rate_features;
+extern VkPhysicalDeviceMultiviewFeatures g_physical_device_multiview_features;
+extern VkPhysicalDeviceMeshShaderFeaturesEXT g_physical_device_mesh_shader_features;
+
+void vk_instance_create(vk_instance_t *instance);
+void vk_instance_destroy(vk_instance_t *instance);
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
+
+#endif // TI_VK_INSTANCE_H

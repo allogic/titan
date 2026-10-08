@@ -5,12 +5,12 @@ VkCommandBuffer vk_commandbuffer_primary_record_immediate(void) {
 
   VkCommandBufferAllocateInfo command_buffer_allocate_info = {
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-    .commandPool = g_vk_instance.command_pool,
+    .commandPool = g_vk_instance->command_pool,
     .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
     .commandBufferCount = 1,
   };
 
-  TI_VK_CHECK(vkAllocateCommandBuffers(g_vk_instance.device, &command_buffer_allocate_info, &command_buffer));
+  TI_VK_CHECK(vkAllocateCommandBuffers(g_vk_instance->device, &command_buffer_allocate_info, &command_buffer));
 
   VkCommandBufferBeginInfo command_buffer_begin_info = {
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -30,8 +30,8 @@ void vk_commandbuffer_primary_submit_immediate(VkCommandBuffer command_buffer) {
     .pCommandBuffers = &command_buffer,
   };
 
-  TI_VK_CHECK(vkQueueSubmit(g_vk_instance.primary_queue, 1, &submit_info, 0));
-  TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance.primary_queue));
+  TI_VK_CHECK(vkQueueSubmit(g_vk_instance->primary_queue, 1, &submit_info, 0));
+  TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance->primary_queue));
 
-  vkFreeCommandBuffers(g_vk_instance.device, g_vk_instance.command_pool, 1, &command_buffer);
+  vkFreeCommandBuffers(g_vk_instance->device, g_vk_instance->command_pool, 1, &command_buffer);
 }

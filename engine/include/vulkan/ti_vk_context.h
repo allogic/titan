@@ -7,49 +7,31 @@
 extern "C" {
 #endif // __cplusplus
 
-extern VkPhysicalDeviceRayTracingPipelinePropertiesKHR g_physical_device_ray_tracing_pipeline_properties;
+extern asset_handle_t *g_vk_instance_hdl;
+extern asset_handle_t *g_vk_swapchain_hdl;
+extern asset_handle_t *g_vk_renderer_hdl;
+extern asset_handle_t *g_vk_viewport_hdl;
 
-extern VkPhysicalDeviceVulkan12Features g_physical_device_vulkan_12_features;
-extern VkPhysicalDeviceRayTracingPipelineFeaturesKHR g_physical_device_ray_tracing_pipeline_features;
-extern VkPhysicalDeviceAccelerationStructureFeaturesKHR g_physical_device_acceleration_structure_features;
-extern VkPhysicalDeviceMaintenance4Features g_physical_device_maintenance_4_features;
-extern VkPhysicalDeviceFragmentShadingRateFeaturesKHR g_physical_device_fragment_shading_rate_features;
-extern VkPhysicalDeviceMultiviewFeatures g_physical_device_multiview_features;
-extern VkPhysicalDeviceMeshShaderFeaturesEXT g_physical_device_mesh_shader_features;
+extern asset_handle_t *g_vk_time_info_buffer_hdl;
+extern asset_handle_t *g_vk_screen_info_buffer_hdl;
+extern asset_handle_t *g_vk_mouse_info_buffer_hdl;
+extern asset_handle_t *g_vk_camera_info_buffer_hdl;
 
-extern vk_instance_t g_vk_instance; // TODO
-extern handle_t *g_vk_swapchain;
-extern handle_t *g_vk_renderer;
-extern handle_t *g_vk_viewport;
+#define g_vk_instance ((vk_instance_t *)g_vk_instance_hdl->instance)
+#define g_vk_swapchain ((vk_swapchain_t *)g_vk_swapchain_hdl->instance)
+#define g_vk_renderer ((vk_renderer_t *)g_vk_renderer_hdl->instance)
+#define g_vk_viewport ((vk_viewport_t *)g_vk_viewport_hdl->instance)
 
-extern handle_t *g_vk_main_renderpass;
-extern handle_t *g_vk_imgui_renderpass;
+// #define g_vk_main_renderpass ((vk_renderpass_t *)g_vk_main_renderpass_hdl->instance)
+// #define g_vk_imgui_renderpass ((vk_renderpass_t *)g_vk_imgui_renderpass_hdl->instance)
 
-extern handle_t *g_vk_main_framebuffer;
-extern handle_t *g_vk_imgui_framebuffer;
+// #define g_vk_main_framebuffer ((vk_framebuffer_t *)g_vk_main_framebuffer_hdl->instance)
+// #define g_vk_imgui_framebuffer ((vk_framebuffer_t *)g_vk_imgui_framebuffer_hdl->instance)
 
-extern handle_t *g_vk_time_info_buffer;
-extern handle_t *g_vk_screen_info_buffer;
-extern handle_t *g_vk_mouse_info_buffer;
-extern handle_t *g_vk_camera_info_buffer;
-
-#ifdef BUILD_DEBUG
-extern PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT_proc;
-extern PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT_proc;
-#endif // BUILD_DEBUG
-
-extern PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasksEXT_proc;
-extern PFN_vkCmdTraceRaysKHR vkCmdTraceRaysKHR_proc;
-extern PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructuresKHR_proc;
-
-extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructureKHR_proc;
-extern PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelinesKHR_proc;
-
-extern PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizesKHR_proc;
-extern PFN_vkGetAccelerationStructureDeviceAddressKHR vkGetAccelerationStructureDeviceAddressKHR_proc;
-extern PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandlesKHR_proc;
-
-extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructureKHR_proc;
+#define g_vk_time_info_buffer ((vk_buffer_t *)g_vk_time_info_buffer_hdl->instance)
+#define g_vk_screen_info_buffer ((vk_buffer_t *)g_vk_screen_info_buffer_hdl->instance)
+#define g_vk_mouse_info_buffer ((vk_buffer_t *)g_vk_mouse_info_buffer_hdl->instance)
+#define g_vk_camera_info_buffer ((vk_buffer_t *)g_vk_camera_info_buffer_hdl->instance)
 
 void vk_context_create(void);
 void vk_context_update(void);

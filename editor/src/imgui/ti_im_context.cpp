@@ -27,12 +27,11 @@ static VkDescriptorPoolSize s_descriptor_pool_sizes[] = {
   {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000},
 };
 
-static fs_asset_t s_commit_mono_asset = {
-  .path = "asset/font/commit_mono_latin_400_normal.pak",
-};
-static fs_asset_t s_material_symbol_asset = {
-  .path = "asset/font/material_symbols_rounded_fill.pak",
-};
+static uint8_t *s_commit_mono_buffer = 0;
+static uint64_t s_commit_mono_buffer_size = 0;
+
+static uint8_t *s_material_symbol_buffer = 0;
+static uint64_t s_material_symbol_buffer_size = 0;
 
 static uint8_t s_layout_init = 1;
 
@@ -56,7 +55,7 @@ void im_context_create(void) {
     .pPoolSizes = s_descriptor_pool_sizes,
   };
 
-  TI_VK_CHECK(vkCreateDescriptorPool(g_vk_instance.device, &descriptor_pool_create_info, 0, &s_descriptor_pool));
+  TI_VK_CHECK(vkCreateDescriptorPool(g_vk_instance->device, &descriptor_pool_create_info, 0, &s_descriptor_pool));
 
   IMGUI_CHECKVERSION();
 
@@ -79,24 +78,26 @@ void im_context_create(void) {
     0,
   };
 
-  fs_asset_load(&s_commit_mono_asset);
-  fs_asset_load(&s_material_symbol_asset);
+  if (fsutil_load_binary(&s_commit_mono_buffer, &s_commit_mono_buffer_size, "asset/font/commit_mono_latin_400_normal.pak") == 0) {
 
-  fs_font_t *commit_mono = (fs_font_t *)s_commit_mono_asset.instance;
-  fs_font_t *material_symbols = (fs_font_t *)s_material_symbol_asset.instance;
+    // TODO: handle this case..
 
-  if (commit_mono) {
-
-    g_im_font_default_16 = io.Fonts->AddFontFromMemoryTTF(commit_mono->buffer, (int32_t)commit_mono->buffer_size, 16.0F, &font_config, 0);
+    __debugbreak();
   }
 
-  if (material_symbols) {
+  if (fsutil_load_binary(&s_material_symbol_buffer, &s_material_symbol_buffer_size, "asset/font/material_symbols_rounded_fill.pak")) {
 
-    g_im_font_symbols_16 = io.Fonts->AddFontFromMemoryTTF(material_symbols->buffer, (int32_t)material_symbols->buffer_size, 16.0F, &font_config, icon_glyph_ranges);
-    g_im_font_symbols_18 = io.Fonts->AddFontFromMemoryTTF(material_symbols->buffer, (int32_t)material_symbols->buffer_size, 18.0F, &font_config, icon_glyph_ranges);
-    g_im_font_symbols_22 = io.Fonts->AddFontFromMemoryTTF(material_symbols->buffer, (int32_t)material_symbols->buffer_size, 26.0F, &font_config, icon_glyph_ranges);
-    g_im_font_symbols_32 = io.Fonts->AddFontFromMemoryTTF(material_symbols->buffer, (int32_t)material_symbols->buffer_size, 32.0F, &font_config, icon_glyph_ranges);
+    // TODO: handle this case..
+
+    __debugbreak();
   }
+
+  g_im_font_default_16 = io.Fonts->AddFontFromMemoryTTF(s_commit_mono_buffer, (int32_t)s_commit_mono_buffer_size, 16.0F, &font_config, 0);
+
+  g_im_font_symbols_16 = io.Fonts->AddFontFromMemoryTTF(s_material_symbol_buffer, (int32_t)s_material_symbol_buffer_size, 16.0F, &font_config, icon_glyph_ranges);
+  g_im_font_symbols_18 = io.Fonts->AddFontFromMemoryTTF(s_material_symbol_buffer, (int32_t)s_material_symbol_buffer_size, 18.0F, &font_config, icon_glyph_ranges);
+  g_im_font_symbols_22 = io.Fonts->AddFontFromMemoryTTF(s_material_symbol_buffer, (int32_t)s_material_symbol_buffer_size, 26.0F, &font_config, icon_glyph_ranges);
+  g_im_font_symbols_32 = io.Fonts->AddFontFromMemoryTTF(s_material_symbol_buffer, (int32_t)s_material_symbol_buffer_size, 32.0F, &font_config, icon_glyph_ranges);
 
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -168,18 +169,20 @@ void im_context_create(void) {
 
   ImGui_ImplWin32_Init(g_window.window_handle);
 
+  vk_renderpass_t *imgui_renderpass = (vk_renderpass_t *)g_vk_renderer->imgui_renderpass_hdl->instance;
+
   ImGui_ImplVulkan_InitInfo imgui_vulkan_init_info = {
-    .Instance = g_vk_instance.instance,
-    .PhysicalDevice = g_vk_instance.physical_device,
-    .Device = g_vk_instance.device,
-    .QueueFamily = g_vk_instance.primary_queue_index,
-    .Queue = g_vk_instance.primary_queue,
+    .Instance = g_vk_instance->instance,
+    .PhysicalDevice = g_vk_instance->physical_device,
+    .Device = g_vk_instance->device,
+    .QueueFamily = g_vk_instance->primary_queue_index,
+    .Queue = g_vk_instance->primary_queue,
     .DescriptorPool = s_descriptor_pool,
-    .MinImageCount = g_vk_instance.min_image_count,
-    .ImageCount = g_vk_swapchain.image_count,
+    .MinImageCount = g_vk_instance->min_image_count,
+    .ImageCount = g_vk_swapchain->image_count,
     .PipelineCache = 0,
     .PipelineInfoMain = {
-      .RenderPass = g_vk_imgui_renderpass.handle,
+      .RenderPass = imgui_renderpass->renderpass,
       .Subpass = 0,
       .MSAASamples = VK_SAMPLE_COUNT_1_BIT,
     },
@@ -275,7 +278,7 @@ void im_context_draw(void) {
     }
   }
 
-  im_viewport_draw(&g_vk_viewport);
+  im_viewport_draw(g_vk_viewport);
 
   if (g_im_show_bottom_panel) {
     im_text_editor_draw();
@@ -296,7 +299,7 @@ void im_context_draw(void) {
 
   ImGui::Render();
 
-  ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), g_vk_instance.command_buffer);
+  ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), g_vk_instance->command_buffer);
 }
 void im_context_message(HWND window_handle, UINT window_message, WPARAM w_param, LPARAM l_param) {
   ImGui_ImplWin32_WndProcHandler(window_handle, window_message, w_param, l_param);
@@ -310,7 +313,7 @@ void im_context_destroy(void) {
   im_inspector_reset();
   im_sidebar_reset();
   im_titlebar_reset();
-  im_viewport_reset(&g_vk_viewport);
+  im_viewport_reset(g_vk_viewport);
   im_renderer_reset();
   im_output_reset();
 
@@ -328,10 +331,10 @@ void im_context_destroy(void) {
 
   ImGui::DestroyContext();
 
-  fs_asset_destroy(&s_commit_mono_asset);
-  fs_asset_destroy(&s_material_symbol_asset);
+  TI_FREE(s_commit_mono_buffer);
+  TI_FREE(s_material_symbol_buffer);
 
-  vkDestroyDescriptorPool(g_vk_instance.device, s_descriptor_pool, 0);
+  vkDestroyDescriptorPool(g_vk_instance->device, s_descriptor_pool, 0);
 }
 
 static int32_t Platform_CreateVkSurface(ImGuiViewport *vp, ImU64 vk_inst, const void *vk_allocators, ImU64 *out_vk_surface) {

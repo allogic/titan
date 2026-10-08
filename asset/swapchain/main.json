@@ -1,0 +1,7 @@
+{
+	"dependencies": [
+		"asset/instance/main.json"
+	],
+	"name": "main",
+	"image_count": 1
+}

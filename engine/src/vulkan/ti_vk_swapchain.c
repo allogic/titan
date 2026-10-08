@@ -1,18 +1,16 @@
 #include <vulkan/ti_vk_swapchain.h>
 
-void vk_swapchain_create(vk_swapchain_t *swapchain, fs_swapchain_t *config) {
-  swapchain->config = config;
-
-  swapchain->image_count = clampu(swapchain->config->image_count, g_vk_instance.min_image_count, g_vk_instance.max_image_count);
+void vk_swapchain_create(vk_swapchain_t *swapchain) {
+  swapchain->image_count = clampu(TI_JSON_INT(swapchain->config, "image_count"), g_vk_instance->min_image_count, g_vk_instance->max_image_count);
 
   uint32_t queue_families[2] = {
-    g_vk_instance.primary_queue_index,
-    g_vk_instance.present_queue_index,
+    g_vk_instance->primary_queue_index,
+    g_vk_instance->present_queue_index,
   };
 
   VkSwapchainCreateInfoKHR swapchain_create_info = {
     .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-    .surface = g_vk_instance.surface,
+    .surface = g_vk_instance->surface,
     .minImageCount = swapchain->image_count,
     .imageFormat = VK_FORMAT_R8G8B8A8_UNORM,
     .imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
@@ -20,7 +18,7 @@ void vk_swapchain_create(vk_swapchain_t *swapchain, fs_swapchain_t *config) {
     .imageExtent.height = g_window.height,
     .imageArrayLayers = 1,
     .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-    .preTransform = g_vk_instance.surface_transform,
+    .preTransform = g_vk_instance->surface_transform,
     .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
     .presentMode = VK_PRESENT_MODE_MAILBOX_KHR,
     .clipped = 1,
@@ -30,9 +28,9 @@ void vk_swapchain_create(vk_swapchain_t *swapchain, fs_swapchain_t *config) {
     .queueFamilyIndexCount = TI_ARRAY_COUNT(queue_families),
   };
 
-  TI_VK_CHECK(vkCreateSwapchainKHR(g_vk_instance.device, &swapchain_create_info, 0, &swapchain->handle));
-  TI_VK_CHECK(vkGetSwapchainImagesKHR(g_vk_instance.device, swapchain->handle, &swapchain->image_count, swapchain->image));
+  TI_VK_CHECK(vkCreateSwapchainKHR(g_vk_instance->device, &swapchain_create_info, 0, &swapchain->swapchain));
+  TI_VK_CHECK(vkGetSwapchainImagesKHR(g_vk_instance->device, swapchain->swapchain, &swapchain->image_count, swapchain->image));
 }
 void vk_swapchain_destroy(vk_swapchain_t *swapchain) {
-  vkDestroySwapchainKHR(g_vk_instance.device, swapchain->handle, 0);
+  vkDestroySwapchainKHR(g_vk_instance->device, swapchain->swapchain, 0);
 }

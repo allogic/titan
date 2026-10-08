@@ -2,7 +2,7 @@
 
 // TODO: Keep these tables in sync for when the vulkan API changes!
 
-vk_enum_record_t g_vk_format_table[355] = {
+enum_record_t g_vk_format_table[355] = {
   {VK_FORMAT_UNDEFINED, "VK_FORMAT_UNDEFINED"},
   {VK_FORMAT_R4G4_UNORM_PACK8, "VK_FORMAT_R4G4_UNORM_PACK8"},
   {VK_FORMAT_R4G4B4A4_UNORM_PACK16, "VK_FORMAT_R4G4B4A4_UNORM_PACK16"},
@@ -359,7 +359,7 @@ vk_enum_record_t g_vk_format_table[355] = {
   {VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR, "VK_FORMAT_A1B5G5R5_UNORM_PACK16_KHR"},
   {VK_FORMAT_A8_UNORM_KHR, "VK_FORMAT_A8_UNORM_KHR"},
 };
-vk_enum_record_t g_vk_image_layout_table[42] = {
+enum_record_t g_vk_image_layout_table[42] = {
   {VK_IMAGE_LAYOUT_UNDEFINED, "VK_IMAGE_LAYOUT_UNDEFINED"},
   {VK_IMAGE_LAYOUT_GENERAL, "VK_IMAGE_LAYOUT_GENERAL"},
   {VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, "VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL"},
@@ -403,17 +403,17 @@ vk_enum_record_t g_vk_image_layout_table[42] = {
   {VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL_KHR, "VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL_KHR"},
   {VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR, "VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR"},
 };
-vk_enum_record_t g_vk_image_type_table[3] = {
+enum_record_t g_vk_image_type_table[3] = {
   {VK_IMAGE_TYPE_1D, "VK_IMAGE_TYPE_1D"},
   {VK_IMAGE_TYPE_2D, "VK_IMAGE_TYPE_2D"},
   {VK_IMAGE_TYPE_3D, "VK_IMAGE_TYPE_3D"},
 };
-vk_enum_record_t g_vk_image_tiling_table[3] = {
+enum_record_t g_vk_image_tiling_table[3] = {
   {VK_IMAGE_TILING_OPTIMAL, "VK_IMAGE_TILING_OPTIMAL"},
   {VK_IMAGE_TILING_LINEAR, "VK_IMAGE_TILING_LINEAR"},
   {VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT, "VK_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT"},
 };
-vk_enum_record_t g_vk_image_view_type_table[7] = {
+enum_record_t g_vk_image_view_type_table[7] = {
   {VK_IMAGE_VIEW_TYPE_1D, "VK_IMAGE_VIEW_TYPE_1D"},
   {VK_IMAGE_VIEW_TYPE_2D, "VK_IMAGE_VIEW_TYPE_2D"},
   {VK_IMAGE_VIEW_TYPE_3D, "VK_IMAGE_VIEW_TYPE_3D"},
@@ -422,7 +422,7 @@ vk_enum_record_t g_vk_image_view_type_table[7] = {
   {VK_IMAGE_VIEW_TYPE_2D_ARRAY, "VK_IMAGE_VIEW_TYPE_2D_ARRAY"},
   {VK_IMAGE_VIEW_TYPE_CUBE_ARRAY, "VK_IMAGE_VIEW_TYPE_CUBE_ARRAY"},
 };
-vk_enum_record_t g_vk_descriptor_type_table[19] = {
+enum_record_t g_vk_descriptor_type_table[19] = {
   {VK_DESCRIPTOR_TYPE_SAMPLER, "VK_DESCRIPTOR_TYPE_SAMPLER"},
   {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, "VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER"},
   {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, "VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE"},
@@ -443,7 +443,7 @@ vk_enum_record_t g_vk_descriptor_type_table[19] = {
   {VK_DESCRIPTOR_TYPE_MUTABLE_EXT, "VK_DESCRIPTOR_TYPE_MUTABLE_EXT"},
   {VK_DESCRIPTOR_TYPE_PARTITIONED_ACCELERATION_STRUCTURE_NV, "VK_DESCRIPTOR_TYPE_PARTITIONED_ACCELERATION_STRUCTURE_NV"},
 };
-vk_enum_record_t g_vk_primitive_topology_table[11] = {
+enum_record_t g_vk_primitive_topology_table[11] = {
   {VK_PRIMITIVE_TOPOLOGY_POINT_LIST, "VK_PRIMITIVE_TOPOLOGY_POINT_LIST"},
   {VK_PRIMITIVE_TOPOLOGY_LINE_LIST, "VK_PRIMITIVE_TOPOLOGY_LINE_LIST"},
   {VK_PRIMITIVE_TOPOLOGY_LINE_STRIP, "VK_PRIMITIVE_TOPOLOGY_LINE_STRIP"},
@@ -456,13 +456,13 @@ vk_enum_record_t g_vk_primitive_topology_table[11] = {
   {VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY, "VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY"},
   {VK_PRIMITIVE_TOPOLOGY_PATCH_LIST, "VK_PRIMITIVE_TOPOLOGY_PATCH_LIST"},
 };
-vk_enum_record_t g_vk_polygon_mode_table[4] = {
+enum_record_t g_vk_polygon_mode_table[4] = {
   {VK_POLYGON_MODE_FILL, "VK_POLYGON_MODE_FILL"},
   {VK_POLYGON_MODE_LINE, "VK_POLYGON_MODE_LINE"},
   {VK_POLYGON_MODE_POINT, "VK_POLYGON_MODE_POINT"},
   {VK_POLYGON_MODE_FILL_RECTANGLE_NV, "VK_POLYGON_MODE_FILL_RECTANGLE_NV"},
 };
-vk_enum_record_t g_vk_vertex_input_rate_table[2] = {
+enum_record_t g_vk_vertex_input_rate_table[2] = {
   {VK_VERTEX_INPUT_RATE_VERTEX, "VK_VERTEX_INPUT_RATE_VERTEX"},
   {VK_VERTEX_INPUT_RATE_INSTANCE, "VK_VERTEX_INPUT_RATE_INSTANCE"},
 };

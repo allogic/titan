@@ -47,6 +47,7 @@ static int load_sound(char const *path) {
 }
 
 void im_sound_studio_draw(void) {
+  /*
   ImGui::SetNextWindowSize(ImVec2(540.0F, 460.0F), ImGuiCond_FirstUseEver);
 
   ImGui::PushStyleColor(ImGuiCol_WindowBg, TI_DARK_GREY);
@@ -296,6 +297,7 @@ void im_sound_studio_draw(void) {
   ImGui::End();
   ImGui::PopStyleVar();
   ImGui::PopStyleColor();
+  */
 }
 
 void im_sound_studio_reset(void) {

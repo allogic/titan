@@ -16,12 +16,11 @@ static bool draw_image_aspect_flags(VkImageAspectFlags *flags);
 static bool draw_cull_mode_flags(VkCullModeFlags *flags);
 static bool draw_shader_stage_flags(VkShaderStageFlags *flags);
 
-static bool draw_vulkan_enum_dropdown(char const *label, uint64_t *selected_index, vk_enum_record_t *table, uint64_t table_count);
+static bool draw_vulkan_enum_dropdown(char const *label, uint64_t *selected_index, enum_record_t *table, uint64_t table_count);
 
 static im_inspector_type_t s_selected_type = IM_INSPECTOR_TYPE_NONE;
 static cp_component_type_t s_selected_comp = CP_COMPONENT_TYPE_TRANSFORM;
 static ecs_entity_t s_selected_entity = 0;
-static fs_asset_t *s_selected_asset = 0;
 
 static const char *s_component_name[] = {
   "Transform",
@@ -77,41 +76,18 @@ void im_inspector_select(im_inspector_type_t type, void *data) {
     }
     case IM_INSPECTOR_TYPE_ASSET: {
 
-      if (s_selected_asset) {
-
-        fs_asset_destroy(s_selected_asset);
-
-        TI_FREE(s_selected_asset);
-      }
-
-      strcpy(s_asset_path, (char const *)data);
-
-      s_selected_asset = (fs_asset_t *)TI_ALLOC(sizeof(fs_asset_t), 0, 0);
-
-      s_selected_asset->path = s_asset_path;
-
-      fs_asset_load(s_selected_asset);
-
-      s_selected_type = type;
+      // TODO
 
       break;
     }
   }
 }
 void im_inspector_reset(void) {
-  if (s_selected_asset) {
-
-    fs_asset_destroy(s_selected_asset);
-
-    TI_FREE(s_selected_asset);
-  }
-
   s_asset_path[0] = 0;
 
   s_selected_type = IM_INSPECTOR_TYPE_NONE;
   s_selected_comp = CP_COMPONENT_TYPE_TRANSFORM;
   s_selected_entity = 0;
-  s_selected_asset = 0;
 }
 
 static void draw_background(void) {
@@ -131,6 +107,7 @@ static void draw_asset_controls(void) {
   // TODO
 }
 static void draw_asset(void) {
+  /*
   bool dirty = false;
 
   ImGuiTreeNodeFlags tree_node_flags = ImGuiTreeNodeFlags_OpenOnArrow |
@@ -787,6 +764,7 @@ static void draw_asset(void) {
   if (dirty) {
     fs_asset_store(s_selected_asset);
   }
+  */
 }
 static void draw_entity_controls(void) {
   if (ImGui::BeginCombo("##Component", s_component_name[s_selected_comp])) {
@@ -1211,7 +1189,7 @@ static bool draw_shader_stage_flags(VkShaderStageFlags *flags) {
   return dirty;
 }
 
-static bool draw_vulkan_enum_dropdown(char const *label, uint64_t *selected_index, vk_enum_record_t *table, uint64_t table_count) {
+static bool draw_vulkan_enum_dropdown(char const *label, uint64_t *selected_index, enum_record_t *table, uint64_t table_count) {
   bool dirty = false;
 
   if (ImGui::BeginCombo(label, table[*selected_index].name)) {

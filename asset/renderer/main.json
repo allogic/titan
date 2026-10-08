@@ -1,0 +1,6 @@
+{
+	"dependencies": [
+		"asset/swapchain/main.json"
+	],
+	"name": "main"
+}

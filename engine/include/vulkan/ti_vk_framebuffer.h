@@ -7,7 +7,7 @@
 extern "C" {
 #endif // __cplusplus
 
-void vk_framebuffer_create(vk_framebuffer_t *framebuffer, fs_framebuffer_t *config);
+void vk_framebuffer_create(vk_framebuffer_t *framebuffer);
 void vk_framebuffer_destroy(vk_framebuffer_t *framebuffer);
 
 #ifdef __cplusplus

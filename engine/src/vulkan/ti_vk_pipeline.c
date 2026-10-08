@@ -14,32 +14,30 @@ static void create_compute_pipeline(vk_pipeline_t *pipeline);
 
 static void destroy_sbt_buffer(vk_pipeline_t *pipeline);
 
-void vk_pipeline_create(vk_pipeline_t *pipeline, fs_pipeline_t *config) {
-  pipeline->config = config;
-
-  pipeline->descriptor_set_layout = (VkDescriptorSetLayout *)TI_ALLOC(sizeof(VkDescriptorSetLayout) * pipeline->config->descriptor_set_count, 0, 0);
-  pipeline->descriptor_set = (VkDescriptorSet *)TI_ALLOC(sizeof(VkDescriptorSet) * pipeline->config->descriptor_set_count, 0, 0);
+void vk_pipeline_create(vk_pipeline_t *pipeline) {
+  pipeline->descriptor_set_layout = (VkDescriptorSetLayout *)TI_ALLOC(sizeof(VkDescriptorSetLayout) * TI_JSON_INT(pipeline->config, "descriptor_set_count"), 0, 0);
+  pipeline->descriptor_set = (VkDescriptorSet *)TI_ALLOC(sizeof(VkDescriptorSet) * TI_JSON_INT(pipeline->config, "descriptor_set_count"), 0, 0);
 
   create_descriptor_pool(pipeline);
   create_descriptor_set_layout(pipeline);
   create_descriptor_set(pipeline);
   create_pipeline_layout(pipeline);
 
-  switch (pipeline->config->pipeline_type) {
+  switch (TI_JSON_INT(pipeline->config, "pipeline_type")) {
 
-    case FS_PIPELINE_TYPE_DEFAULT: {
+    case VK_PIPELINE_TYPE_DEFAULT: {
 
       create_default_pipeline(pipeline);
 
       break;
     }
-    case FS_PIPELINE_TYPE_MESH: {
+    case VK_PIPELINE_TYPE_MESH: {
 
       create_mesh_pipeline(pipeline);
 
       break;
     }
-    case FS_PIPELINE_TYPE_RAY_TRACING: {
+    case VK_PIPELINE_TYPE_RAY_TRACING: {
 
       create_ray_tracing_pipeline(pipeline);
 
@@ -47,7 +45,7 @@ void vk_pipeline_create(vk_pipeline_t *pipeline, fs_pipeline_t *config) {
 
       break;
     }
-    case FS_PIPELINE_TYPE_COMPUTE: {
+    case VK_PIPELINE_TYPE_COMPUTE: {
 
       create_compute_pipeline(pipeline);
 
@@ -56,16 +54,16 @@ void vk_pipeline_create(vk_pipeline_t *pipeline, fs_pipeline_t *config) {
   }
 }
 void vk_pipeline_destroy(vk_pipeline_t *pipeline) {
-  switch (pipeline->config->pipeline_type) {
+  switch (TI_JSON_INT(pipeline->config, "pipeline_type")) {
 
-    case FS_PIPELINE_TYPE_DEFAULT: {
+    case VK_PIPELINE_TYPE_DEFAULT: {
 
       TI_FREE(pipeline->vertex_input_binding_description);
       TI_FREE(pipeline->vertex_input_attribute_description);
 
       break;
     }
-    case FS_PIPELINE_TYPE_RAY_TRACING: {
+    case VK_PIPELINE_TYPE_RAY_TRACING: {
 
       destroy_sbt_buffer(pipeline);
 
@@ -73,10 +71,10 @@ void vk_pipeline_destroy(vk_pipeline_t *pipeline) {
     }
   }
 
-  vkDestroyDescriptorPool(g_vk_instance.device, pipeline->descriptor_pool, 0);
-  vkDestroyDescriptorSetLayout(g_vk_instance.device, pipeline->descriptor_set_layout_base, 0);
-  vkDestroyPipelineLayout(g_vk_instance.device, pipeline->pipeline_layout, 0);
-  vkDestroyPipeline(g_vk_instance.device, pipeline->pipeline_handle, 0);
+  vkDestroyDescriptorPool(g_vk_instance->device, pipeline->descriptor_pool, 0);
+  vkDestroyDescriptorSetLayout(g_vk_instance->device, pipeline->descriptor_set_layout_base, 0);
+  vkDestroyPipelineLayout(g_vk_instance->device, pipeline->pipeline_layout, 0);
+  vkDestroyPipeline(g_vk_instance->device, pipeline->pipeline, 0);
 
   TI_FREE(pipeline->descriptor_set_layout_binding);
   TI_FREE(pipeline->descriptor_pool_size);
@@ -85,21 +83,23 @@ void vk_pipeline_destroy(vk_pipeline_t *pipeline) {
 }
 
 static void create_descriptor_pool(vk_pipeline_t *pipeline) {
-  pipeline->descriptor_pool_size_count = (uint32_t)pipeline->config->descriptor_pool_size_count;
+  cJSON *descriptor_pool_size = TI_JSON_ITEM(pipeline->config, "descriptor_pool_size");
+
+  pipeline->descriptor_pool_size_count = TI_JSON_INT(pipeline->config, "descriptor_pool_size_count");
   pipeline->descriptor_pool_size = (VkDescriptorPoolSize *)TI_ALLOC(sizeof(VkDescriptorPoolSize) * pipeline->descriptor_pool_size_count, 1, 0);
 
-  uint64_t descriptor_pool_index = 0;
-  uint64_t descriptor_pool_count = pipeline->descriptor_pool_size_count;
+  uint32_t descriptor_pool_index = 0;
+  uint32_t descriptor_pool_count = pipeline->descriptor_pool_size_count;
 
   while (descriptor_pool_index < descriptor_pool_count) {
 
-    fs_descriptor_pool_size_t *fs_descriptor_pool_size = &pipeline->config->descriptor_pool_size[descriptor_pool_index];
+    cJSON *js_descriptor_pool_size = TI_JSON_ARRAY_ITEM(descriptor_pool_size, descriptor_pool_index);
     VkDescriptorPoolSize *vk_descriptor_pool_size = &pipeline->descriptor_pool_size[descriptor_pool_index];
 
-    vk_descriptor_pool_size->type = g_vk_descriptor_type_table[fs_descriptor_pool_size->type_index].value;
-    vk_descriptor_pool_size->descriptorCount = fs_descriptor_pool_size->descriptor_count;
+    vk_descriptor_pool_size->type = g_vk_descriptor_type_table[TI_JSON_INT(js_descriptor_pool_size, "type_index")].value;
+    vk_descriptor_pool_size->descriptorCount = TI_JSON_INT(js_descriptor_pool_size, "descriptor_count");
 
-    vk_descriptor_pool_size->descriptorCount *= pipeline->config->descriptor_set_count;
+    vk_descriptor_pool_size->descriptorCount *= TI_JSON_INT(pipeline->config, "descriptor_set_count");
 
     descriptor_pool_index++;
   }
@@ -108,27 +108,29 @@ static void create_descriptor_pool(vk_pipeline_t *pipeline) {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
     .pPoolSizes = pipeline->descriptor_pool_size,
     .poolSizeCount = pipeline->descriptor_pool_size_count,
-    .maxSets = pipeline->config->descriptor_set_count,
+    .maxSets = TI_JSON_INT(pipeline->config, "descriptor_set_count"),
   };
 
-  TI_VK_CHECK(vkCreateDescriptorPool(g_vk_instance.device, &descriptor_pool_create_info, 0, &pipeline->descriptor_pool));
+  TI_VK_CHECK(vkCreateDescriptorPool(g_vk_instance->device, &descriptor_pool_create_info, 0, &pipeline->descriptor_pool));
 }
 static void create_descriptor_set_layout(vk_pipeline_t *pipeline) {
-  pipeline->descriptor_set_layout_binding_count = (uint32_t)pipeline->config->descriptor_set_layout_binding_count;
+  cJSON *descriptor_set_layout_binding = TI_JSON_ITEM(pipeline->config, "descriptor_set_layout_binding");
+
+  pipeline->descriptor_set_layout_binding_count = TI_JSON_INT(pipeline->config, "descriptor_set_layout_binding_count");
   pipeline->descriptor_set_layout_binding = (VkDescriptorSetLayoutBinding *)TI_ALLOC(sizeof(VkDescriptorSetLayoutBinding) * pipeline->descriptor_set_layout_binding_count, 1, 0);
 
-  uint64_t descriptor_set_layout_binding_index = 0;
-  uint64_t descriptor_set_layout_binding_count = pipeline->descriptor_set_layout_binding_count;
+  uint32_t descriptor_set_layout_binding_index = 0;
+  uint32_t descriptor_set_layout_binding_count = pipeline->descriptor_set_layout_binding_count;
 
   while (descriptor_set_layout_binding_index < descriptor_set_layout_binding_count) {
 
-    fs_descriptor_set_layout_binding_t *fs_descriptor_set_layout_binding = &pipeline->config->descriptor_set_layout_binding[descriptor_set_layout_binding_index];
+    cJSON *js_descriptor_set_layout_binding = TI_JSON_ARRAY_ITEM(descriptor_set_layout_binding, descriptor_set_layout_binding_index);
     VkDescriptorSetLayoutBinding *vk_descriptor_set_layout_binding = &pipeline->descriptor_set_layout_binding[descriptor_set_layout_binding_index];
 
-    vk_descriptor_set_layout_binding->binding = fs_descriptor_set_layout_binding->binding;
-    vk_descriptor_set_layout_binding->descriptorType = fs_descriptor_set_layout_binding->descriptor_type_index;
-    vk_descriptor_set_layout_binding->descriptorCount = fs_descriptor_set_layout_binding->descriptor_count;
-    vk_descriptor_set_layout_binding->stageFlags = fs_descriptor_set_layout_binding->stage_flags;
+    vk_descriptor_set_layout_binding->binding = TI_JSON_INT(js_descriptor_set_layout_binding, "binding");
+    vk_descriptor_set_layout_binding->descriptorType = TI_JSON_INT(js_descriptor_set_layout_binding, "descriptor_type_index");
+    vk_descriptor_set_layout_binding->descriptorCount = TI_JSON_INT(js_descriptor_set_layout_binding, "descriptor_count");
+    vk_descriptor_set_layout_binding->stageFlags = TI_JSON_INT(js_descriptor_set_layout_binding, "stage_flags");
     vk_descriptor_set_layout_binding->pImmutableSamplers = 0; // TODO
 
     descriptor_set_layout_binding_index++;
@@ -141,11 +143,11 @@ static void create_descriptor_set_layout(vk_pipeline_t *pipeline) {
     .pNext = 0,
   };
 
-  TI_VK_CHECK(vkCreateDescriptorSetLayout(g_vk_instance.device, &descriptor_set_layout_create_info, 0, &pipeline->descriptor_set_layout_base));
+  TI_VK_CHECK(vkCreateDescriptorSetLayout(g_vk_instance->device, &descriptor_set_layout_create_info, 0, &pipeline->descriptor_set_layout_base));
 }
 static void create_descriptor_set(vk_pipeline_t *pipeline) {
   uint32_t descriptor_set_index = 0;
-  uint32_t descriptor_set_count = pipeline->config->descriptor_set_count;
+  uint32_t descriptor_set_count = TI_JSON_INT(pipeline->config, "descriptor_set_count");
 
   while (descriptor_set_index < descriptor_set_count) {
 
@@ -156,12 +158,12 @@ static void create_descriptor_set(vk_pipeline_t *pipeline) {
 
   VkDescriptorSetAllocateInfo descriptor_set_allocate_info = {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-    .descriptorSetCount = pipeline->config->descriptor_set_count,
+    .descriptorSetCount = TI_JSON_INT(pipeline->config, "descriptor_set_count"),
     .descriptorPool = pipeline->descriptor_pool,
     .pSetLayouts = pipeline->descriptor_set_layout,
   };
 
-  TI_VK_CHECK(vkAllocateDescriptorSets(g_vk_instance.device, &descriptor_set_allocate_info, pipeline->descriptor_set));
+  TI_VK_CHECK(vkAllocateDescriptorSets(g_vk_instance->device, &descriptor_set_allocate_info, pipeline->descriptor_set));
 }
 static void create_pipeline_layout(vk_pipeline_t *pipeline) {
   VkPipelineLayoutCreateInfo pipeline_layout_create_info = {
@@ -172,7 +174,7 @@ static void create_pipeline_layout(vk_pipeline_t *pipeline) {
     .pushConstantRangeCount = pipeline->push_constant_range_count,
   };
 
-  TI_VK_CHECK(vkCreatePipelineLayout(g_vk_instance.device, &pipeline_layout_create_info, 0, &pipeline->pipeline_layout));
+  TI_VK_CHECK(vkCreatePipelineLayout(g_vk_instance->device, &pipeline_layout_create_info, 0, &pipeline->pipeline_layout));
 }
 
 static void create_sbt_buffer(vk_pipeline_t *pipeline) {
@@ -206,11 +208,11 @@ static void create_sbt_buffer(vk_pipeline_t *pipeline) {
     .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
   };
 
-  TI_VK_CHECK(vkCreateBuffer(g_vk_instance.device, &buffer_create_info, 0, &pipeline->sbt_buffer_handle));
+  TI_VK_CHECK(vkCreateBuffer(g_vk_instance->device, &buffer_create_info, 0, &pipeline->sbt_buffer));
 
   VkMemoryRequirements memory_requirements = {0};
 
-  vkGetBufferMemoryRequirements(g_vk_instance.device, pipeline->sbt_buffer_handle, &memory_requirements);
+  vkGetBufferMemoryRequirements(g_vk_instance->device, pipeline->sbt_buffer, &memory_requirements);
 
   uint32_t memory_type_index = vk_memory_find_type_index(memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
@@ -226,16 +228,16 @@ static void create_sbt_buffer(vk_pipeline_t *pipeline) {
     .memoryTypeIndex = memory_type_index,
   };
 
-  TI_VK_CHECK(vkAllocateMemory(g_vk_instance.device, &memory_allocate_info, 0, &pipeline->sbt_device_memory));
-  TI_VK_CHECK(vkBindBufferMemory(g_vk_instance.device, pipeline->sbt_buffer_handle, pipeline->sbt_device_memory, 0));
+  TI_VK_CHECK(vkAllocateMemory(g_vk_instance->device, &memory_allocate_info, 0, &pipeline->sbt_device_memory));
+  TI_VK_CHECK(vkBindBufferMemory(g_vk_instance->device, pipeline->sbt_buffer, pipeline->sbt_device_memory, 0));
 
   uint8_t *sbt_device_data = 0;
 
-  TI_VK_CHECK(vkMapMemory(g_vk_instance.device, pipeline->sbt_device_memory, 0, sbt_buffer_size, 0, &sbt_device_data));
+  TI_VK_CHECK(vkMapMemory(g_vk_instance->device, pipeline->sbt_device_memory, 0, sbt_buffer_size, 0, &sbt_device_data));
 
   uint8_t *handles = (uint8_t *)TI_ALLOC(handle_size * 3, 0, 0);
 
-  TI_VK_CHECK(vkGetRayTracingShaderGroupHandlesKHR_proc(g_vk_instance.device, pipeline->pipeline_handle, 0, 3, handle_size * 3, handles));
+  TI_VK_CHECK(g_vk_instance->get_ray_tracing_shader_group_handles_khr_proc(g_vk_instance->device, pipeline->pipeline, 0, 3, handle_size * 3, handles));
 
   memcpy(sbt_device_data, handles + handle_size * 0, handle_size);
   sbt_device_data += ray_gen_region_size;
@@ -245,14 +247,14 @@ static void create_sbt_buffer(vk_pipeline_t *pipeline) {
 
   TI_FREE(handles);
 
-  vkUnmapMemory(g_vk_instance.device, pipeline->sbt_device_memory);
+  vkUnmapMemory(g_vk_instance->device, pipeline->sbt_device_memory);
 
   VkBufferDeviceAddressInfo buffer_device_address_info = {
     .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
-    .buffer = pipeline->sbt_buffer_handle,
+    .buffer = pipeline->sbt_buffer,
   };
 
-  pipeline->sbt_device_address = vkGetBufferDeviceAddress(g_vk_instance.device, &buffer_device_address_info);
+  pipeline->sbt_device_address = vkGetBufferDeviceAddress(g_vk_instance->device, &buffer_device_address_info);
 
   pipeline->ray_gen_region.deviceAddress = pipeline->sbt_device_address;
   pipeline->ray_gen_region.stride = aligned_handle_size;
@@ -276,23 +278,37 @@ static void create_default_pipeline(vk_pipeline_t *pipeline) {
   VkShaderModule fragment_module = 0;
 
   {
+    uint8_t *buffer = 0;
+    uint64_t buffer_size = 0;
+
+    fsutil_load_binary(&buffer, &buffer_size, TI_JSON_STRING(pipeline->config, "vertex_shader"));
+
     VkShaderModuleCreateInfo shader_module_create_info = {
       .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-      .pCode = pipeline->config->spirv_vertex_words,
-      .codeSize = pipeline->config->spirv_vertex_word_count * sizeof(uint32_t),
+      .pCode = (uint32_t const *)buffer,
+      .codeSize = buffer_size,
     };
 
-    TI_VK_CHECK(vkCreateShaderModule(g_vk_instance.device, &shader_module_create_info, 0, &vertex_module));
+    TI_VK_CHECK(vkCreateShaderModule(g_vk_instance->device, &shader_module_create_info, 0, &vertex_module));
+
+    TI_FREE(buffer);
   }
 
   {
+    uint8_t *buffer = 0;
+    uint64_t buffer_size = 0;
+
+    fsutil_load_binary(&buffer, &buffer_size, TI_JSON_STRING(pipeline->config, "fragment_shader"));
+
     VkShaderModuleCreateInfo shader_module_create_info = {
       .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-      .pCode = pipeline->config->spirv_fragment_words,
-      .codeSize = pipeline->config->spirv_fragment_word_count * sizeof(uint32_t),
+      .pCode = (uint32_t const *)buffer,
+      .codeSize = buffer_size,
     };
 
-    TI_VK_CHECK(vkCreateShaderModule(g_vk_instance.device, &shader_module_create_info, 0, &fragment_module));
+    TI_VK_CHECK(vkCreateShaderModule(g_vk_instance->device, &shader_module_create_info, 0, &fragment_module));
+
+    TI_FREE(buffer);
   }
 
   VkPipelineShaderStageCreateInfo pipeline_shader_stage_create_info[] = {
@@ -310,38 +326,41 @@ static void create_default_pipeline(vk_pipeline_t *pipeline) {
     },
   };
 
-  pipeline->vertex_input_binding_description_count = (uint32_t)pipeline->config->vertex_input_binding_description_count;
-  pipeline->vertex_input_attribute_description_count = (uint32_t)pipeline->config->vertex_input_attribute_description_count;
+  cJSON *vertex_input_binding_description = TI_JSON_ITEM(pipeline->config, "vertex_input_binding_description");
+  cJSON *vertex_input_attribute_description = TI_JSON_ITEM(pipeline->config, "vertex_input_attribute_description");
+
+  pipeline->vertex_input_binding_description_count = TI_JSON_ARRAY_COUNT(vertex_input_binding_description);
+  pipeline->vertex_input_attribute_description_count = TI_JSON_ARRAY_COUNT(vertex_input_attribute_description);
   pipeline->vertex_input_binding_description = (VkVertexInputBindingDescription *)TI_ALLOC(sizeof(VkVertexInputBindingDescription) * pipeline->vertex_input_binding_description_count, 1, 0);
   pipeline->vertex_input_attribute_description = (VkVertexInputAttributeDescription *)TI_ALLOC(sizeof(VkVertexInputAttributeDescription) * pipeline->vertex_input_attribute_description_count, 1, 0);
 
-  uint64_t vertex_input_binding_description_index = 0;
-  uint64_t vertex_input_binding_description_count = pipeline->vertex_input_binding_description_count;
+  uint32_t vertex_input_binding_description_index = 0;
+  uint32_t vertex_input_binding_description_count = pipeline->vertex_input_binding_description_count;
 
   while (vertex_input_binding_description_index < vertex_input_binding_description_count) {
 
-    fs_vertex_input_binding_description_t *fs_vertex_input_binding_description = &pipeline->config->vertex_input_binding_description[vertex_input_binding_description_index];
+    cJSON *js_vertex_input_binding_description = TI_JSON_ARRAY_ITEM(vertex_input_binding_description, vertex_input_binding_description_index);
     VkVertexInputBindingDescription *vk_vertex_input_binding_description = &pipeline->vertex_input_binding_description[vertex_input_binding_description_index];
 
-    vk_vertex_input_binding_description->binding = fs_vertex_input_binding_description->binding;
-    vk_vertex_input_binding_description->stride = fs_vertex_input_binding_description->stride;
-    vk_vertex_input_binding_description->inputRate = g_vk_vertex_input_rate_table[fs_vertex_input_binding_description->input_rate_index].value;
+    vk_vertex_input_binding_description->binding = TI_JSON_INT(js_vertex_input_binding_description, "binding");
+    vk_vertex_input_binding_description->stride = TI_JSON_INT(js_vertex_input_binding_description, "stride");
+    vk_vertex_input_binding_description->inputRate = g_vk_vertex_input_rate_table[TI_JSON_INT(js_vertex_input_binding_description, "input_rate_index")].value;
 
     vertex_input_binding_description_index++;
   }
 
-  uint64_t vertex_input_attribute_description_index = 0;
-  uint64_t vertex_input_attribute_description_count = pipeline->vertex_input_attribute_description_count;
+  uint32_t vertex_input_attribute_description_index = 0;
+  uint32_t vertex_input_attribute_description_count = pipeline->vertex_input_attribute_description_count;
 
   while (vertex_input_attribute_description_index < vertex_input_attribute_description_count) {
 
-    fs_vertex_input_attribute_description_t *fs_vertex_input_attribute_description = &pipeline->config->vertex_input_attribute_description[vertex_input_attribute_description_index];
+    cJSON *js_vertex_input_attribute_description = TI_JSON_ARRAY_ITEM(vertex_input_attribute_description, vertex_input_attribute_description_index);
     VkVertexInputAttributeDescription *vk_vertex_input_attribute_description = &pipeline->vertex_input_attribute_description[vertex_input_attribute_description_index];
 
-    vk_vertex_input_attribute_description->location = fs_vertex_input_attribute_description->location;
-    vk_vertex_input_attribute_description->binding = fs_vertex_input_attribute_description->binding;
-    vk_vertex_input_attribute_description->format = g_vk_format_table[fs_vertex_input_attribute_description->format_index].value;
-    vk_vertex_input_attribute_description->offset = fs_vertex_input_attribute_description->offset;
+    vk_vertex_input_attribute_description->location = TI_JSON_INT(js_vertex_input_attribute_description, "location");
+    vk_vertex_input_attribute_description->binding = TI_JSON_INT(js_vertex_input_attribute_description, "binding");
+    vk_vertex_input_attribute_description->format = g_vk_format_table[TI_JSON_INT(js_vertex_input_attribute_description, "format_index")].value;
+    vk_vertex_input_attribute_description->offset = TI_JSON_INT(js_vertex_input_attribute_description, "offset");
 
     vertex_input_attribute_description_index++;
   }
@@ -356,7 +375,7 @@ static void create_default_pipeline(vk_pipeline_t *pipeline) {
 
   VkPipelineInputAssemblyStateCreateInfo pipeline_input_assembly_state_create_info = {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-    .topology = g_vk_primitive_topology_table[pipeline->config->primitive_topology_index].value,
+    .topology = g_vk_primitive_topology_table[TI_JSON_INT(pipeline->config, "primitive_topology_index")].value,
     .primitiveRestartEnable = 0,
   };
 
@@ -390,9 +409,9 @@ static void create_default_pipeline(vk_pipeline_t *pipeline) {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
     .depthClampEnable = 0,
     .rasterizerDiscardEnable = 0,
-    .polygonMode = g_vk_polygon_mode_table[pipeline->config->polygon_mode_index].value,
+    .polygonMode = g_vk_polygon_mode_table[TI_JSON_INT(pipeline->config, "polygon_mode_index")].value,
     .lineWidth = 1.0F,
-    .cullMode = pipeline->config->cull_mode_flags,
+    .cullMode = TI_JSON_INT(pipeline->config, "cull_mode_flags"),
     .frontFace = VK_FRONT_FACE_CLOCKWISE,
     .depthBiasEnable = 0,
     .depthBiasConstantFactor = 0.0F,
@@ -412,7 +431,7 @@ static void create_default_pipeline(vk_pipeline_t *pipeline) {
 
   VkPipelineColorBlendAttachmentState pipeline_color_blend_attachment_state = {
     .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-    .blendEnable = pipeline->config->enable_blending,
+    .blendEnable = TI_JSON_INT(pipeline->config, "enable_blending"),
     .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
     .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
     .colorBlendOp = VK_BLEND_OP_ADD,
@@ -423,8 +442,8 @@ static void create_default_pipeline(vk_pipeline_t *pipeline) {
 
   VkPipelineDepthStencilStateCreateInfo pipeline_depth_stencil_state_create_info = {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-    .depthTestEnable = pipeline->config->enable_depth_test,
-    .depthWriteEnable = pipeline->config->enable_depth_write,
+    .depthTestEnable = TI_JSON_INT(pipeline->config, "enable_depth_test"),
+    .depthWriteEnable = TI_JSON_INT(pipeline->config, "enable_depth_write"),
     .depthCompareOp = VK_COMPARE_OP_LESS,
     .depthBoundsTestEnable = 0,
     .stencilTestEnable = 0,
@@ -455,7 +474,7 @@ static void create_default_pipeline(vk_pipeline_t *pipeline) {
     .dynamicStateCount = TI_ARRAY_COUNT(dynamic_state),
   };
 
-  vk_renderpass_t *renderpass = (vk_renderpass_t *)idb_reference(pipeline->config->renderpass.reference_path);
+  pipeline->renderpass_hdl = adb_handle(pipeline->hash, TI_JSON_STRING(pipeline->config, "renderpass"));
 
   VkGraphicsPipelineCreateInfo graphics_pipeline_create_info = {
     .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -470,15 +489,15 @@ static void create_default_pipeline(vk_pipeline_t *pipeline) {
     .pColorBlendState = &pipeline_color_blend_state_create_info,
     .pDynamicState = &pipeline_dynamic_state_create_info,
     .layout = pipeline->pipeline_layout,
-    .renderPass = renderpass->handle,
+    .renderPass = ((vk_renderpass_t *)pipeline->renderpass_hdl->instance)->renderpass,
     .subpass = 0,
     .basePipelineHandle = 0,
   };
 
-  TI_VK_CHECK(vkCreateGraphicsPipelines(g_vk_instance.device, 0, 1, &graphics_pipeline_create_info, 0, &pipeline->pipeline_handle));
+  TI_VK_CHECK(vkCreateGraphicsPipelines(g_vk_instance->device, 0, 1, &graphics_pipeline_create_info, 0, &pipeline->pipeline));
 
-  vkDestroyShaderModule(g_vk_instance.device, vertex_module, 0);
-  vkDestroyShaderModule(g_vk_instance.device, fragment_module, 0);
+  vkDestroyShaderModule(g_vk_instance->device, vertex_module, 0);
+  vkDestroyShaderModule(g_vk_instance->device, fragment_module, 0);
 }
 static void create_mesh_pipeline(vk_pipeline_t *pipeline) {
   VkShaderModule task_module = 0;
@@ -590,9 +609,9 @@ static void create_mesh_pipeline(vk_pipeline_t *pipeline) {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
     .depthClampEnable = 0,
     .rasterizerDiscardEnable = 0,
-    .polygonMode = g_vk_polygon_mode_table[pipeline->config->polygon_mode_index].value,
+    .polygonMode = g_vk_polygon_mode_table[TI_JSON_INT(pipeline->config, "polygon_mode_index")].value,
     .lineWidth = 1.0F,
-    .cullMode = pipeline->config->cull_mode_flags,
+    .cullMode = TI_JSON_INT(pipeline->config, "cull_mode_flags"),
     .frontFace = VK_FRONT_FACE_CLOCKWISE,
     .depthBiasEnable = 0,
     .depthBiasConstantFactor = 0.0F,
@@ -612,7 +631,7 @@ static void create_mesh_pipeline(vk_pipeline_t *pipeline) {
 
   VkPipelineColorBlendAttachmentState pipeline_color_blend_attachment_state = {
     .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-    .blendEnable = pipeline->config->enable_blending,
+    .blendEnable = TI_JSON_INT(pipeline->config, "enable_blending"),
     .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
     .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
     .colorBlendOp = VK_BLEND_OP_ADD,
@@ -623,8 +642,8 @@ static void create_mesh_pipeline(vk_pipeline_t *pipeline) {
 
   VkPipelineDepthStencilStateCreateInfo pipeline_depth_stencil_state_create_info = {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-    .depthTestEnable = pipeline->config->enable_depth_test,
-    .depthWriteEnable = pipeline->config->enable_depth_write,
+    .depthTestEnable = TI_JSON_INT(pipeline->config, "enable_depth_test"),
+    .depthWriteEnable = TI_JSON_INT(pipeline->config, "enable_depth_write"),
     .depthCompareOp = VK_COMPARE_OP_LESS,
     .depthBoundsTestEnable = 0,
     .stencilTestEnable = 0,
@@ -655,7 +674,7 @@ static void create_mesh_pipeline(vk_pipeline_t *pipeline) {
     .dynamicStateCount = TI_ARRAY_COUNT(dynamic_state),
   };
 
-  vk_renderpass_t *renderpass = (vk_renderpass_t *)idb_reference(pipeline->config->renderpass.reference_path);
+  pipeline->renderpass_hdl = adb_handle(pipeline->hash, TI_JSON_STRING(pipeline->config, "renderpass"));
 
   VkGraphicsPipelineCreateInfo graphics_pipeline_create_info = {
     .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -670,16 +689,16 @@ static void create_mesh_pipeline(vk_pipeline_t *pipeline) {
     .pColorBlendState = &pipeline_color_blend_state_create_info,
     .pDynamicState = &pipeline_dynamic_state_create_info,
     .layout = pipeline->pipeline_layout,
-    .renderPass = renderpass->handle,
+    .renderPass = ((vk_renderpass_t *)pipeline->renderpass_hdl->instance)->renderpass,
     .subpass = 0,
     .basePipelineHandle = 0,
   };
 
-  TI_VK_CHECK(vkCreateGraphicsPipelines(g_vk_instance.device, 0, 1, &graphics_pipeline_create_info, 0, &pipeline->pipeline_handle));
+  TI_VK_CHECK(vkCreateGraphicsPipelines(g_vk_instance->device, 0, 1, &graphics_pipeline_create_info, 0, &pipeline->pipeline));
 
-  vkDestroyShaderModule(g_vk_instance.device, task_module, 0);
-  vkDestroyShaderModule(g_vk_instance.device, mesh_module, 0);
-  vkDestroyShaderModule(g_vk_instance.device, fragment_module, 0);
+  vkDestroyShaderModule(g_vk_instance->device, task_module, 0);
+  vkDestroyShaderModule(g_vk_instance->device, mesh_module, 0);
+  vkDestroyShaderModule(g_vk_instance->device, fragment_module, 0);
 }
 static void create_ray_tracing_pipeline(vk_pipeline_t *pipeline) {
   VkShaderModule ray_gen_module = 0;
@@ -827,12 +846,12 @@ static void create_ray_tracing_pipeline(vk_pipeline_t *pipeline) {
     .basePipelineIndex = 0,
   };
 
-  TI_VK_CHECK(vkCreateRayTracingPipelinesKHR_proc(g_vk_instance.device, 0, 0, 1, &ray_tracing_pipeline_create_info, 0, &pipeline->pipeline_handle));
+  TI_VK_CHECK(g_vk_instance->create_ray_tracing_pipelines_khr_proc(g_vk_instance->device, 0, 0, 1, &ray_tracing_pipeline_create_info, 0, &pipeline->pipeline));
 
-  vkDestroyShaderModule(g_vk_instance.device, ray_gen_module, 0);
-  vkDestroyShaderModule(g_vk_instance.device, ray_miss_module, 0);
-  vkDestroyShaderModule(g_vk_instance.device, ray_intersect_module, 0);
-  vkDestroyShaderModule(g_vk_instance.device, ray_closest_hit_module, 0);
+  vkDestroyShaderModule(g_vk_instance->device, ray_gen_module, 0);
+  vkDestroyShaderModule(g_vk_instance->device, ray_miss_module, 0);
+  vkDestroyShaderModule(g_vk_instance->device, ray_intersect_module, 0);
+  vkDestroyShaderModule(g_vk_instance->device, ray_closest_hit_module, 0);
 }
 static void create_compute_pipeline(vk_pipeline_t *pipeline) {
   VkShaderModule compute_module = 0;
@@ -870,12 +889,12 @@ static void create_compute_pipeline(vk_pipeline_t *pipeline) {
     .stage = pipeline_shader_stage_create_info,
   };
 
-  TI_VK_CHECK(vkCreateComputePipelines(g_vk_instance.device, 0, 1, &compute_pipeline_create_info, 0, &pipeline->pipeline_handle));
+  TI_VK_CHECK(vkCreateComputePipelines(g_vk_instance->device, 0, 1, &compute_pipeline_create_info, 0, &pipeline->pipeline));
 
-  vkDestroyShaderModule(g_vk_instance.device, compute_module, 0);
+  vkDestroyShaderModule(g_vk_instance->device, compute_module, 0);
 }
 
 static void destroy_sbt_buffer(vk_pipeline_t *pipeline) {
-  vkFreeMemory(g_vk_instance.device, pipeline->sbt_device_memory, 0);
-  vkDestroyBuffer(g_vk_instance.device, pipeline->sbt_buffer_handle, 0);
+  vkFreeMemory(g_vk_instance->device, pipeline->sbt_device_memory, 0);
+  vkDestroyBuffer(g_vk_instance->device, pipeline->sbt_buffer, 0);
 }

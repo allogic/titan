@@ -1,60 +1,46 @@
 #include <vulkan/ti_vk_framebuffer.h>
 
-void vk_framebuffer_create(vk_framebuffer_t *framebuffer, fs_framebuffer_t *config) {
-  framebuffer->config = config;
+void vk_framebuffer_create(vk_framebuffer_t *framebuffer) {
+  cJSON *color_attachment = TI_JSON_ITEM(framebuffer->config, "color_attachment");
 
-  uint64_t image_attachment_view_count = framebuffer->config->color_attachment_count + 1;
+  uint32_t attachment_index = 0;
+  uint32_t attachment_count = TI_JSON_ARRAY_COUNT(color_attachment);
 
-  VkImageView *image_attachment_view = TI_ALLOC(sizeof(VkImageView) * image_attachment_view_count, 0, 0);
+  VkImageView *attachment_view = TI_ALLOC(sizeof(VkImageView) * (attachment_count + 1), 0, 0);
 
-  framebuffer->color_attachment = (vk_image_t **)TI_ALLOC(sizeof(vk_image_t *) * framebuffer->config->color_attachment_count, 0, 0);
-
-  uint64_t attachment_index = 0;
-  uint64_t attachment_count = framebuffer->config->color_attachment_count;
+  framebuffer->color_attachment_hdl = (asset_handle_t **)TI_ALLOC(sizeof(asset_handle_t *) * attachment_count, 0, 0);
 
   while (attachment_index < attachment_count) {
 
-    framebuffer->color_attachment[attachment_index] = (vk_image_t *)idb_reference(framebuffer, framebuffer->config->color_attachment[attachment_index].reference_path);
+    framebuffer->color_attachment_hdl[attachment_index] = adb_handle(framebuffer->hash, TI_JSON_ARRAY_STRING(color_attachment, attachment_index));
 
-    image_attachment_view[attachment_index] = framebuffer->color_attachment[attachment_index]->image_view;
+    attachment_view[attachment_index] = ((vk_image_t *)framebuffer->color_attachment_hdl[attachment_index]->instance)->image_view;
 
     attachment_index++;
   }
 
-  framebuffer->depth_attachment = (vk_image_t *)idb_reference(framebuffer, framebuffer->config->depth_attachment.reference_path);
+  framebuffer->depth_attachment_hdl = adb_handle(framebuffer->hash, TI_JSON_STRING(framebuffer->config, "depth_attachment"));
 
-  image_attachment_view[image_attachment_view_count - 1] = framebuffer->depth_attachment->image_view;
+  attachment_view[attachment_count] = ((vk_image_t *)framebuffer->depth_attachment_hdl->instance)->image_view;
 
-  vk_renderpass_t *renderpass = (vk_renderpass_t *)idb_reference(framebuffer, framebuffer->config->renderpass.reference_path);
+  asset_handle_t *renderpass_hdl = adb_handle(framebuffer->hash, TI_JSON_STRING(framebuffer->config, "renderpass"));
 
   VkFramebufferCreateInfo frame_buffer_create_info = {
     .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-    .renderPass = renderpass->handle,
-    .pAttachments = image_attachment_view,
-    .attachmentCount = (uint32_t)image_attachment_view_count,
-    .width = framebuffer->config->width,
-    .height = framebuffer->config->height,
+    .renderPass = ((vk_renderpass_t *)renderpass_hdl->instance)->renderpass,
+    .pAttachments = attachment_view,
+    .attachmentCount = attachment_count + 1,
+    .width = TI_JSON_INT(framebuffer->config, "width"),
+    .height = TI_JSON_INT(framebuffer->config, "height"),
     .layers = 1,
   };
 
-  TI_VK_CHECK(vkCreateFramebuffer(g_vk_instance.device, &frame_buffer_create_info, 0, &framebuffer->handle));
+  TI_VK_CHECK(vkCreateFramebuffer(g_vk_instance->device, &frame_buffer_create_info, 0, &framebuffer->framebuffer));
 
-  TI_FREE(image_attachment_view);
+  TI_FREE(attachment_view);
 }
 void vk_framebuffer_destroy(vk_framebuffer_t *framebuffer) {
-  vkDestroyFramebuffer(g_vk_instance.device, framebuffer->handle, 0);
+  vkDestroyFramebuffer(g_vk_instance->device, framebuffer->framebuffer, 0);
 
-  uint64_t attachment_index = 0;
-  uint64_t attachment_count = framebuffer->config->color_attachment_count;
-
-  while (attachment_index < attachment_count) {
-
-    idb_dereference(framebuffer->color_attachment[attachment_index]);
-
-    attachment_index++;
-  }
-
-  idb_dereference(framebuffer->depth_attachment[attachment_index]);
-
-  TI_FREE(framebuffer->color_attachment);
+  TI_FREE(framebuffer->color_attachment_hdl);
 }

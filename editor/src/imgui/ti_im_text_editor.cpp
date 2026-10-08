@@ -9,7 +9,6 @@ static void draw_background(void);
 static TextEditor s_text_editor = {};
 
 static char s_asset_path[TI_PATH_SIZE] = {};
-static fs_asset_t *s_asset = 0;
 
 void im_text_editor_setup(void) {
   TextEditor::Palette palette = {{
@@ -51,6 +50,7 @@ void im_text_editor_setup(void) {
   s_text_editor.SetShowTabsEnabled(true);
 }
 void im_text_editor_open(char const *asset_path) {
+  /*
   if (s_asset) {
 
     fs_asset_destroy(s_asset);
@@ -82,13 +82,10 @@ void im_text_editor_open(char const *asset_path) {
       break;
     }
   }
+  */
 }
 void im_text_editor_close(void) {
-  fs_asset_destroy(s_asset);
-
-  if (s_asset) {
-    TI_FREE(s_asset);
-  }
+  // TODO
 }
 void im_text_editor_draw(void) {
   ImGui::Begin("Text Editor", 0, ImGuiWindowFlags_NoDecoration);
@@ -97,55 +94,58 @@ void im_text_editor_draw(void) {
 
   if (ImGui::Button("Save")) {
 
-    fs_script_t *script = (fs_script_t *)s_asset->instance;
-
-    if (script->source_buffer) {
-      TI_FREE(script->source_buffer);
-    }
-
-    std::string source = s_text_editor.GetText();
-
-    script->source_buffer_size = source.size() + 1;
-    script->source_buffer = TI_ALLOC(script->source_buffer_size, 0, 0);
-
-    memcpy(script->source_buffer, source.c_str(), script->source_buffer_size);
-
-    ((char *)script->source_buffer)[script->source_buffer_size - 1] = 0;
-
-    fs_asset_store(s_asset);
+    // TODO
+    // fs_script_t *script = (fs_script_t *)s_asset->instance;
+    //
+    // if (script->source_buffer) {
+    //   TI_FREE(script->source_buffer);
+    // }
+    //
+    // std::string source = s_text_editor.GetText();
+    //
+    // script->source_buffer_size = source.size() + 1;
+    // script->source_buffer = TI_ALLOC(script->source_buffer_size, 0, 0);
+    //
+    // memcpy(script->source_buffer, source.c_str(), script->source_buffer_size);
+    //
+    // ((char *)script->source_buffer)[script->source_buffer_size - 1] = 0;
+    //
+    // fs_asset_store(s_asset);
   }
 
   ImGui::SameLine();
 
   if (ImGui::Button("Compile")) {
 
-    fs_script_t *script = (fs_script_t *)s_asset->instance;
-
-    if (script->object_buffer) {
-      TI_FREE(script->object_buffer);
-    }
-
-    clang_compile((char const *)script->source_buffer, &script->object_buffer, &script->object_buffer_size);
-
-    fs_asset_store(s_asset);
+    // TODO
+    // fs_script_t *script = (fs_script_t *)s_asset->instance;
+    //
+    // if (script->object_buffer) {
+    //   TI_FREE(script->object_buffer);
+    // }
+    //
+    // clang_compile((char const *)script->source_buffer, &script->object_buffer, &script->object_buffer_size);
+    //
+    // fs_asset_store(s_asset);
   }
 
   ImGui::SameLine();
 
   if (ImGui::Button("Execute")) {
 
-    fs_script_t *script = (fs_script_t *)s_asset->instance;
-
-    cl_module_t module = {0};
-
-    clang_load(&module, script->object_buffer, script->object_buffer_size);
-
-    module.on_create_proc();
-    module.on_play_proc();
-    module.on_stop_proc();
-    module.on_destroy_proc();
-
-    clang_unload(&module);
+    // TODO
+    // fs_script_t *script = (fs_script_t *)s_asset->instance;
+    //
+    // cl_module_t module = {0};
+    //
+    // clang_load(&module, script->object_buffer, script->object_buffer_size);
+    //
+    // module.on_create_proc();
+    // module.on_play_proc();
+    // module.on_stop_proc();
+    // module.on_destroy_proc();
+    //
+    // clang_unload(&module);
   }
 
   ImGui::PushStyleColor(ImGuiCol_NavCursor, IM_COL32(0, 0, 0, 0));
@@ -167,13 +167,6 @@ void im_text_editor_refresh(void) {
   // TODO
 }
 void im_text_editor_reset(void) {
-  if (s_asset) {
-
-    fs_asset_destroy(s_asset);
-
-    TI_FREE(s_asset);
-  }
-
   s_text_editor.ClearText();
 
   s_asset_path[0] = 0;

@@ -7,7 +7,7 @@
 extern "C" {
 #endif // __cplusplus
 
-void vk_swapchain_create(vk_swapchain_t *swapchain, fs_swapchain_t *config);
+void vk_swapchain_create(vk_swapchain_t *swapchain);
 void vk_swapchain_destroy(vk_swapchain_t *swapchain);
 
 #ifdef __cplusplus

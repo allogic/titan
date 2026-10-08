@@ -17,7 +17,7 @@ static uint8_t s_refresh_entries = 1;
 static im_file_entry_t *s_root_file = 0;
 static im_file_entry_t *s_selected_file = 0;
 
-static fs_asset_type_t s_new_asset_type = FS_ASSET_TYPE_NONE;
+static asset_type_t s_new_asset_type = ASSET_TYPE_NONE;
 static im_file_type_t s_new_file_type = IM_FILE_TYPE_NONE;
 static char s_new_file_name[TI_PATH_SIZE] = {0};
 
@@ -75,7 +75,7 @@ void im_filesystem_reset(void) {
   s_root_file = 0;
   s_selected_file = 0;
 
-  s_new_asset_type = FS_ASSET_TYPE_NONE;
+  s_new_asset_type = ASSET_TYPE_NONE;
   s_new_file_type = IM_FILE_TYPE_NONE;
   s_new_file_name[0] = 0;
 }
@@ -87,7 +87,7 @@ static void check_background_clicks(void) {
 
     s_selected_file = 0;
 
-    s_new_asset_type = FS_ASSET_TYPE_NONE;
+    s_new_asset_type = ASSET_TYPE_NONE;
     s_new_file_type = IM_FILE_TYPE_NONE;
     s_new_file_name[0] = 0;
 
@@ -140,7 +140,7 @@ static void draw_tree(im_file_entry_t *file_entry) {
 
     s_selected_file = file_entry;
 
-    s_new_asset_type = FS_ASSET_TYPE_NONE;
+    s_new_asset_type = ASSET_TYPE_NONE;
     s_new_file_type = IM_FILE_TYPE_NONE;
     s_new_file_name[0] = 0;
 
@@ -151,6 +151,7 @@ static void draw_tree(im_file_entry_t *file_entry) {
     } else {
 
       // TODO
+      /*
       // im_text_editor_reset();
 
       fs_asset_t asset = {
@@ -165,7 +166,7 @@ static void draw_tree(im_file_entry_t *file_entry) {
 
       switch (asset.type) {
 
-        case FS_ASSET_TYPE_SCRIPT: {
+        case ASSET_TYPE_SCRIPT: {
 
           im_text_editor_open(file_entry->path);
 
@@ -176,6 +177,7 @@ static void draw_tree(im_file_entry_t *file_entry) {
       }
 
       fs_asset_destroy(&asset);
+      */
     }
   }
 
@@ -231,7 +233,7 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
 
           file_entry->should_open = 1;
 
-          s_new_asset_type = FS_ASSET_TYPE_NONE;
+          s_new_asset_type = ASSET_TYPE_NONE;
           s_new_file_type = IM_FILE_TYPE_FOLDER;
           s_new_file_name[0] = 0;
         }
@@ -244,7 +246,7 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
 
           file_entry->should_open = 1;
 
-          s_new_asset_type = FS_ASSET_TYPE_MODEL;
+          s_new_asset_type = ASSET_TYPE_MODEL;
           s_new_file_type = IM_FILE_TYPE_ASSET;
           s_new_file_name[0] = 0;
         }
@@ -254,7 +256,7 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
 
           file_entry->should_open = 1;
 
-          s_new_asset_type = FS_ASSET_TYPE_PIPELINE;
+          s_new_asset_type = ASSET_TYPE_PIPELINE;
           s_new_file_type = IM_FILE_TYPE_ASSET;
           s_new_file_name[0] = 0;
         }
@@ -264,7 +266,7 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
 
           file_entry->should_open = 1;
 
-          s_new_asset_type = FS_ASSET_TYPE_FONT;
+          s_new_asset_type = ASSET_TYPE_FONT;
           s_new_file_type = IM_FILE_TYPE_ASSET;
           s_new_file_name[0] = 0;
         }
@@ -277,7 +279,7 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
 
           file_entry->should_open = 1;
 
-          s_new_asset_type = FS_ASSET_TYPE_INPUT_VARIABLE;
+          s_new_asset_type = ASSET_TYPE_INPUT_VARIABLE;
           s_new_file_type = IM_FILE_TYPE_ASSET;
           s_new_file_name[0] = 0;
         }
@@ -287,7 +289,7 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
 
           file_entry->should_open = 1;
 
-          s_new_asset_type = FS_ASSET_TYPE_DESCRIPTOR_BINDING;
+          s_new_asset_type = ASSET_TYPE_DESCRIPTOR_BINDING;
           s_new_file_type = IM_FILE_TYPE_ASSET;
           s_new_file_name[0] = 0;
         }
@@ -297,7 +299,7 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
 
           file_entry->should_open = 1;
 
-          s_new_asset_type = FS_ASSET_TYPE_BUFFER;
+          s_new_asset_type = ASSET_TYPE_BUFFER;
           s_new_file_type = IM_FILE_TYPE_ASSET;
           s_new_file_name[0] = 0;
         }
@@ -307,7 +309,7 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
 
           file_entry->should_open = 1;
 
-          s_new_asset_type = FS_ASSET_TYPE_IMAGE;
+          s_new_asset_type = ASSET_TYPE_IMAGE;
           s_new_file_type = IM_FILE_TYPE_ASSET;
           s_new_file_name[0] = 0;
         }
@@ -317,7 +319,7 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
 
           file_entry->should_open = 1;
 
-          s_new_asset_type = FS_ASSET_TYPE_FRAMEBUFFER;
+          s_new_asset_type = ASSET_TYPE_FRAMEBUFFER;
           s_new_file_type = IM_FILE_TYPE_ASSET;
           s_new_file_name[0] = 0;
         }
@@ -327,7 +329,7 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
 
           file_entry->should_open = 1;
 
-          s_new_asset_type = FS_ASSET_TYPE_RENDERPASS;
+          s_new_asset_type = ASSET_TYPE_RENDERPASS;
           s_new_file_type = IM_FILE_TYPE_ASSET;
           s_new_file_name[0] = 0;
         }
@@ -340,7 +342,7 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
 
           file_entry->should_open = 1;
 
-          s_new_asset_type = FS_ASSET_TYPE_SCRIPT;
+          s_new_asset_type = ASSET_TYPE_SCRIPT;
           s_new_file_type = IM_FILE_TYPE_ASSET;
           s_new_file_name[0] = 0;
         }
@@ -353,7 +355,7 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
 
           file_entry->should_open = 1;
 
-          s_new_asset_type = FS_ASSET_TYPE_SOUND;
+          s_new_asset_type = ASSET_TYPE_SOUND;
           s_new_file_type = IM_FILE_TYPE_ASSET;
           s_new_file_name[0] = 0;
         }
@@ -420,7 +422,8 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
 
       if (s_selected_file) {
 
-        fs_remove_recursive(g_fs_context, file_entry->path);
+        // TODO
+        // fs_remove_recursive(g_fs_context, file_entry->path);
 
         s_selected_file = 0;
 
@@ -436,7 +439,7 @@ static void draw_context_menu(im_file_entry_t *file_entry) {
   ImGui::PopStyleVar(5);
 }
 static void draw_text_input(im_file_entry_t *file_entry) {
-  if ((file_entry == s_selected_file) && (s_new_file_type != FS_ASSET_TYPE_NONE)) {
+  if ((file_entry == s_selected_file) && (s_new_file_type != ASSET_TYPE_NONE)) {
 
     float width = ImGui::GetContentRegionAvail().x;
 
@@ -455,37 +458,39 @@ static void draw_text_input(im_file_entry_t *file_entry) {
 
         case IM_FILE_TYPE_FOLDER: {
 
-          if (fs_mkdir_recursive(g_fs_context, file_path, FS_READ | FS_WRITE) == FS_SUCCESS) {
-
-            // TODO
-          }
+          // TODO
+          // if (fs_mkdir_recursive(g_fs_context, file_path, FS_READ | FS_WRITE) == FS_SUCCESS) {
+          //
+          //   // TODO
+          // }
 
           break;
         }
         case IM_FILE_TYPE_ASSET: {
 
-          fs_asset_t asset = {
-            .magic = TI_FS_ASSET_MAGIC,
-            .type = s_new_asset_type,
-            .path = file_path,
-          };
-
-          fs_asset_create(&asset);
-          fs_asset_store(&asset);
-          fs_asset_destroy(&asset);
+          // TODO
+          // fs_asset_t asset = {
+          //   .magic = TI_FS_ASSET_MAGIC,
+          //   .type = s_new_asset_type,
+          //   .path = file_path,
+          // };
+          //
+          // fs_asset_create(&asset);
+          // fs_asset_store(&asset);
+          // fs_asset_destroy(&asset);
 
           break;
         }
       }
 
-      s_new_asset_type = FS_ASSET_TYPE_NONE;
+      s_new_asset_type = ASSET_TYPE_NONE;
       s_new_file_type = IM_FILE_TYPE_NONE;
       s_new_file_name[0] = 0;
     }
 
     if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
 
-      s_new_asset_type = FS_ASSET_TYPE_NONE;
+      s_new_asset_type = ASSET_TYPE_NONE;
       s_new_file_type = IM_FILE_TYPE_NONE;
       s_new_file_name[0] = 0;
     }
@@ -495,6 +500,8 @@ static void draw_text_input(im_file_entry_t *file_entry) {
 }
 
 static void collect_children(im_file_entry_t *file_entry) {
+  // TODO
+  /*
   fs_iterator *dir_it = 0;
 
   dir_it = fs_first(g_fs_context, file_entry->path, FS_READ);
@@ -533,6 +540,7 @@ static void collect_children(im_file_entry_t *file_entry) {
 
     child_index++;
   }
+  */
 }
 static void destroy_children(im_file_entry_t *file_entry) {
   uint64_t child_index = 0;

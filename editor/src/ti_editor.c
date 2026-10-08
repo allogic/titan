@@ -13,6 +13,9 @@
 // TODO: create asset database..
 // TODO: create a proper import dialog for every type..
 // TODO: replace every uint8_t with bool32_t..
+// TODO: remove all fs_ references..
+// TODO: re-validate all adb_handle's..
+// TODO: ditch tha whole filesystem and reimplement it by hand on every major platform..
 
 static void import_default_assets(void);
 static void create_default_assets(void);
@@ -26,40 +29,18 @@ int32_t main(int32_t argc, char **argv) {
   g_window.editor_message_proc = im_context_message;
   g_window.editor_viewport_update_proc = im_viewport_update;
 
-  map64_t map = {0};
-
-  map64_create(&map);
-
-  uint64_t index = 0;
-  uint64_t count = 4096;
-
-  while (index < count) {
-
-    map64_insert(&map, index, index);
-
-    index++;
-  }
-
-  map64_iter_t it = map64_iter(&map);
-
-  while (map64_next(&it)) {
-
-    printf("%llu -> %llu\n", it.table_record->key, it.table_record->value);
-  }
-
-  map64_destroy(&map);
-
   __try {
 
-    fs_create(ROOT_DIR "/static", ROOT_DIR "/asset");
-    idb_create();
+    // fs_create(ROOT_DIR "/static", ROOT_DIR "/asset");
+    adb_create();
     clang_create();
     audio_create();
     // TODO: Add missing ti_audio_demo_create()
     ph_world_create();
 
-    import_default_assets();
-    create_default_assets();
+    // TODO
+    // import_default_assets();
+    // create_default_assets();
 
     scene_create(&g_scene);
 
@@ -74,8 +55,8 @@ int32_t main(int32_t argc, char **argv) {
     ti_audio_demo_destroy(); // TODO
     audio_destroy();
     clang_destroy();
-    idb_destroy();
-    fs_destroy();
+    adb_destroy();
+    // fs_destroy();
 
   } __except (EXCEPTION_EXECUTE_HANDLER) {
 
@@ -87,6 +68,7 @@ int32_t main(int32_t argc, char **argv) {
   return 0;
 }
 
+/*
 static void import_default_assets(void) {
   // Sounds
   {
@@ -1024,3 +1006,4 @@ static void create_default_assets(void) {
     }
   }
 }
+*/

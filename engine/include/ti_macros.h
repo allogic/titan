@@ -28,4 +28,15 @@
 #  define TI_ALIGN_OF(T) _Alignof(T)
 #endif // COMPILER_SELECTION
 
+#define TI_JSON_ITEM(JSON, KEY) (cJSON_GetObjectItemCaseSensitive(JSON, KEY))
+#define TI_JSON_INT(JSON, KEY) (cJSON_GetObjectItemCaseSensitive(JSON, KEY)->valueint)
+#define TI_JSON_DOUBLE(JSON, KEY) (cJSON_GetObjectItemCaseSensitive(JSON, KEY)->valuedouble)
+#define TI_JSON_STRING(JSON, KEY) (cJSON_GetObjectItemCaseSensitive(JSON, KEY)->valuestring)
+
+#define TI_JSON_ARRAY_COUNT(JSON) (cJSON_GetArraySize(JSON))
+#define TI_JSON_ARRAY_ITEM(JSON, INDEX) (cJSON_GetArrayItem(JSON, INDEX))
+#define TI_JSON_ARRAY_INT(JSON, INDEX) (cJSON_GetArrayItem(JSON, INDEX)->valueint)
+#define TI_JSON_ARRAY_DOUBLE(JSON, INDEX) (cJSON_GetArrayItem(JSON, INDEX)->valuedouble)
+#define TI_JSON_ARRAY_STRING(JSON, INDEX) (cJSON_GetArrayItem(JSON, INDEX)->valuestring)
+
 #endif // TI_MACROS_H

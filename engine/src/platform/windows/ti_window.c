@@ -1,5 +1,7 @@
 #include <platform/windows/ti_window.h>
 
+#define TI_WINDOW_MAX_DELTA_TIME (0.1F)
+
 static LRESULT message_proc(HWND window_handle, UINT window_message, WPARAM w_param, LPARAM l_param);
 
 // TODO: config this bitch..
@@ -63,7 +65,7 @@ void window_run(void) {
   QueryPerformanceCounter((PLARGE_INTEGER)&g_window.time_prev);
 
   if (g_window.editor_viewport_update_proc) {
-    g_window.editor_viewport_update_proc(&g_vk_viewport);
+    g_window.editor_viewport_update_proc(g_vk_viewport);
   }
 
   while (g_window.is_running) {
@@ -118,44 +120,38 @@ void window_run(void) {
     fvec4_t green = {0.0F, 1.0F, 0.0F, 1.0F};
     fvec4_t blue = {0.0F, 0.0F, 1.0F, 1.0F};
 
-    vk_renderer_draw_debug_line(&g_vk_renderer, center, right, red);
-    vk_renderer_draw_debug_line(&g_vk_renderer, center, up, green);
-    vk_renderer_draw_debug_line(&g_vk_renderer, center, forward, blue);
+    vk_renderer_draw_debug_line(g_vk_renderer, center, right, red);
+    vk_renderer_draw_debug_line(g_vk_renderer, center, up, green);
+    vk_renderer_draw_debug_line(g_vk_renderer, center, forward, blue);
 
-    vk_renderer_draw(&g_vk_renderer);
+    vk_renderer_draw(g_vk_renderer);
 
     QueryPerformanceCounter((PLARGE_INTEGER)&g_window.time_curr);
 
-    vk_framebuffer_t *main_framebuffer = (vk_framebuffer_t *)g_vk_main_framebuffer->instance;
+    vk_framebuffer_t *main_framebuffer = (vk_framebuffer_t *)g_vk_renderer->main_framebuffer_hdl->instance;
 
     if (main_framebuffer->is_dirty) {
 
       main_framebuffer->is_dirty = 0;
 
-      TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance.primary_queue));
-      TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance.present_queue));
+      TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance->primary_queue));
+      TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance->present_queue));
 
       // TODO
-      //
       // vk_framebuffer_destroy(&g_vk_main_framebuffer);
       // vk_framebuffer_create(&g_vk_main_framebuffer, &g_vk_main_renderpass, g_vk_viewport.width, g_vk_viewport.height, "asset/framebuffer/main.pak");
 
-      idb_destroy_instance(g_vk_main_framebuffer);
-      idb_create_instance(g_vk_main_framebuffer);
-
       if (g_window.editor_viewport_update_proc) {
-        g_window.editor_viewport_update_proc(&g_vk_viewport);
+        g_window.editor_viewport_update_proc(g_vk_viewport);
       }
     }
 
-    vk_swapchain_t *swapchain = (vk_swapchain_t *)g_vk_swapchain->instance;
+    if (g_vk_swapchain->is_dirty) {
 
-    if (swapchain->is_dirty) {
+      g_vk_swapchain->is_dirty = 0;
 
-      swapchain->is_dirty = 0;
-
-      TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance.primary_queue));
-      TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance.present_queue));
+      TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance->primary_queue));
+      TI_VK_CHECK(vkQueueWaitIdle(g_vk_instance->present_queue));
 
       // TODO
 
@@ -168,11 +164,7 @@ void window_run(void) {
       // vk_renderer_destroy(&g_vk_renderer);
       // vk_swapchain_destroy(&g_vk_swapchain);
 
-      idb_destroy_instance(g_vk_swapchain);
-
       vk_context_update();
-
-      idb_create_instance(g_vk_swapchain);
 
       // vk_swapchain_create(&g_vk_swapchain, "asset/swapchain/main.pak");
       // vk_renderer_create(&g_vk_renderer, "asset/renderer/main.pak");
@@ -184,7 +176,7 @@ void window_run(void) {
       // vk_framebuffer_create(&g_vk_imgui_framebuffer, &g_vk_imgui_renderpass, g_window.width, g_window.height, "asset/framebuffer/imgui.pak");
 
       if (g_window.editor_viewport_update_proc) {
-        g_window.editor_viewport_update_proc(&g_vk_viewport);
+        g_window.editor_viewport_update_proc(g_vk_viewport);
       }
     }
 

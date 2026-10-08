@@ -1,6 +1,30 @@
 #ifndef TI_FWD_H
 #define TI_FWD_H
 
+typedef enum asset_type_t {
+  ASSET_TYPE_NONE = 0,
+  ASSET_TYPE_INSTANCE,
+  ASSET_TYPE_SWAPCHAIN,
+  ASSET_TYPE_BUFFER,
+  ASSET_TYPE_MODEL,
+  ASSET_TYPE_PIPELINE,
+  ASSET_TYPE_FONT,
+  ASSET_TYPE_DESCRIPTOR_BINDING,
+  ASSET_TYPE_IMAGE,
+  ASSET_TYPE_FRAMEBUFFER,
+  ASSET_TYPE_RENDERPASS,
+  ASSET_TYPE_RENDERER,
+  ASSET_TYPE_INPUT_VARIABLE,
+  ASSET_TYPE_SCRIPT,
+  ASSET_TYPE_SOUND,
+  ASSET_TYPE_COUNT,
+} asset_type_t;
+
+typedef struct enum_record_t {
+  int32_t value;
+  char const *name;
+} enum_record_t;
+
 typedef uint32_t bool32_t;
 
 typedef struct dalloc_t {
@@ -18,6 +42,14 @@ typedef struct dalloc_t {
   uint64_t stack_depth;
   time_t time;
 } dalloc_t;
+
+typedef struct uuid_t {
+  uint8_t bytes[16];
+} uuid_t;
+
+typedef struct sha256_t {
+  uint8_t bytes[32];
+} sha256_t;
 
 typedef struct map64_pool_chunk_t {
   struct map64_pool_chunk_t *next;
@@ -47,6 +79,16 @@ typedef struct map64_iter_t {
   bool32_t first_step;
 } map64_iter_t;
 
+typedef struct asset_handle_t {
+  asset_type_t type;
+  char asset_path[TI_PATH_SIZE];
+  uint64_t hash;
+  uint64_t buffer_size;
+  uint8_t *buffer;
+  cJSON *json;
+  void *instance;
+} asset_handle_t;
+
 typedef struct scene_t {
   char name[TI_PATH_SIZE];
   uint8_t is_running;
@@ -56,13 +98,6 @@ typedef struct scene_t {
   ecs_entity_t main_camera_entity;
   ecs_query_t *root_children;
 } scene_t;
-
-typedef struct handle_t {
-  char asset_path[TI_PATH_SIZE];
-  fs_asset_t asset;
-  void *instance;
-  struct handle_t *dependencies; // TODO
-} handle_t;
 
 typedef void (*on_create_proc_t)(void);
 typedef void (*on_play_proc_t)(void);

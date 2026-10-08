@@ -248,8 +248,6 @@ void ti_physic_demo_draw(void) {
     return;
   }
 
-  g_vk_renderer.is_debug_enabled = 1;
-
   JPH_Vec3 room_size = g_ph_physic_demo.room_size;
   float radius = 0.5F * sqrtf((room_size.x + 2.0F) * (room_size.x + 2.0F) + (room_size.y + 2.0F) * (room_size.y + 2.0F) + (room_size.z + 2.0F) * (room_size.z + 2.0F));
   float aspect_ratio = 1.0F; // (float)g_vk_main_framebuffer.width / g_vk_main_framebuffer.height;
@@ -258,7 +256,7 @@ void ti_physic_demo_draw(void) {
   fvec3_t camera_target = {0.0F, room_size.y * 0.5F, 0.0F};
   fvec3_t camera_position = fvec3_add(camera_target, fvec3_muls(fvec3_norm((fvec3_t){16.0F, 8.0F, -20.0F}), distance));
   fvec3_t camera_direction = fvec3_norm(fvec3_sub(camera_target, camera_position));
-  vk_camera_info_t *camera = g_vk_camera_info_buffer.device_data;
+  vk_camera_info_t *camera = g_vk_camera_info_buffer->device_data;
 
   camera->position = (fvec4_t){camera_position.x, camera_position.y, camera_position.z, 0.0F};
   camera->direction = (fvec4_t){camera_direction.x, camera_direction.y, camera_direction.z, 0.0F};
@@ -346,5 +344,5 @@ static void JPH_API_CALL draw_line(void *user_data, JPH_RVec3 const *from, JPH_R
     ((color >> 24) & 255) / 255.0F,
   };
 
-  vk_renderer_draw_debug_line(&g_vk_renderer, (fvec3_t){from->x, from->y, from->z}, (fvec3_t){to->x, to->y, to->z}, line_color);
+  vk_renderer_draw_debug_line(g_vk_renderer, (fvec3_t){from->x, from->y, from->z}, (fvec3_t){to->x, to->y, to->z}, line_color);
 }

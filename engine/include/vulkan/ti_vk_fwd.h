@@ -1,13 +1,18 @@
 #ifndef TI_VK_FWD_H
 #define TI_VK_FWD_H
 
-typedef struct vk_enum_record_t {
-  int32_t value;
-  char const *name;
-} vk_enum_record_t;
+typedef enum vk_pipeline_type_t {
+  VK_PIPELINE_TYPE_NONE = 0,
+  VK_PIPELINE_TYPE_DEFAULT,
+  VK_PIPELINE_TYPE_MESH,
+  VK_PIPELINE_TYPE_RAY_TRACING,
+  VK_PIPELINE_TYPE_COMPUTE,
+  VK_PIPELINE_TYPE_COUNT,
+} vk_pipeline_type_t;
 
-// TODO: assetify this as well..
 typedef struct vk_instance_t {
+  uint64_t hash;
+  cJSON *config;
   uint32_t min_image_count;
   uint32_t max_image_count;
   uint32_t primary_queue_index;
@@ -28,29 +33,45 @@ typedef struct vk_instance_t {
   VkQueue present_queue;
   VkCommandPool command_pool;
   VkCommandBuffer command_buffer;
+#ifdef BUILD_DEBUG
+  PFN_vkCreateDebugUtilsMessengerEXT create_debug_utils_messenger_ext_proc;
+  PFN_vkDestroyDebugUtilsMessengerEXT destroy_debug_utils_messenger_ext_proc;
+#endif // BUILD_DEBUG
+  PFN_vkCmdDrawMeshTasksEXT cmd_draw_mesh_tasks_ext_proc;
+  PFN_vkCmdTraceRaysKHR cmd_trace_rays_khr_proc;
+  PFN_vkCmdBuildAccelerationStructuresKHR cmd_build_acceleration_structures_khr_proc;
+  PFN_vkCreateAccelerationStructureKHR create_acceleration_structure_khr_proc;
+  PFN_vkCreateRayTracingPipelinesKHR create_ray_tracing_pipelines_khr_proc;
+  PFN_vkGetAccelerationStructureBuildSizesKHR get_acceleration_structure_build_sizes_khr_proc;
+  PFN_vkGetAccelerationStructureDeviceAddressKHR get_acceleration_structure_device_address_khr_proc;
+  PFN_vkGetRayTracingShaderGroupHandlesKHR get_ray_tracing_shader_group_handles_khr_proc;
+  PFN_vkDestroyAccelerationStructureKHR destroy_acceleration_structure_khr_proc;
 } vk_instance_t;
-
 typedef struct vk_swapchain_t {
-  fs_swapchain_t *config;
+  uint64_t hash;
+  cJSON *config;
   uint32_t is_dirty;
   uint32_t image_count;
   VkImage image[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
-  VkSwapchainKHR handle;
+  VkSwapchainKHR swapchain;
 } vk_swapchain_t;
 typedef struct vk_buffer_t {
-  fs_buffer_t *config;
+  uint64_t hash;
+  cJSON *config;
   void *host_data;
   void *device_data;
-  VkBuffer buffer_handle;
+  VkBuffer buffer;
   VkDeviceMemory device_memory;
 } vk_buffer_t;
 typedef struct vk_model_t {
-  fs_model_t *config;
+  uint64_t hash;
+  cJSON *config;
   vk_buffer_t vertex_buffer;
   vk_buffer_t index_buffer;
 } vk_model_t;
 typedef struct vk_pipeline_t {
-  fs_pipeline_t *config;
+  uint64_t hash;
+  cJSON *config;
   char const *vertex_shader;
   char const *task_shader;
   char const *mesh_shader;
@@ -75,8 +96,8 @@ typedef struct vk_pipeline_t {
   VkDescriptorPool descriptor_pool;
   VkDescriptorSetLayout descriptor_set_layout_base;
   VkPipelineLayout pipeline_layout;
-  VkPipeline pipeline_handle;
-  VkBuffer sbt_buffer_handle;
+  VkPipeline pipeline;
+  VkBuffer sbt_buffer;
   VkDeviceMemory sbt_device_memory;
   VkDeviceAddress sbt_device_address;
   uint32_t ray_gen_group_count;
@@ -87,30 +108,36 @@ typedef struct vk_pipeline_t {
   VkStridedDeviceAddressRegionKHR ray_miss_region;
   VkStridedDeviceAddressRegionKHR ray_hit_region;
   VkStridedDeviceAddressRegionKHR callable_region;
+  asset_handle_t *renderpass_hdl;
 } vk_pipeline_t;
 typedef struct vk_font_t {
-  fs_font_t *config;
+  uint64_t hash;
+  cJSON *config;
 } vk_font_t;
 typedef struct vk_descriptor_binding_t {
-  fs_descriptor_binding_t *config;
+  uint64_t hash;
+  cJSON *config;
 } vk_descriptor_binding_t;
 typedef struct vk_image_t {
-  fs_image_t *config;
+  uint64_t hash;
+  cJSON *config;
   VkImageView image_view;
   VkDeviceMemory device_memory;
   VkSampler sampler;
-  VkImage handle;
+  VkImage image;
 } vk_image_t;
 typedef struct vk_framebuffer_t {
-  fs_framebuffer_t *config;
+  uint64_t hash;
+  cJSON *config;
   uint8_t is_dirty;
-  vk_image_t **color_attachment;
-  vk_image_t *depth_attachment;
-  VkFramebuffer handle;
+  VkFramebuffer framebuffer;
+  asset_handle_t **color_attachment_hdl;
+  asset_handle_t *depth_attachment_hdl;
 } vk_framebuffer_t;
 typedef struct vk_renderpass_t {
-  fs_renderpass_t *config;
-  VkRenderPass handle;
+  uint64_t hash;
+  cJSON *config;
+  VkRenderPass renderpass;
 } vk_renderpass_t;
 
 typedef struct vk_time_info_t {
@@ -155,7 +182,8 @@ typedef uint32_t vk_full_screen_index_t;
 typedef uint32_t vk_debug_line_index_t;
 
 typedef struct vk_renderer_t {
-  fs_renderer_t *config;
+  uint64_t hash;
+  cJSON *config;
   uint32_t is_debug_enabled;
   uint32_t image_index;
   uint32_t debug_line_vertex_offset;
@@ -167,11 +195,15 @@ typedef struct vk_renderer_t {
   VkFence frame_fence;
   VkSemaphore render_finished_semaphore[TI_SWAPCHAIN_MAX_IMAGE_COUNT];
   VkSemaphore image_available_semaphore;
-  vk_buffer_t debug_line_vertex_buffer;
-  vk_buffer_t debug_line_index_buffer;
-  vk_buffer_t full_screen_vertex_buffer;
-  vk_buffer_t full_screen_index_buffer;
-  handle_t *debug_line_pipeline;
+  asset_handle_t *main_renderpass_hdl;
+  asset_handle_t *imgui_renderpass_hdl;
+  asset_handle_t *main_framebuffer_hdl;
+  asset_handle_t *imgui_framebuffer_hdl;
+  asset_handle_t *debug_line_vertex_buffer_hdl;
+  asset_handle_t *debug_line_index_buffer_hdl;
+  asset_handle_t *full_screen_vertex_buffer_hdl;
+  asset_handle_t *full_screen_index_buffer_hdl;
+  asset_handle_t *debug_line_pipeline_hdl;
 } vk_renderer_t;
 
 // TODO: move this into the editor..
@@ -180,8 +212,8 @@ typedef struct vk_viewport_t {
   uint32_t height;
   uint32_t mouse_position_x;
   uint32_t mouse_position_y;
-  VkDescriptorSet *color_attachment;
-  VkDescriptorSet *depth_attachment;
+  VkDescriptorSet color_attachment;
+  VkDescriptorSet depth_attachment;
 } vk_viewport_t;
 
 #endif // TI_VK_FWD_H
